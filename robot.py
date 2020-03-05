@@ -15,7 +15,6 @@ from components.shooterMotors import ShooterMotorCreation
 from components.shooterLogic import ShooterLogic
 from components.elevator import Elevator
 from components.scorpionLoader import ScorpionLoader
-from components.breakSensors import BreakSensors, Sensors
 
 # Other imports:
 from robotMap import RobotMap, XboxMap
@@ -35,12 +34,10 @@ class MyRobot(MagicRobot):
     lifter: Lifter
     buttonManager: ButtonManager
     pneumatics: Pneumatics
-    breakSensors: BreakSensors
     elevator: Elevator
     scorpionLoader: ScorpionLoader
 
     sensitivityExponent = tunable(1.8)
-
 
     def createObjects(self):
         """
@@ -78,15 +75,6 @@ class MyRobot(MagicRobot):
         self.buttonManager.registerButtonEvent(self.xboxMap.drive, XboxController.Button.kBumperLeft, ButtonEvent.kOnPress, self.driveTrain.enableCreeperMode)
         self.buttonManager.registerButtonEvent(self.xboxMap.drive, XboxController.Button.kBumperLeft, ButtonEvent.kOnRelease, self.driveTrain.disableCreeperMode)
 
-        # Register sensor events for doof
-        # NOTE: Format: StateMachine used, action title, sensor used, sensor value needed, previous state needed (conditional), state to transition to
-        # NOTE: Action title must include type of action (i.e. 'Loader', 'Shooter', or 'LED') and it MUST have a unique name
-        self.breakSensors.registerSensorEvent(self.shooter, "beginLoader", Sensors.kLoadingSensor, False, None, "autoLoadBall")
-        self.breakSensors.registerSensorEvent(self.shooter, "stopLoader", Sensors.kLoadingSensor, True,  None, "autoIdling")
-        self.breakSensors.registerSensorEvent(self.shooter, "initShooter", Sensors.kShootingSensor, False, "shootInitShooting", "shootReverseLoader")
-        self.breakSensors.registerSensorEvent(self.shooter, "fireShooterAfterInit", Sensors.kShootingSensor, True, "shootReverseLoader", "shootRunShooter")
-        self.breakSensors.registerSensorEvent(self.shooter, "fireShooter", Sensors.kShootingSensor, True, "shootInitShooting", "shootRunShooter")
-
     def teleopPeriodic(self):
         """
         Must include. Called running teleop.
@@ -104,9 +92,6 @@ class MyRobot(MagicRobot):
             self.lifter.stop()
 
         self.scorpionLoader.checkController()
-
-        # self.breakSensors.loadingType()
-
 
     def testInit(self):
         """
