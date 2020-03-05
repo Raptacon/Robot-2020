@@ -1,20 +1,20 @@
-from wpilib import DigitalInput as dio
 from robotMap import XboxMap
-from components.ShooterMotors import ShooterMotorCreation, Direction
+from components.shooterMotors import ShooterMotorCreation, Direction
 from magicbot import StateMachine, state, timed_state, tunable
 import logging
 from enum import IntEnum
 
 class Sensors(IntEnum):
     """Enum for sensors."""
-    kLoadingSensor = 4
-    kShootingSensor = 0
+    kLoadingSensor = 0
+    kShootingSensor = 4
 
 class ShooterLogic(StateMachine):
     """StateMachine-based shooter. Has both manual and automatic modes."""
     compatString = ["doof"]
 
     # Component/module related things
+    digitalInput_breaksensors: dict
     logger: logging
     shooterMotors: ShooterMotorCreation
     xboxMap: XboxMap
@@ -23,7 +23,7 @@ class ShooterLogic(StateMachine):
     loaderMotorSpeed = tunable(.4)
     intakeMotorMinSpeed = tunable(.5)
     intakeMotorMaxSpeed = tunable(.7)
-    targetShootingSpeed = tunable(4800)
+    targetShootingSpeed = tunable(5300)
 
     # Other variables
     shooterStoppingDelay = 2
@@ -34,8 +34,7 @@ class ShooterLogic(StateMachine):
 
         # Creates sensors:
         for x in range(1, 6):
-            self.sensorObjects = dio(x)
-            self.SensorArray.append(self.sensorObjects)
+            self.SensorArray.append(self.digitalInput_breaksensors["sensor" + str(x)])
             # NOTE: Sensor keys are different than dio value:
             # dio(1) >>> SensorArray[0]
             # dio(2) >>> SensorArray[1]
@@ -113,7 +112,7 @@ class ShooterLogic(StateMachine):
         if self.SensorArray[Sensors.kLoadingSensor].get():
             self.next_state('stopBall')
 
-    @timed_state(duration = .15, next_state = 'checkForBall')
+    @timed_state(duration = .14, next_state = 'checkForBall')
     def stopBall(self):
         """Stops ball after a short delay."""
         pass
@@ -132,13 +131,11 @@ class ShooterLogic(StateMachine):
     def runShooter(self, state_tm):
         """Runs shooter to a certain speed or until a set time."""
         self.shooterMotors.runShooter(1)
-        if self.shooterMotors.shooterMotor.getEncoder().getVelocity() >= self.targetShootingSpeed or state_tm > 2:
-            self.next_state('shoot')
 
-    @timed_state(duration = shooterStoppingDelay, next_state = 'stopShooter')
-    def shoot(self):
-        """Runs loader for a set time after shooter is at speed."""
-        self.shooterMotors.runLoader(self.loaderMotorSpeed, Direction.kForwards)
+    # @timed_state(duration = shooterStoppingDelay, next_state = 'stopShooter')
+    # def shoot(self):
+    #     """Runs loader for a set time after shooter is at speed."""
+    #     self.shooterMotors.runLoader(self.loaderMotorSpeed, Direction.kForwards)
 
     @state
     def stopShooter(self):
@@ -151,4 +148,5 @@ class ShooterLogic(StateMachine):
         """Constantly runs state machine. Necessary for function."""
         self.engage()
         self.runIntake()
+        print(self.digitalInput_breaksensors["sensor1"].get())
         super().execute()
