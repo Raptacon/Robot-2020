@@ -3,7 +3,7 @@ Class that uses inputs, particularly from the limelight,
 to align the bot to a target
 """
 #from components.driveTrain import DriveTrain
-from components.limelight import Limelight
+#from components.limelight import Limelight This will be used later in this class
 from magicbot import StateMachine, state, timed_state, tunable
 
 class Align(StateMachine):

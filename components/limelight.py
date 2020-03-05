@@ -1,6 +1,6 @@
 """
-Manager to more easily read the values 
-from the limelight and more easily write 
+Manager to more easily read the values
+from the limelight and more easily write
 to for pipeline changes
 """
 from networktables import NetworkTables
@@ -29,7 +29,7 @@ class LimelightLightMode(Enum):
 
 class Limelight:
     """
-    Class for access and assignment of values. 
+    Class for access and assignment of values.
     This is a low level component
     """
 
@@ -55,16 +55,16 @@ class Limelight:
         horizontal direction, the crosshair is from the sensed 
         targed. throws an error if there is no target in view
         """
-        _checkForObject(self)
+        self._checkForObject(self)
         return self.limelightTable.getNumber("tx")
 
     def getYOffset(self):
         """
         gets, from the network tables, how far off, in the
-        vertical direction, the crosshair is from the sensed 
+        vertical direction, the crosshair is from the sensed
         targed. throws an error if there is no target in view
         """
-        _checkForObject(self)
+        self._checkForObject(self)
         return self.limelightTable.getNumber("ty")
 
     def getSize(self):
@@ -72,12 +72,12 @@ class Limelight:
         returns the area of a sensed target, from 0 to 100.
         This is a percent of the image.
         """
-        _checkForObject(self)
+        self._checkForObject(self)
         return self.limelightTable.getNumber("ta")
 
     def setPipeline(self, pipeline: int):
         """
-        Sets the pipeline for the limelight to target. 
+        Sets the pipeline for the limelight to target.
         returns the previous pipeline
         """
         prevPipeline = self.limelightTable.getNumber("pipeline")
