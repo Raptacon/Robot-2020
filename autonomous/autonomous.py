@@ -14,14 +14,14 @@ class autonomous(AutonomousStateMachine):
     @state(first = True)
     def engage_shooter(self):
         """Starts shooter and fires"""
-        self.shooter.shootBalls()
+        self.shooter.shootAutonomous()
         print("engaged")
         self.next_state("shooter_wait")
 
     @state
     def shooter_wait(self, state_tm):
         """Waits for shooter to finish, then next state"""
-        if state_tm > 4:
+        if state_tm > 5:
             self.next_state_now("drive_backwards")
 
     @timed_state(duration = time, next_state = "turn")

@@ -22,7 +22,7 @@ class ShooterLogic(StateMachine):
     # Tunables
     loaderMotorSpeed = tunable(.4)
     intakeMotorMinSpeed = tunable(.5)
-    intakeMotorMaxSpeed = tunable(.9)
+    intakeMotorMaxSpeed = tunable(.7)
     targetShootingSpeed = tunable(5300)
 
     # Other variables
@@ -32,6 +32,7 @@ class ShooterLogic(StateMachine):
         """Called when bot is enabled."""
         self.SensorArray = []
         self.isAutomatic = False
+        self.isAutonomous = False
 
         # Creates sensors:
         for x in range(1, 6):
@@ -62,6 +63,10 @@ class ShooterLogic(StateMachine):
         else:
             self.next_state('initShooting')
             return True
+
+    # NOTE: This is a temporary func, we should make this integraded with the normal shooter
+    def shootAutonomous(self):
+        self.isAutonomous = True
 
     def runIntake(self):
         """Universal function for running the intake. Used in both manual and automatic."""
@@ -124,7 +129,10 @@ class ShooterLogic(StateMachine):
 
         elif self.SensorArray[Sensors.kShootingSensor].get():
             self.shooterMotors.stopLoader()
-            self.next_state('runShooter')
+            if self.isAutonomous:
+                self.next_state('runShooterAutonomous')
+            elif not self.isAutonomous:
+                self.next_state('runShooter')
 
     @state
     def runShooter(self, state_tm):
@@ -148,11 +156,31 @@ class ShooterLogic(StateMachine):
     #     self.shooterMotors.runLoader(self.loaderMotorSpeed, Direction.kForwards)
 
     @state
+    def runShooterAutonomous(self, state_tm):
+        self.shooterMotors.runShooter(1)
+        if self.shooterMotors.shooterMotor.getEncoder().getVelocity() >= self.targetShootingSpeed or state_tm > 3:
+            self.next_state('runLoaderAutonomous')
+
+    @timed_state(duration = shooterStoppingDelay, next_state = 'stopShooter')
+    def runLoaderAutonomous(self):
+        self.shooterMotors.runLoader(self.loaderMotorSpeed, Direction.kForwards)
+
+    @state
     def stopShooter(self):
         """Halts all shooter-related tasks and resets to 'checkForBall' state."""
         self.shooterMotors.stopLoader()
         self.shooterMotors.stopShooter()
-        self.next_state('checkForBall')
+        if self.isAutonomous = True:
+            self.next_state('runLoaderManually')
+            self.isAutonomous = False
+
+    def nextAction(self):
+        """Determines next loading type."""
+        if self.isAutomatic:
+            self.next_state_now('checkForBall')
+        else:
+            self.next_state_now('runLoaderManually')
+
 
     def execute(self):
         """Constantly runs state machine. Necessary for function."""
