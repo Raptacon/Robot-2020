@@ -127,7 +127,7 @@ class ShooterLogic(StateMachine):
     def runShooter(self, state_tm):
         """Runs shooter to a certain speed or until a set time."""
         self.shooterMotors.runShooter(1)
-        if self.shooterMotors.getEncoder().getVelocity() >= self.targetShootingSpeed or state_tm > 3:
+        if self.shooterMotors.shooterMotor.getEncoder().getVelocity() >= self.targetShootingSpeed or state_tm > 3:
             if self.xboxMap.getMechRightTrig() > 0 and self.xboxMap.getMechLeftTrig() == 0:
                 self.shooterMotors.runLoader(self.loaderMotorSpeed, Direction.kForwards)
                 self.logger.debug("right trig manual", self.xboxMap.getMechRightTrig())
