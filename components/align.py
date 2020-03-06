@@ -14,7 +14,7 @@ class AlignStates(auto):
     kAliginingXY = auto()
 
 class Align():
-    drivetrain: DriveTrain
+    driveTrain: DriveTrain
     limelight: Limelight
 
     def setup(self):

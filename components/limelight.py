@@ -92,8 +92,8 @@ class Limelight:
         processing mode, using the enumerated class
         return the previous mode
         """
-        prevMode = self.limelightTable.getNumber("camMode")
-        self.limelightTable.putNumber("camMode", mode)
+        prevMode = self.limelightTable.getNumber("camMode", 0)
+        self.limelightTable.putNumber("camMode", mode)#FIXME enum to float fix
         return prevMode
 
     def setLEDMode(self, mode: LimelightLightMode):
@@ -102,7 +102,7 @@ class Limelight:
         class LimelightLightMode. Make sure to use sparingly
         returns the previous mode
         """
-        prevLED = self.limelightTable.getNumber("ledMode")
+        prevLED = self.limelightTable.getNumber('ledMode')
         self.limelightTable.putNumber("ledMode", mode)
         return prevLED
 
@@ -115,7 +115,7 @@ class Limelight:
 
     def execute(self):
         """
-        limelight functions to run every frame ostensibly, we
-        won't use this at all
+        limelight functions to run every frame.
+        ostensibly, we won't use this at all
         """
         pass
