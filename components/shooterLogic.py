@@ -170,7 +170,7 @@ class ShooterLogic(StateMachine):
         """Halts all shooter-related tasks and resets to 'checkForBall' state."""
         self.shooterMotors.stopLoader()
         self.shooterMotors.stopShooter()
-        if self.isAutonomous = True:
+        if self.isAutonomous:
             self.next_state('runLoaderManually')
             self.isAutonomous = False
 
