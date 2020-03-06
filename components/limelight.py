@@ -101,7 +101,7 @@ class Limelight:
         returns the previous mode
         """
         prevLED = self.limelightTable.getNumber("ledMode")
-        self.limelightTable.putNumber("ledMode")
+        self.limelightTable.putNumber("ledMode", mode)
         return prevLED
 
     def execute(self):
