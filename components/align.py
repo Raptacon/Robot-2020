@@ -2,40 +2,32 @@
 Class that uses inputs, particularly from the limelight,
 to align the bot to a target
 """
-#from components.driveTrain import DriveTrain
-#from components.limelight import Limelight This will be used later in this class
-from magicbot import StateMachine, state, timed_state, tunable
+from components.driveTrain import DriveTrain
+from components.limelight import Limelight, LimelightCamMode, LimelightLightMode
+from enum import Enum, auto
 
-class Align(StateMachine):
-    #drivetrain: DriveTrain
+class AlignStates(auto):
+    kNone = auto()
+    kAligningX = auto()
+    kAliginingY = auto()
+    kAliginingXY = auto()
+
+class Align():
+    drivetrain: DriveTrain
 
     def setup(self):
-        self.x = tunable(0)
-        pass
+        self.currentAligningState = AlignStates.kNone
 
     def alignToX(self):
-        pass
+        self.currentAligningState = AlignStates.kAligningX
 
     def alignToY(self):
-        pass
+        self.currentAligningState = AlignStates.kAliginingY
 
-    def beginAlign(self):
-        pass
-        #self.engage()
-    
-    @timed_state(first=True, duration = 1, next_state = 'nextOtherState')
-    def runAlignLoop(self):
-        while True:
-            print("align")
-            if self.x != 0:
-                self.next_state('stopAlign')
+    def aliginToXY(self):
+        self.currentAligningState = AlignStates.kAliginingXY
 
-    @state
-    def stopAlign(self):
-        while True:
-            print("stopping")
-
-    @state
-    def testOtherState(self):
-        while True:
-            print("time exceded")
+    def execute(self):
+        """if self.currentAligningState == AlignStates.ali
+            offset = Limelight.getXOffset()
+            self.drivetrain.setArcade(0, offset)"""

@@ -104,6 +104,13 @@ class Limelight:
         self.limelightTable.putNumber("ledMode", mode)
         return prevLED
 
+    def limelightOff(self):
+        self.setLEDMode(LimelightLightMode.kOff)
+
+    def limelightOn(self):
+        self.setLEDMode(LimelightLightMode.kOn)
+
+
     def execute(self):
         """
         limelight functions to run every frame ostensibly, we
