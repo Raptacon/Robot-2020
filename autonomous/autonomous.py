@@ -11,9 +11,10 @@ class autonomous(AutonomousStateMachine):
     autonomousShooting: AutonomousShooting
     drive_speed = tunable(.25)
 
-    @state(first = True)
+    @state(first = True, must_finish = True)
     def engage_shooter(self):
         """Starts shooter and fires"""
+        self.autonomousShooting.runShooterMotor()
         self.autonomousShooting.shootBalls()
         self.next_state("shooter_wait")
 

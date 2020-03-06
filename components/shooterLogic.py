@@ -123,6 +123,10 @@ class AutonomousShooting(StateMachine):
         """Begins shooting process."""
         self.next_state_now('initShooting')
 
+    def runShooterMotor(self):
+        """Runs shooter motor only."""
+        self.shooterMotors.runShooter(1)
+
     @state
     def initShooting(self):
         """Smart shooter initialization (reversing if necessary)."""
@@ -136,7 +140,6 @@ class AutonomousShooting(StateMachine):
     @state
     def runShooter(self, state_tm):
         """Runs shooter to a certain speed, then shoots."""
-        self.shooterMotors.runShooter(1)
         if self.shooterMotors.shooterMotor.getEncoder().getVelocity() >= self.targetShootingSpeed or state_tm > 3:
             self.next_state('shoot')
 
