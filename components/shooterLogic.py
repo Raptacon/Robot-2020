@@ -128,16 +128,16 @@ class ShooterLogic(StateMachine):
         """Runs shooter to a certain speed or until a set time."""
         self.shooterMotors.runShooter(1)
         if self.shooterMotors.getEncoder().getVelocity() >= self.targetShootingSpeed:
-        if self.xboxMap.getMechRightTrig() > 0 and self.xboxMap.getMechLeftTrig() == 0:
-            self.shooterMotors.runLoader(self.loaderMotorSpeed, Direction.kForwards)
-            self.logger.debug("right trig manual", self.xboxMap.getMechRightTrig())
+            if self.xboxMap.getMechRightTrig() > 0 and self.xboxMap.getMechLeftTrig() == 0:
+                self.shooterMotors.runLoader(self.loaderMotorSpeed, Direction.kForwards)
+                self.logger.debug("right trig manual", self.xboxMap.getMechRightTrig())
 
-        elif self.xboxMap.getMechLeftTrig() > 0 and self.xboxMap.getMechRightTrig() == 0:
-            self.shooterMotors.runLoader(self.loaderMotorSpeed, Direction.kBackwards)
-            self.logger.debug("left trig manual", self.xboxMap.getMechLeftTrig())
+            elif self.xboxMap.getMechLeftTrig() > 0 and self.xboxMap.getMechRightTrig() == 0:
+                self.shooterMotors.runLoader(self.loaderMotorSpeed, Direction.kBackwards)
+                self.logger.debug("left trig manual", self.xboxMap.getMechLeftTrig())
 
-        else:
-            self.shooterMotors.stopLoader()
+            else:
+                self.shooterMotors.stopLoader()
 
     # @timed_state(duration = shooterStoppingDelay, next_state = 'stopShooter')
     # def shoot(self):
