@@ -46,10 +46,12 @@ class ShooterLogic(StateMachine):
 
     def setAutoLoading(self):
         """Runs sensor-based loading."""
+        self.isAutomatic = True
         self.next_state('checkForBall')
 
     def setManualLoading(self):
         """Runs trigger-based loading."""
+        self.isAutomatic = False
         self.next_state('runLoaderManually')
 
     def shootBalls(self):
@@ -108,7 +110,7 @@ class ShooterLogic(StateMachine):
         if self.SensorArray[Sensors.kLoadingSensor].get():
             self.next_state('stopBall')
 
-    @timed_state(duration = .14, next_state = 'checkForBall')
+    @timed_state(duration = .2, next_state = 'checkForBall')
     def stopBall(self):
         """Stops ball after a short delay."""
         pass
