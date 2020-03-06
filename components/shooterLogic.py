@@ -80,6 +80,9 @@ class ShooterLogic(StateMachine):
                 self.shooterMotors.runLoader(self.loaderMotorSpeed, Direction.kBackwards)
                 self.logger.debug("left trig manual", self.xboxMap.getMechLeftTrig())
 
+            else:
+                self.shooterMotors.stopLoader()
+
     @state
     def finishShooting(self):
         """Stops shooter-related motors and moves to idle state."""
