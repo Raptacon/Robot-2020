@@ -1,6 +1,6 @@
 from enum import IntEnum
 
-class SensorKey:
+class SensorKey(IntEnum):
     kLoadingSensor = 0
     kShootingSensor = 4
 
