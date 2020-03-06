@@ -14,7 +14,6 @@ class autonomous(AutonomousStateMachine):
     @state(first = True)
     def engage_shooter(self):
         """Starts shooter and fires"""
-        self.autonomousShooting.runShooterMotor()
         self.autonomousShooting.shootBalls()
         self.next_state("shooter_wait")
 
