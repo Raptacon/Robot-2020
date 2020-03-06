@@ -46,16 +46,11 @@ class ShooterLogic(StateMachine):
 
     def setAutoLoading(self):
         """Runs sensor-based loading."""
-        if self.SensorArray[Sensors.kShootingSensor].get():
-            self.next_state('checkForBall')
+        self.next_state('checkForBall')
 
     def setManualLoading(self):
         """Runs trigger-based loading."""
-        if self.shooterMotors.isLoaderRunning() or self.shooterMotors.isShooterRunning():
-            return False
-        else:
-            self.next_state('runLoaderManually')
-            return True
+        self.next_state('runLoaderManually')
 
     def shootBalls(self):
         """Executes smart shooter."""
@@ -82,6 +77,7 @@ class ShooterLogic(StateMachine):
     @state(first = True)
     def runLoaderManually(self):
         """Trigger-based manual loader."""
+        self.shooterMotors.stopShooter()
         if self.xboxMap.getMechRightTrig() > 0 and self.xboxMap.getMechLeftTrig() == 0:
             self.shooterMotors.runLoader(self.loaderMotorSpeed, Direction.kForwards)
             self.logger.debug("right trig manual", self.xboxMap.getMechRightTrig())
@@ -131,6 +127,17 @@ class ShooterLogic(StateMachine):
     def runShooter(self, state_tm):
         """Runs shooter to a certain speed or until a set time."""
         self.shooterMotors.runShooter(1)
+        if self.shooterMotors.getEncoder().getVelocity() >= self.targetShootingSpeed:
+        if self.xboxMap.getMechRightTrig() > 0 and self.xboxMap.getMechLeftTrig() == 0:
+            self.shooterMotors.runLoader(self.loaderMotorSpeed, Direction.kForwards)
+            self.logger.debug("right trig manual", self.xboxMap.getMechRightTrig())
+
+        elif self.xboxMap.getMechLeftTrig() > 0 and self.xboxMap.getMechRightTrig() == 0:
+            self.shooterMotors.runLoader(self.loaderMotorSpeed, Direction.kBackwards)
+            self.logger.debug("left trig manual", self.xboxMap.getMechLeftTrig())
+
+        else:
+            self.shooterMotors.stopLoader()
 
     # @timed_state(duration = shooterStoppingDelay, next_state = 'stopShooter')
     # def shoot(self):
@@ -148,5 +155,4 @@ class ShooterLogic(StateMachine):
         """Constantly runs state machine. Necessary for function."""
         self.engage()
         self.runIntake()
-        print(self.digitalInput_breaksensors["sensor1"].get())
         super().execute()
