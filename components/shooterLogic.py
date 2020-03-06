@@ -22,7 +22,7 @@ class ShooterLogic(StateMachine):
     # Tunables
     loaderMotorSpeed = tunable(.4)
     intakeMotorMinSpeed = tunable(.5)
-    intakeMotorMaxSpeed = tunable(.7)
+    intakeMotorMaxSpeed = tunable(.9)
     targetShootingSpeed = tunable(5300)
 
     # Other variables
@@ -31,6 +31,7 @@ class ShooterLogic(StateMachine):
     def on_enable(self):
         """Called when bot is enabled."""
         self.SensorArray = []
+        self.isAutomatic = False
 
         # Creates sensors:
         for x in range(1, 6):
