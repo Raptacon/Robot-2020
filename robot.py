@@ -10,7 +10,8 @@ from magicbot import MagicRobot, tunable
 from components.driveTrain import DriveTrain
 from components.pneumatics import Pneumatics
 from components.buttonManager import ButtonManager, ButtonEvent
-from components.lifter import Lifter
+from components.breakSensors import Sensors
+from components.winch import Winch
 from components.shooterMotors import ShooterMotorCreation
 from components.shooterLogic import ShooterLogic, AutonomousShooting
 from components.loaderLogic import LoaderLogic
@@ -31,10 +32,11 @@ class MyRobot(MagicRobot):
     """
     shooter: ShooterLogic
     loader: LoaderLogic
+    sensors: Sensors
     autonomousShooting: AutonomousShooting
     shooterMotors: ShooterMotorCreation
     driveTrain: DriveTrain
-    lifter: Lifter
+    winch: Winch
     buttonManager: ButtonManager
     pneumatics: Pneumatics
     elevator: Elevator
@@ -47,7 +49,7 @@ class MyRobot(MagicRobot):
         Robot-wide initialization code should go here. Replaces robotInit
         """
         self.map = RobotMap()
-        self.xboxMap = XboxMap(XboxController(0), XboxController(1))
+        self.xboxMap = XboxMap(XboxController(1), XboxController(0))
 
         self.instantiateSubsystemGroup("motors", createMotor)
         self.instantiateSubsystemGroup("gyros", gyroFactory)
@@ -59,7 +61,7 @@ class MyRobot(MagicRobot):
         testComponentCompatibility(self, ShooterLogic)
         testComponentCompatibility(self, ShooterMotorCreation)
         testComponentCompatibility(self, DriveTrain)
-        testComponentCompatibility(self, Lifter)
+        testComponentCompatibility(self, Winch)
         testComponentCompatibility(self, ButtonManager)
         testComponentCompatibility(self, Pneumatics)
         testComponentCompatibility(self, Elevator)
@@ -71,7 +73,8 @@ class MyRobot(MagicRobot):
         self.buttonManager.registerButtonEvent(self.xboxMap.mech, XboxController.Button.kY, ButtonEvent.kOnPress, self.loader.setAutoLoading)
         self.buttonManager.registerButtonEvent(self.xboxMap.mech, XboxController.Button.kB, ButtonEvent.kOnPress, self.loader.setManualLoading)
         self.buttonManager.registerButtonEvent(self.xboxMap.mech, XboxController.Button.kA, ButtonEvent.kOnPress, self.shooter.shootBalls)
-        self.buttonManager.registerButtonEvent(self.xboxMap.mech, XboxController.Button.kA, ButtonEvent.kOnRelease, self.shooter.nextAction)
+        self.buttonManager.registerButtonEvent(self.xboxMap.mech, XboxController.Button.kA, ButtonEvent.kOnPress, self.shooter.runShooterMotor)
+        self.buttonManager.registerButtonEvent(self.xboxMap.mech, XboxController.Button.kA, ButtonEvent.kOnRelease, self.shooter.doneShooting)
         self.buttonManager.registerButtonEvent(self.xboxMap.mech, XboxController.Button.kBumperRight, ButtonEvent.kOnPress, self.elevator.setRaise)
         self.buttonManager.registerButtonEvent(self.xboxMap.mech, XboxController.Button.kBumperRight, ButtonEvent.kOnRelease, self.elevator.stop)
         self.buttonManager.registerButtonEvent(self.xboxMap.mech, XboxController.Button.kBumperLeft, ButtonEvent.kOnPress, self.elevator.setLower)
@@ -91,9 +94,9 @@ class MyRobot(MagicRobot):
         self.driveTrain.setTank(driveLeft, driveRight)
 
         if self.xboxMap.getMechDPad() == 0:
-            self.lifter.setRaise()
+            self.winch.setRaise()
         else:
-            self.lifter.stop()
+            self.winch.stop()
 
         self.scorpionLoader.checkController()
 
