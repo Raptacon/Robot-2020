@@ -1,7 +1,6 @@
 from robotMap import XboxMap
 from components.shooterMotors import ShooterMotorCreation, Direction
 from components.breakSensors import Sensors, SensorKey
-from components.loaderLogic import LoaderLogic
 from magicbot import StateMachine, state, timed_state, tunable
 import logging
 
