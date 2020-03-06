@@ -15,6 +15,7 @@ class AlignStates(auto):
 
 class Align():
     drivetrain: DriveTrain
+    limelight: Limelight
 
     def setup(self):
         self.currentAligningState = AlignStates.kNone
@@ -28,7 +29,14 @@ class Align():
     def aliginToXY(self):
         self.currentAligningState = AlignStates.kAliginingXY
 
+    def stopAlign(self):
+        self.currentAligningState = AlignStates.kNone
+
     def execute(self):
+        if self.currentAligningState != AlignStates.kNone:
+            self.limelight.setLEDMode(LimelightLightMode.kOn)
+            self.limelight.setCameraMode(LimelightCamMode.kProcessingMode)
+        
         try:
             xoffset = Limelight.getXOffset()
         except AssertionError as error:
@@ -41,3 +49,7 @@ class Align():
             logging.info("Aligning to Y not yet implemented, skipping")
         elif self.currentAligningState == AlignStates.kAliginingY:
             logging.info("Aligning to Y not yet implemented, skipping")
+
+        if self.currentAligningState != AlignStates.kNone:
+            self.limelight.setLEDMode(LimelightLightMode.kOff)
+            self.limelight.setCameraMode(LimelightCamMode.kDriverMode)

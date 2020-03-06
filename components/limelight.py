@@ -40,6 +40,8 @@ class Limelight:
         for any actual component creation
         """
         self.limelightTable = NetworkTables.getTable("limelight")
+        self.setCameraMode(LimelightCamMode.kDriverMode)
+        self.setLEDMode(LimelightLightMode.kOff)
 
     def _checkForObject(self):
         """
