@@ -43,13 +43,13 @@ class Limelight:
         self.setCameraMode(LimelightCamMode.kDriverMode)
         self.setLEDMode(LimelightLightMode.kOff)
 
-    def _checkForObject(self):
+    def __checkForObject(self):
         """
         throws an error if there is not an object
         in view. This leaves it up to the calling
         object on what to do.
         """
-        assert self.limelightTable.getNumber("tv") == 1, "there is no object in view, cannot get offset" #this is pretty weird for me - just let me know or fix it if it is overkill
+        assert self.limelightTable.getNumber("tv", 0) == 1, "there is no object in view, cannot get offset" #this is pretty weird for me - just let me know or fix it if it is overkill
 
     def getXOffset(self):
         """
@@ -57,7 +57,7 @@ class Limelight:
         horizontal direction, the crosshair is from the sensed 
         targed. throws an error if there is no target in view
         """
-        self._checkForObject(self)
+        self.__checkForObject()
         return self.limelightTable.getNumber("tx")
 
     def getYOffset(self):
@@ -66,7 +66,7 @@ class Limelight:
         vertical direction, the crosshair is from the sensed
         targed. throws an error if there is no target in view
         """
-        self._checkForObject(self)
+        self.__checkForObject()
         return self.limelightTable.getNumber("ty")
 
     def getSize(self):
@@ -74,7 +74,7 @@ class Limelight:
         returns the area of a sensed target, from 0 to 100.
         This is a percent of the image.
         """
-        self._checkForObject(self)
+        self.__checkForObject()
         return self.limelightTable.getNumber("ta")
 
     def setPipeline(self, pipeline: int):
@@ -93,17 +93,17 @@ class Limelight:
         return the previous mode
         """
         prevMode = self.limelightTable.getNumber("camMode", 0)
-        self.limelightTable.putNumber("camMode", mode)#FIXME enum to float fix
+        self.limelightTable.putNumber("camMode", mode.value)
         return prevMode
 
     def setLEDMode(self, mode: LimelightLightMode):
         """
         sets the limelight led to one of the enumerated values from
-        class LimelightLightMode. Make sure to use sparingly
+        class LimelightLightMode. Make sure to use sparingly.
         returns the previous mode
         """
-        prevLED = self.limelightTable.getNumber('ledMode')
-        self.limelightTable.putNumber("ledMode", mode)
+        prevLED = self.limelightTable.getNumber("ledMode", LimelightLightMode.kDefault)
+        self.limelightTable.putNumber("ledMode", mode.value)
         return prevLED
 
     def limelightOff(self):

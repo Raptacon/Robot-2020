@@ -36,16 +36,16 @@ class Align():
         if self.currentAligningState != AlignStates.kNone:
             self.limelight.setLEDMode(LimelightLightMode.kOn)
             self.limelight.setCameraMode(LimelightCamMode.kProcessingMode)
-        
-        try:
-            xoffset = Limelight.getXOffset()
-        except AssertionError as error:
-            logging.error("Alignment failed due to error: %s"% error)
+            try:
+                xoffset = self.limelight.getXOffset()
+            except AssertionError as error:
+                logging.error("Alignment failed due to error: %s"% error)
+                self.stopAlign()
 
         if self.currentAligningState == AlignStates.kAligningX:
-            self.drivetrain.setArcade(0, xoffset)
+            self.driveTrain.setArcade(0, xoffset)
         elif self.currentAligningState == AlignStates.kAliginingXY:
-            self.drivetrain.setArcade(0, xoffset)
+            self.driveTrain.setArcade(0, xoffset)
             logging.info("Aligning to Y not yet implemented, skipping")
         elif self.currentAligningState == AlignStates.kAliginingY:
             logging.info("Aligning to Y not yet implemented, skipping")
