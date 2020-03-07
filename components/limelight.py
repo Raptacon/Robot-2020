@@ -54,7 +54,7 @@ class Limelight:
     def getXOffset(self):
         """
         gets, from the network tables, how far off, in the
-        horizontal direction, the crosshair is from the sensed 
+        horizontal direction, the crosshair is from the sensed
         targed. throws an error if there is no target in view
         """
         self.__checkForObject()
