@@ -17,7 +17,7 @@ class ShooterLogic(StateMachine):
     xboxMap: XboxMap
 
     # Tunables
-    loaderMotorSpeed = tunable(.3)
+    loaderMotorSpeed = tunable(.4)
     targetShootingSpeed = tunable(5600)
 
     # Other variables
@@ -80,6 +80,9 @@ class ShooterLogic(StateMachine):
                 self.shooterMotors.runLoader(self.loaderMotorSpeed, Direction.kBackwards)
                 self.logger.debug("left trig manual", self.xboxMap.getMechLeftTrig())
 
+            else:
+                self.shooterMotors.stopLoader()
+
     @state
     def finishShooting(self):
         """Stops shooter-related motors and moves to idle state."""
@@ -137,6 +140,7 @@ class AutonomousShooting(StateMachine):
     @state
     def runShooter(self, state_tm):
         """Runs shooter to a certain speed, then shoots."""
+        self.shooterMotors.runShooter(1)
         if self.shooterMotors.shooterMotor.getEncoder().getVelocity() >= self.targetShootingSpeed or state_tm > 3:
             self.next_state('shoot')
 

@@ -20,10 +20,10 @@ class LoaderLogic(StateMachine):
     intakeMotorMaxSpeed = tunable(.7)
 
     # Other variables
-    isAutomatic = False
+    isAutomatic = True
 
     def on_enable(self):
-        self.isAutomatic = False
+        self.isAutomatic = True
 
     def setAutoLoading(self):
         """Runs sensor-based loading."""
@@ -52,7 +52,7 @@ class LoaderLogic(StateMachine):
         else:
             self.shooterMotors.stopIntake()
 
-    @state(first = True)
+    @state
     def runLoaderManually(self):
         """Trigger-based manual loader."""
         if self.xboxMap.getMechRightTrig() > 0 and self.xboxMap.getMechLeftTrig() == 0:
@@ -62,13 +62,11 @@ class LoaderLogic(StateMachine):
         elif self.xboxMap.getMechLeftTrig() > 0 and self.xboxMap.getMechRightTrig() == 0:
             self.shooterMotors.runLoader(self.loaderMotorSpeed, Direction.kBackwards)
             self.logger.debug("left trig manual", self.xboxMap.getMechLeftTrig())
-            self.shooterMotors.runShooter(-1)
 
         else:
-            self.shooterMotors.stopShooter()
             self.shooterMotors.stopLoader()
 
-    @state
+    @state(first = True)
     def checkForBall(self):
         """Checks for ball to enter the loader, runs the loader if entry sensor is broken."""
         self.shooterMotors.stopLoader()
