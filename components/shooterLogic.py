@@ -42,10 +42,6 @@ class ShooterLogic(StateMachine):
         self.loader.next_state('nextAction')
         self.next_state('finishShooting')
 
-    def runShooterMotor(self):
-        """Specifically runs shooter motor."""
-        self.shooterMotors.runShooter(1)
-
     @feedback
     def isShooterUpToSpeed(self):
         if not self.isSetup:
@@ -71,6 +67,7 @@ class ShooterLogic(StateMachine):
     @state
     def runShooter(self, state_tm):
         """Runs shooter to a certain speed, then lets drivers control loading."""
+        self.shooterMotors.runShooter(1)
         if self.isShooterUpToSpeed() or state_tm > 3:
             if self.xboxMap.getMechRightTrig() > 0 and self.xboxMap.getMechLeftTrig() == 0:
                 self.shooterMotors.runLoader(self.loaderMotorSpeed, Direction.kForwards)
