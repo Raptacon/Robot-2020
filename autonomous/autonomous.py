@@ -25,7 +25,7 @@ class Autonomous(AutonomousStateMachine):
     @state
     def shooter_wait(self):
         """Waits for shooter to finish, then next state"""
-        if self.shooter.current_state == 'state_idling':
+        if self.shooter.current_state == 'idling':
             self.next_state_now('drive_backwards')
 
     @timed_state(duration = time, next_state = 'turn')

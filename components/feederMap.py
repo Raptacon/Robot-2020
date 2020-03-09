@@ -39,7 +39,7 @@ class FeederMap:
             else:
                 self.shooterMotors.stopIntake()
 
-        elif loaderFunc == Type.kLoader:
+        if loaderFunc == Type.kLoader:
             if self.xboxMap.getMechRightTrig() > 0 and self.xboxMap.getMechLeftTrig() == 0:
                 self.shooterMotors.runLoader(self.loaderMotorSpeed, Direction.kForwards)
                 self.logger.debug("right trig manual", self.xboxMap.getMechRightTrig())

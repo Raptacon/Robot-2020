@@ -19,8 +19,11 @@ class LoaderLogic(StateMachine):
     # Tunable
     loaderMotorSpeed = tunable(.4)
 
+    # Other variables
+    isAutomatic = True
+
     def on_enable(self):
-        pass
+        self.isAutomatic = True
 
     def setAutoLoading(self):
         """Runs sensor-based loading."""
