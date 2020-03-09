@@ -1,9 +1,9 @@
 from robotMap import XboxMap
 from components.shooterMotors import ShooterMotorCreation, Direction
 from components.breakSensors import Sensors, State
-from feederMap import FeederMap, Type
-from networktables import NetworkTables
+from components.feederMap import FeederMap, Type
 from magicbot import StateMachine, state, timed_state, tunable, feedback
+from networktables import NetworkTables
 import logging
 
 class ShooterLogic(StateMachine):
@@ -23,15 +23,24 @@ class ShooterLogic(StateMachine):
 
     # Other variables
     isSetup = False
-    isAutonomous = False
     shooterStoppingDelay = 3
-    # botMode = NetworkTables.getTable('SmartDashboard').getSubTable('robot').getSubTable('mode')
+    # FIXME: Need to figure out how to get valued from network tables
+    # botMode = NetworkTables.getTable("SmartDashboard").getSubTable("NetworkTables").getSubTable("robot").getString("mode", "none")
 
     def on_enable(self):
         """Called when bot is enabled."""
+        self.isAutonomous = False
         self.isSetup = True
 
         # self.logger.setLevel(logging.DEBUG)
+
+    def autonomousEnabled(self):
+        """Indicates the robot is in autonomous mode."""
+        self.isAutonomous = True
+
+    def autonomousDisabled(self):
+        """Indicates the robot is not in autonomous mode."""
+        self.isAutonomous = False
 
     def shootBalls(self):
         """Executes smart shooter."""
@@ -56,6 +65,10 @@ class ShooterLogic(StateMachine):
         self.xboxMap.mech.setRumble(self.xboxMap.mech.RumbleType.kRightRumble, rumble)
         return atSpeed
 
+    # @feedback
+    # def currentBotMode(self):
+
+
     @state
     def initShooting(self):
         """Smart shooter initialization (reversing if necessary)."""
@@ -68,16 +81,19 @@ class ShooterLogic(StateMachine):
 
     @state
     def runShooter(self, tm):
-        """Runs shooter to a certain speed, then lets drivers control loading."""
+        """
+        Runs shooter to a certain speed, then lets drivers control loading if in teleop.
+        If in autonomous, run shooter automatically.
+        """
         self.shooterMotors.runShooter(1)
-        if self.isShooterUpToSpeed() and self.botMode != 'auto':
+        if self.isShooterUpToSpeed() and not self.isAutonomous:
             self.feeder.run(Type.kLoader)
 
-        elif self.isShooterUpToSpeed() and self.botMode == 'auto':
+        elif self.isShooterUpToSpeed() and self.isAutonomous:
             self.next_state('autoShoot')
 
     @timed_state(duration = shooterStoppingDelay, next_state = 'finishShooting')
-    def autoShoot(self):
+    def autonomousShoot(self):
         """Shoot balls when shooter is up to speed. Strictly for autonomous use."""
         self.shooterMotors.runLoader(self.loaderMotorSpeed, Direction.kForwards)
 

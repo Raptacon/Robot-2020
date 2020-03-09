@@ -1,7 +1,7 @@
 from robotMap import XboxMap
 from components.shooterMotors import ShooterMotorCreation, Direction
 from components.breakSensors import Sensors, State
-from feederMap import FeederMap, Type
+from components.feederMap import FeederMap, Type
 from magicbot import StateMachine, state, timed_state, tunable, feedback
 import logging
 
@@ -18,11 +18,6 @@ class LoaderLogic(StateMachine):
 
     # Tunable
     loaderMotorSpeed = tunable(.4)
-    intakeMotorMinSpeed = tunable(.5)
-    intakeMotorMaxSpeed = tunable(.7)
-
-    # Other variables
-    isAutomatic = True
 
     def on_enable(self):
         pass
