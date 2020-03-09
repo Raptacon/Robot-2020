@@ -87,7 +87,7 @@ class ShooterLogic(StateMachine):
         If in autonomous, run shooter automatically.
         """
         self.shooterMotors.runShooter(1)
-        if self.isShooterUpToSpeed() and not self.isAutonomous:
+        if not self.isAutonomous:
             self.feeder.run(Type.kLoader)
 
         elif self.isShooterUpToSpeed() and self.isAutonomous:
