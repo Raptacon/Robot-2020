@@ -30,8 +30,6 @@ class ShooterLogic(StateMachine):
         self.isAutonomous = False
         self.isSetup = True
 
-        # self.logger.setLevel(logging.DEBUG)
-
     def autonomousEnabled(self):
         """Indicates the robot is in autonomous mode."""
         self.isAutonomous = True
@@ -53,11 +51,12 @@ class ShooterLogic(StateMachine):
 
     @feedback
     def isShooterUpToSpeed(self):
+        """Determines if the shooter is up to speed, then rumbles controller and publishes to NetworkTables."""
         if not self.isSetup:
             return False
         atSpeed = bool(self.shooterMotors.shooterMotor.getEncoder().getVelocity() >= self.targetShootingSpeed)
         rumble  = 0
-        if atSpeed:
+        if atSpeed and not self.isAutonomous:
             rumble = .3
         self.xboxMap.mech.setRumble(self.xboxMap.mech.RumbleType.kLeftRumble, rumble)
         self.xboxMap.mech.setRumble(self.xboxMap.mech.RumbleType.kRightRumble, rumble)
@@ -71,7 +70,15 @@ class ShooterLogic(StateMachine):
 
         else:
             self.shooterMotors.stopLoader()
-            self.next_state('runShooter')
+            self.next_state('alignToTarget')
+
+    @state
+    def alignToTarget(self):
+        """Aligns turret and/or drive train to the goal."""
+        self.next_state('runShooter')
+        #NOTE: This is a temporary placeholder until we can get limelight alignment successfully implemented.
+        #      Useful logic would include: determining if the limelight can see the target before attempting
+        #      alignment, especially for autonomous.
 
     @state
     def runShooter(self, tm):
