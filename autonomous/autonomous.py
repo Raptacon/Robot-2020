@@ -1,6 +1,8 @@
 from magicbot import AutonomousStateMachine, tunable, timed_state, state
 from components.driveTrain import DriveTrain
 from components.shooterLogic import ShooterLogic
+from components.shooterMotors import ShooterMotorCreation
+from components.pneumatics import Pneumatics
 
 class Autonomous(AutonomousStateMachine):
     """Creates the autonomous code"""
@@ -9,11 +11,14 @@ class Autonomous(AutonomousStateMachine):
     DEFAULT = True
     driveTrain: DriveTrain
     shooter: ShooterLogic
+    shooterMotors: ShooterMotorCreation
+    pneumatics: Pneumatics
     drive_speed = tunable(.25)
 
     @state(first = True)
     def engage_shooter(self):
         """Starts shooter and fires"""
+        self.pneumatics.deployLoader()
         self.shooter.shootBalls()
         self.next_state('shooter_wait')
 
