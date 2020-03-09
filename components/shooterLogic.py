@@ -24,8 +24,6 @@ class ShooterLogic(StateMachine):
     # Other variables
     isSetup = False
     shooterStoppingDelay = 3
-    # FIXME: Need to figure out how to get valued from network tables
-    # botMode = NetworkTables.getTable("SmartDashboard").getSubTable("NetworkTables").getSubTable("robot").getString("mode", "none")
 
     def on_enable(self):
         """Called when bot is enabled."""
@@ -65,10 +63,6 @@ class ShooterLogic(StateMachine):
         self.xboxMap.mech.setRumble(self.xboxMap.mech.RumbleType.kRightRumble, rumble)
         return atSpeed
 
-    # @feedback
-    # def currentBotMode(self):
-
-
     @state
     def initShooting(self):
         """Smart shooter initialization (reversing if necessary)."""
@@ -90,7 +84,7 @@ class ShooterLogic(StateMachine):
             self.feeder.run(Type.kLoader)
 
         elif self.isShooterUpToSpeed() and self.isAutonomous:
-            self.next_state('autoShoot')
+            self.next_state('autonomousShoot')
 
     @timed_state(duration = shooterStoppingDelay, next_state = 'finishShooting')
     def autonomousShoot(self):
@@ -106,7 +100,7 @@ class ShooterLogic(StateMachine):
 
     @state(first = True)
     def idling(self):
-        """First state. Does nothing here."""
+        """First state. Does nothing here. StateMachine returns to this state when not shooting."""
         pass
 
     def execute(self):

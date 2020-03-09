@@ -89,7 +89,7 @@ class LoaderLogic(StateMachine):
             self.next_state('runLoaderManually')
 
     def execute(self):
-        """Constantly runs state machine. Necessary for function."""
+        """Constantly runs state machine and intake. Necessary for function."""
         self.engage()
         self.runIntake()
         super().execute()
