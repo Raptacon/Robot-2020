@@ -23,7 +23,6 @@ class ShooterLogic(StateMachine):
 
     # Other variables
     isSetup = False
-    isAutonomous = False
     shooterStoppingDelay = 3
 
     def on_enable(self):
@@ -82,7 +81,7 @@ class ShooterLogic(StateMachine):
         #      alignment, especially for autonomous.
 
     @state
-    def runShooter(self):
+    def runShooter(self, tm):
         """
         Runs shooter to a certain speed, then lets drivers control loading if in teleop.
         If in autonomous, run shooter automatically.
@@ -98,7 +97,6 @@ class ShooterLogic(StateMachine):
     def autonomousShoot(self):
         """Shoot balls when shooter is up to speed. Strictly for autonomous use."""
         self.shooterMotors.runLoader(self.loaderMotorSpeed, Direction.kForwards)
-        print("RUNNING LOADER")
 
     @state
     def finishShooting(self):
