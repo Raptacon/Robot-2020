@@ -19,8 +19,6 @@ class ShooterLogic(StateMachine):
 
     # Tunables
     shootingLoaderSpeed = tunable(.4)
-    intakeMotorMinSpeed = tunable(.5)
-    intakeMotorMaxSpeed = tunable(.7)
     autoShootingSpeed = tunable(4800)
     teleShootingSpeed = tunable(5300)
 
