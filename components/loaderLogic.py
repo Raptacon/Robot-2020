@@ -17,7 +17,7 @@ class LoaderLogic(StateMachine):
     xboxMap: XboxMap
 
     # Tunable
-    loaderMotorSpeed = tunable(.4)
+    automaticLoaderSpeed = tunable(.4)
 
     # Other variables
     isAutomatic = True
@@ -65,7 +65,7 @@ class LoaderLogic(StateMachine):
     @state
     def loadBall(self):
         """Loads ball if ball has entered."""
-        self.shooterMotors.runLoader(self.loaderMotorSpeed, Direction.kForwards)
+        self.shooterMotors.runLoader(self.automaticLoaderSpeed, Direction.kForwards)
         self.next_state('waitForBallIntake')
 
     @state
