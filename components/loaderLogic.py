@@ -21,7 +21,7 @@ class LoaderLogic(StateMachine):
 
     # Other variables
     isAutomatic = True
-    loaderStoppingDelay = .17
+    loaderStoppingDelay = .16
 
     def on_enable(self):
         self.isAutomatic = True
@@ -37,6 +37,8 @@ class LoaderLogic(StateMachine):
         self.next_state('runLoaderManually')
 
     def stopLoading(self):
+        if self.shooterMotors.isLoaderRunning():
+            return
         self.next_state('shooting')
 
     def determineNextAction(self):
