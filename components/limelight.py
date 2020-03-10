@@ -58,7 +58,7 @@ class Limelight:
         targed. throws an error if there is no target in view
         """
         self.__checkForObject()
-        return self.limelightTable.getNumber("tx")
+        return self.limelightTable.getNumber("tx", 0)
 
     def getYOffset(self):
         """
@@ -67,7 +67,7 @@ class Limelight:
         targed. throws an error if there is no target in view
         """
         self.__checkForObject()
-        return self.limelightTable.getNumber("ty")
+        return self.limelightTable.getNumber("ty", 0)
 
     def getSize(self):
         """
@@ -75,7 +75,7 @@ class Limelight:
         This is a percent of the image.
         """
         self.__checkForObject()
-        return self.limelightTable.getNumber("ta")
+        return self.limelightTable.getNumber("ta", 0)
 
     def setPipeline(self, pipeline: int):
         """
