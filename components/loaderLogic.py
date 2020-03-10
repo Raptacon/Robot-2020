@@ -21,6 +21,7 @@ class LoaderLogic(StateMachine):
 
     # Other variables
     isAutomatic = True
+    loaderStoppingDelay = .17
 
     def on_enable(self):
         self.isAutomatic = True
@@ -73,7 +74,7 @@ class LoaderLogic(StateMachine):
         if self.sensors.loadingSensor(State.kNotTripped):
             self.next_state('stopBall')
 
-    @timed_state(duration = .17, next_state = 'checkForBall')
+    @timed_state(duration = loaderStoppingDelay, next_state = 'checkForBall')
     def stopBall(self):
         """Stops ball after a short delay."""
         pass

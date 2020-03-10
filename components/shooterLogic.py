@@ -16,12 +16,14 @@ class ShooterLogic(StateMachine):
     sensors: Sensors
     xboxMap: XboxMap
     speedTolerance = tunable(50)
+
     # Tunables
     loaderMotorSpeed = tunable(.4)
     intakeMotorMinSpeed = tunable(.5)
     intakeMotorMaxSpeed = tunable(.7)
     autoShootingSpeed = tunable(4800)
     teleShootingSpeed = tunable(5300)
+
     # Other variables
     isSetup = False
     isAutonomous = False
@@ -54,10 +56,13 @@ class ShooterLogic(StateMachine):
     @feedback
     def isShooterUpToSpeed(self):
         """Determines if the shooter is up to speed, then rumbles controller and publishes to NetworkTables."""
-        autoLoadingSpeed = self.shootingSpeed - self.speedTolerance
+        if self.isAutonomous:
+            shootSpeed = self.autoShootingSpeed - self.speedTolerance
+        elif not self.isAutonomous:
+            shootSpeed = self.teleShootingSpeed - self.speedTolerance
         if not self.isSetup:
             return False
-        atSpeed = bool(self.shooterMotors.shooterMotor.getEncoder().getVelocity() >= autoLoadingSpeed)
+        atSpeed = bool(self.shooterMotors.shooterMotor.getEncoder().getVelocity() >= shootSpeed)
         rumble  = 0
         if atSpeed and not self.isAutonomous:
             rumble = .3
@@ -93,9 +98,10 @@ class ShooterLogic(StateMachine):
             self.shooterMotors.runShooter(self.teleShootingSpeed)
             self.feeder.run(Type.kLoader)
 
-        elif self.isShooterUpToSpeed() and self.isAutonomous:
+        elif self.isAutonomous:
             self.shooterMotors.runShooter(self.autoShootingSpeed)
-            self.next_state('autonomousShoot')
+            if self.isShooterUpToSpeed():
+                self.next_state('autonomousShoot')
 
     @timed_state(duration = shooterStoppingDelay, next_state = 'finishShooting')
     def autonomousShoot(self):
