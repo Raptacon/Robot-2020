@@ -325,5 +325,4 @@ class SparkMaxFeedback(rev.CANSparkMax):
             self.coast()
         else:
             self.stopCoast()
-        print(self.ControlType)
         return self.PIDController.setReference(speed*self.pid['kPreScale'], self.ControlType, self.pid['feedbackDevice'])
