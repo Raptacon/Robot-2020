@@ -94,10 +94,6 @@ class ShooterLogic(StateMachine):
         Runs shooter to a certain speed, then lets drivers control loading if in teleop.
         If in autonomous, run shooter automatically.
         """
-<<<<<<< HEAD
-=======
-        self.shooterMotors.runShooter(self.shootingSpeed)
->>>>>>> 8e42bc5a1e12ace72775320f0a1d0bd58cd52d17
         if not self.isAutonomous:
             self.shooterMotors.runShooter(self.teleShootingSpeed)
             self.feeder.run(Type.kLoader)
