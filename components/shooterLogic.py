@@ -20,7 +20,8 @@ class ShooterLogic(StateMachine):
     loaderMotorSpeed = tunable(.4)
     intakeMotorMinSpeed = tunable(.5)
     intakeMotorMaxSpeed = tunable(.7)
-    shootingSpeed = tunable(5300)
+    autoShootingSpeed = tunable(4800)
+    teleShootingSpeed = tunable(5300)
     # Other variables
     isSetup = False
     isAutonomous = False
@@ -88,11 +89,12 @@ class ShooterLogic(StateMachine):
         Runs shooter to a certain speed, then lets drivers control loading if in teleop.
         If in autonomous, run shooter automatically.
         """
-        self.shooterMotors.runShooter(self.shootingSpeed)
         if not self.isAutonomous:
+            self.shooterMotors.runShooter(self.teleShootingSpeed)
             self.feeder.run(Type.kLoader)
 
         elif self.isShooterUpToSpeed() and self.isAutonomous:
+            self.shooterMotors.runShooter(self.autoShootingSpeed)
             self.next_state('autonomousShoot')
 
     @timed_state(duration = shooterStoppingDelay, next_state = 'finishShooting')
