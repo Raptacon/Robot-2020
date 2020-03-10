@@ -313,7 +313,7 @@ class SparkMaxFeedback(rev.CANSparkMax):
         """
         Restores previous control type. Whatever it was.
         """
-        if self.coasting:  
+        if self.coasting:
             self.ControlType = self.prevControlType
         self.coasting = False
 
