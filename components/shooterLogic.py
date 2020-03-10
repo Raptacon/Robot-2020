@@ -18,7 +18,7 @@ class ShooterLogic(StateMachine):
     speedTolerance = tunable(50)
 
     # Tunables
-    loaderMotorSpeed = tunable(.4)
+    shootingLoaderSpeed = tunable(.4)
     intakeMotorMinSpeed = tunable(.5)
     intakeMotorMaxSpeed = tunable(.7)
     autoShootingSpeed = tunable(4800)
@@ -74,7 +74,7 @@ class ShooterLogic(StateMachine):
     def initShooting(self):
         """Smart shooter initialization (reversing if necessary)."""
         if self.sensors.shootingSensor(State.kTripped):
-            self.shooterMotors.runLoader(self.loaderMotorSpeed, Direction.kBackwards)
+            self.shooterMotors.runLoader(self.shootingLoaderSpeed, Direction.kBackwards)
 
         else:
             self.shooterMotors.stopLoader()
@@ -106,7 +106,7 @@ class ShooterLogic(StateMachine):
     @timed_state(duration = shooterStoppingDelay, next_state = 'finishShooting')
     def autonomousShoot(self):
         """Shoot balls when shooter is up to speed. Strictly for autonomous use."""
-        self.shooterMotors.runLoader(self.loaderMotorSpeed, Direction.kForwards)
+        self.shooterMotors.runLoader(self.shootingLoaderSpeed, Direction.kForwards)
 
     @state
     def finishShooting(self):
