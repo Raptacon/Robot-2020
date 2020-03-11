@@ -30,5 +30,24 @@ class Sensors:
             return True
         return False
 
+    def getSensor(self, index, state):
+        """
+        Returns if the state of a sensor at index matches the parameter state
+        """
+        if self.SensorArray[index].get() == state:
+            return True
+        return False
+
+    def calcBallCount(self):
+        """
+        Counts the number of sensors broken and returns that number
+        """
+        self.ballCount = 0
+        for sensor in self.SensorArray:
+            if sensor.get() == State.kTripped:
+                self.ballCount += 1
+
+        return self.ballCount
+
     def execute(self):
         pass

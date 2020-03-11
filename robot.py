@@ -42,6 +42,7 @@ class MyRobot(MagicRobot):
     pneumatics: Pneumatics
     elevator: Elevator
     scorpionLoader: ScorpionLoader
+    breakSensors: Sensors
 
     sensitivityExponent = tunable(1.8)
 
@@ -96,7 +97,8 @@ class MyRobot(MagicRobot):
         Must include. Called running teleop.
         """
         self.xboxMap.controllerInput()
-
+        self.breakSensors.calcBallCount()
+        print("BALL COUNT: ", self.breakSensors.ballCount)
         driveLeft = utils.math.expScale(self.xboxMap.getDriveLeft(), self.sensitivityExponent) * self.driveTrain.driveMotorsMultiplier
         driveRight = utils.math.expScale(self.xboxMap.getDriveRight(), self.sensitivityExponent) * self.driveTrain.driveMotorsMultiplier
 
