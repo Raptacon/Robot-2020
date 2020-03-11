@@ -1,4 +1,5 @@
-from robotMap import XboxMap
+from wpilib import XboxController
+from components.controllerManager import XboxControllers, AxisManager
 from components.shooterMotors import ShooterMotorCreation, Direction
 from enum import Enum, auto
 from magicbot import tunable
@@ -15,7 +16,8 @@ class FeederMap:
     compatString = ["doof"]
 
     shooterMotors: ShooterMotorCreation
-    xboxMap: XboxMap
+    # xboxMap: XboxMap
+    axisManager: AxisManager
     logger: logging
 
     loaderMotorSpeed = tunable(.4)
@@ -28,28 +30,16 @@ class FeederMap:
     def run(self, loaderFunc):
         """Called when execution of a feeder element is desired."""
         if loaderFunc == Type.kIntake:
-            if self.xboxMap.getMechRightTrig() > 0 and self.xboxMap.getMechLeftTrig() == 0:
-                self.shooterMotors.runIntake(self.intakeMotorSpeed, Direction.kForwards)
-                self.logger.debug("right trig intake", self.xboxMap.getMechRightTrig())
-
-            elif self.xboxMap.getMechLeftTrig() > 0 and self.xboxMap.getMechRightTrig() == 0:
-                self.shooterMotors.runIntake(self.intakeMotorSpeed, Direction.kBackwards)
-                self.logger.debug("left trig intake", self.xboxMap.getMechLeftTrig())
-
-            else:
-                self.shooterMotors.stopIntake()
+            forwardIntakeValue = self.axisManager.getBoundAxis(XboxControllers.kMech, XboxController.Axis.kRightTrigger, .6, .8)
+            backwardsIntakeValue = self.axisManager.getBoundAxis(XboxControllers.kMech, XboxController.Axis.kLeftTrigger, .6, .8)
+            self.shooterMotors.runIntake(forwardIntakeValue, Direction.kForwards)
+            self.shooterMotors.runIntake(backwardsIntakeValue, Direction.kBackwards)
 
         if loaderFunc == Type.kLoader:
-            if self.xboxMap.getMechRightTrig() > 0 and self.xboxMap.getMechLeftTrig() == 0:
-                self.shooterMotors.runLoader(self.loaderMotorSpeed, Direction.kForwards)
-                self.logger.debug("right trig manual", self.xboxMap.getMechRightTrig())
-
-            elif self.xboxMap.getMechLeftTrig() > 0 and self.xboxMap.getMechRightTrig() == 0:
-                self.shooterMotors.runLoader(self.loaderMotorSpeed, Direction.kBackwards)
-                self.logger.debug("left trig manual", self.xboxMap.getMechLeftTrig())
-
-            else:
-                self.shooterMotors.stopLoader()
+            forwardLoaderValue = self.axisManager.getBoundAxis(XboxControllers.kMech, XboxController.Axis.kRightTrigger, .4, .4)
+            backwardsLoaderValue = self.axisManager.getBoundAxis(XboxControllers.kMech, XboxController.Axis.kLeftTrigger, .4, .4)
+            self.shooterMotors.runLoader(forwardLoaderValue, Direction.kForwards)
+            self.shooterMotors.runLoader(backwardsLoaderValue, Direction.kBackwards)
 
     def execute(self):
         pass

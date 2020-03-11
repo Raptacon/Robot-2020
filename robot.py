@@ -74,6 +74,11 @@ class MyRobot(MagicRobot):
         self.loader.stopLoading()
 
     def teleopInit(self):
+
+        self.drive = XboxController(1)
+        self.mech = XboxController(0)
+        self.controllerInput()
+
         # Register button events for doof
         self.buttonManager.registerButtonEvent(self.xboxMap.mech, XboxController.Button.kX, ButtonEvent.kOnPress, self.pneumatics.toggleLoader)
         self.buttonManager.registerButtonEvent(self.xboxMap.mech, XboxController.Button.kY, ButtonEvent.kOnPress, self.loader.setAutoLoading)

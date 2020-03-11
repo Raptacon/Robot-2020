@@ -2,9 +2,15 @@
 Manager class to turn HID buttons into events
 """
 import wpilib
+from wpilib import XboxController
 from enum import Flag, auto
 import inspect
 import traceback
+import logging
+
+class XboxControllers:
+    kDrive =  XboxController(1)
+    kMech =  XboxController(0)
 
 class ButtonEvent(Flag):
     """
@@ -21,6 +27,8 @@ class ButtonManager(object):
     Class manages the buttons on a HID device. If a HID device is registered users should not
     use any registered buttons directly.
     """
+
+    logger: logging
 
     def setup(self):
         """
@@ -189,3 +197,24 @@ class ButtonManager(object):
                 self.__runOnReleased(hidDevice, button, enabledActions, entrys)
                 self.__runWhilePressed(hidDevice, button, enabledActions, entrys)
                 self.__runWhileReleased(hidDevice, button, enabledActions, entrys)
+
+class AxisManager:
+    """Simple class to call an axis from a controller. """
+
+    def getAxis(self, hidDevice: wpilib.interfaces.GenericHID, axisID: int):
+        """Returns the value of the specified axis. Unbound."""
+        axis = hidDevice.getRawAxis(axisID)
+        if axis > 0 or axis < 0:
+            return axis
+        return 0
+
+    def getBoundAxis(self, hidDevice: wpilib.interfaces.GenericHID, axisID: int, minThreashold: float, maxThreashold: float):
+        """Returns the value of the specified axis. Bound by user specification with min/max threasholds."""
+        axis = hidDevice.getRawAxis(axisID)
+        if axis >= minThreashold and axis <= maxThreashold:
+            return axis
+        return 0
+
+    def execute(self):
+        pass
+
