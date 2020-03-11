@@ -16,12 +16,8 @@ class FeederMap:
     compatString = ["doof"]
 
     shooterMotors: ShooterMotorCreation
-    # xboxMap: XboxMap
     axisManager: AxisManager
     logger: logging
-
-    loaderMotorSpeed = tunable(.4)
-    intakeMotorSpeed = tunable(.7)
 
     def on_enable(self):
         pass
