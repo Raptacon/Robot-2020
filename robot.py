@@ -37,7 +37,6 @@ class MyRobot(MagicRobot):
     loader: LoaderLogic
     feeder: FeederMap
     sensors: Sensors
-    autonomousShooting: AutonomousShooting
     shooterMotors: ShooterMotorCreation
     driveTrain: DriveTrain
     winch: Winch
