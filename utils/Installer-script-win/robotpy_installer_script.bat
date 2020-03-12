@@ -62,5 +62,5 @@ robotpy-installer install-robotpy
 goto start
 
 :deployrc
-python ..\robot.py deploy
+python ..\..\robot.py deploy
 goto start

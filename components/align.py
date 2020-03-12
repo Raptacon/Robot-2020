@@ -75,13 +75,13 @@ class Align():
                 self.stopAlign()
 
         if self.currentAligningState == AlignStates.kAligningX:
-            self.driveTrain.setArcade(0, xoffset)
+            self.driveTrain.autoTracking(-0.05, xoffset)
         elif self.currentAligningState == AlignStates.kAliginingXY:
-            self.driveTrain.setArcade(0, xoffset)
+            self.driveTrain.autoTracking(-0.05, xoffset)
             logging.info("Aligning to Y not yet implemented, skipping")
         elif self.currentAligningState == AlignStates.kAliginingY:
             logging.info("Aligning to Y not yet implemented, skipping")
 
-        if self.currentAligningState != AlignStates.kNone:
+        if self.currentAligningState == AlignStates.kNone:
             self.limelight.setLEDMode(LimelightLightMode.kOff)
             self.limelight.setCameraMode(LimelightCamMode.kDriverMode)

@@ -10,6 +10,7 @@ class ControlMode(Enum):
     kTankDrive = auto()
     kAngleTurning = auto()
     kDisabled = auto()
+    kTracking = auto()
 
 class DriveTrain():
     # Note - The way we will want to do this will be to give this component motor description dictionaries from robotmap and then creating the motors with motorhelper. After that, we simply call wpilib' differential drive
@@ -23,6 +24,7 @@ class DriveTrain():
         self.arcadeSpeed = 0
         self.arcadeRotation = 0
         self.creeperMode = False
+        self.tracking = False
         self.controlMode = ControlMode.kDisabled
         self.leftMotor = self.motors_driveTrain["leftMotor"]
         self.rightMotor = self.motors_driveTrain["rightMotor"]
@@ -38,6 +40,10 @@ class DriveTrain():
 
     def isStopping(self):
         pass
+
+    def autoTracking(self, kP, error):
+        self.tracking = True
+        self.trackingAngle = kP * error
 
     def setTank(self, leftSpeed, rightSpeed):
         self.controlMode = ControlMode.kTankDrive
@@ -71,6 +77,11 @@ class DriveTrain():
         pass
 
     def execute(self):
+        if self.tracking:
+            self.driveTrain.arcadeDrive(0, self.trackingAngle)
+            self.tracking = False
+            return
+            
         if self.controlMode == ControlMode.kTankDrive:
             self.driveTrain.tankDrive(self.tankLeftSpeed, self.tankRightSpeed, False)
 
