@@ -1,6 +1,6 @@
 from robotMap import XboxMap
 from components.shooterMotors import ShooterMotorCreation, Direction
-from components.breakSensors import Sensors, State
+from components.breakSensors import Sensors, State, Index
 from components.feederMap import FeederMap, Type
 from magicbot import StateMachine, state, timed_state, tunable, feedback
 import logging
@@ -61,7 +61,7 @@ class LoaderLogic(StateMachine):
     def checkForBall(self):
         """Checks for ball to enter the loader, runs the loader if entry sensor is broken."""
         self.shooterMotors.stopLoader()
-        if self.sensors.loadingSensor(State.kTripped):
+        if self.sensors.getSensor(Index.kLoadingSensor, State.kTripped):
             self.next_state('loadBall')
 
     @state
@@ -73,7 +73,7 @@ class LoaderLogic(StateMachine):
     @state
     def waitForBallIntake(self):
         """Checks for intake to be completed."""
-        if self.sensors.loadingSensor(State.kNotTripped):
+        if self.sensors.getSensor(Index.kLoadingSensor, State.kNotTripped):
             self.next_state('stopBall')
 
     @timed_state(duration = loaderStoppingDelay, next_state = 'checkForBall')
