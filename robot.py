@@ -13,10 +13,11 @@ from components.buttonManager import ButtonManager, ButtonEvent
 from components.breakSensors import Sensors
 from components.winch import Winch
 from components.shooterMotors import ShooterMotorCreation
-from components.shooterLogic import ShooterLogic, AutonomousShooting
+from components.shooterLogic import ShooterLogic
 from components.loaderLogic import LoaderLogic
 from components.elevator import Elevator
 from components.scorpionLoader import ScorpionLoader
+from components.feederMap import FeederMap
 from components.limelight import Limelight
 from components.align import Align
 
@@ -34,6 +35,7 @@ class MyRobot(MagicRobot):
     """
     shooter: ShooterLogic
     loader: LoaderLogic
+    feeder: FeederMap
     sensors: Sensors
     autonomousShooting: AutonomousShooting
     shooterMotors: ShooterMotorCreation
@@ -71,14 +73,20 @@ class MyRobot(MagicRobot):
         testComponentCompatibility(self, Elevator)
         testComponentCompatibility(self, ScorpionLoader)
 
+    def autonomousInit(self):
+        """Run when autonomous is enabled."""
+        self.shooter.autonomousEnabled()
+        self.loader.stopLoading()
+
     def teleopInit(self):
         # Register button events for doof
         self.buttonManager.registerButtonEvent(self.xboxMap.mech, XboxController.Button.kX, ButtonEvent.kOnPress, self.pneumatics.toggleLoader)
         self.buttonManager.registerButtonEvent(self.xboxMap.mech, XboxController.Button.kY, ButtonEvent.kOnPress, self.loader.setAutoLoading)
         self.buttonManager.registerButtonEvent(self.xboxMap.mech, XboxController.Button.kB, ButtonEvent.kOnPress, self.loader.setManualLoading)
         self.buttonManager.registerButtonEvent(self.xboxMap.mech, XboxController.Button.kA, ButtonEvent.kOnPress, self.shooter.shootBalls)
-        self.buttonManager.registerButtonEvent(self.xboxMap.mech, XboxController.Button.kA, ButtonEvent.kOnPress, self.shooter.runShooterMotor)
+        self.buttonManager.registerButtonEvent(self.xboxMap.mech, XboxController.Button.kA, ButtonEvent.kOnPress, self.loader.stopLoading)
         self.buttonManager.registerButtonEvent(self.xboxMap.mech, XboxController.Button.kA, ButtonEvent.kOnRelease, self.shooter.doneShooting)
+        self.buttonManager.registerButtonEvent(self.xboxMap.mech, XboxController.Button.kA, ButtonEvent.kOnRelease, self.loader.determineNextAction)
         self.buttonManager.registerButtonEvent(self.xboxMap.mech, XboxController.Button.kBumperRight, ButtonEvent.kOnPress, self.elevator.setRaise)
         self.buttonManager.registerButtonEvent(self.xboxMap.mech, XboxController.Button.kBumperRight, ButtonEvent.kOnRelease, self.elevator.stop)
         self.buttonManager.registerButtonEvent(self.xboxMap.mech, XboxController.Button.kBumperLeft, ButtonEvent.kOnPress, self.elevator.setLower)
@@ -87,6 +95,8 @@ class MyRobot(MagicRobot):
         self.buttonManager.registerButtonEvent(self.xboxMap.drive, XboxController.Button.kBumperLeft, ButtonEvent.kOnRelease, self.driveTrain.disableCreeperMode)
         self.buttonManager.registerButtonEvent(self.xboxMap.drive, XboxController.Button.kA, ButtonEvent.kOnPress, self.align.alignToX)
         self.buttonManager.registerButtonEvent(self.xboxMap.drive, XboxController.Button.kB, ButtonEvent.kOnPress, self.align.stopAlign)
+
+        self.shooter.autonomousDisabled()
 
     def teleopPeriodic(self):
         """
@@ -108,7 +118,7 @@ class MyRobot(MagicRobot):
 
     def testInit(self):
         """
-        Function called when testInit is called. Crashes on 2nd call right now
+        Function called when testInit is called.
         """
         print("testInit was Successful")
 

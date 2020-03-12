@@ -68,15 +68,15 @@ loaderMotors:
       type: "CANTalonSRX"
       inverted: False
       pid: Null
-      currentLimits:
-        absMax: 60
+      currentLimits: #Normal current is around 2.75-3.25
+        absMax: 10
         absMaxTimeMs: 50
-        maxNominal: 40
+        maxNominal: 6
 
     loaderMotor:
       channel: 51
       type: "CANTalonSRX"
-      inverted: False
+      inverted: True
       pid: Null
       currentLimits:
         absMax: 60
@@ -129,13 +129,22 @@ shooterMotors:
       type: "SparkMax"
       inverted: True
       motorType: "kBrushless"
-      pid: Null
+
+      pid:
+        controlType: "Velocity"
+        kP: 0.0004
+        kI: 0
+        kD: 0
+        kF: 0.000175
+        feedbackDevice: 1
+        kPreScale: 1
+        coastOnZero: True
+
       currentLimits:
         freeLimit: 30
         stallLimit: 30
         stallLimitRPM: 50
         secondaryLimit: 35
-
 
 lifter:
   type: "yaml"

@@ -1,6 +1,7 @@
 from robotMap import XboxMap
 from components.shooterMotors import ShooterMotorCreation, Direction
 from components.breakSensors import Sensors, State
+from components.feederMap import FeederMap, Type
 from magicbot import StateMachine, state, timed_state, tunable, feedback
 import logging
 
@@ -10,20 +11,20 @@ class LoaderLogic(StateMachine):
 
     # Component/module related things
     shooterMotors: ShooterMotorCreation
+    feeder: FeederMap
     logger: logging
     sensors: Sensors
     xboxMap: XboxMap
 
     # Tunable
-    loaderMotorSpeed = tunable(.4)
-    intakeMotorMinSpeed = tunable(.5)
-    intakeMotorMaxSpeed = tunable(.7)
+    automaticLoaderSpeed = tunable(.4)
 
     # Other variables
-    isAutomatic = False
+    isAutomatic = True
+    loaderStoppingDelay = .16
 
     def on_enable(self):
-        self.isAutomatic = False
+        self.isAutomatic = True
 
     def setAutoLoading(self):
         """Runs sensor-based loading."""
@@ -35,40 +36,28 @@ class LoaderLogic(StateMachine):
         self.isAutomatic = False
         self.next_state('runLoaderManually')
 
+    def stopLoading(self):
+        if self.shooterMotors.isLoaderRunning():
+            return
+        self.next_state('shooting')
+
+    def determineNextAction(self):
+        self.next_state('nextAction')
+
     @feedback
     def isRunningAutomatic(self):
         return self.isAutomatic
 
     def runIntake(self):
         """Universal function for running the intake. Used in both manual and automatic."""
-        if self.xboxMap.getMechRightTrig() > 0 and self.xboxMap.getMechLeftTrig() == 0:
-            self.shooterMotors.runIntake((self.xboxMap.getMechRightTrig()*(self.intakeMotorMaxSpeed-self.intakeMotorMinSpeed))+self.intakeMotorMinSpeed, Direction.kForwards)
-            self.logger.debug("right trig intake", self.xboxMap.getMechRightTrig())
-
-        elif self.xboxMap.getMechLeftTrig() > 0 and self.xboxMap.getMechRightTrig() == 0:
-            self.shooterMotors.runIntake((self.xboxMap.getMechRightTrig()*(self.intakeMotorMaxSpeed-self.intakeMotorMinSpeed))+self.intakeMotorMinSpeed, Direction.kBackwards)
-            self.logger.debug("left trig intake", self.xboxMap.getMechLeftTrig())
-
-        else:
-            self.shooterMotors.stopIntake()
-
-    @state(first = True)
-    def runLoaderManually(self):
-        """Trigger-based manual loader."""
-        if self.xboxMap.getMechRightTrig() > 0 and self.xboxMap.getMechLeftTrig() == 0:
-            self.shooterMotors.runLoader(self.loaderMotorSpeed, Direction.kForwards)
-            self.logger.debug("right trig manual", self.xboxMap.getMechRightTrig())
-
-        elif self.xboxMap.getMechLeftTrig() > 0 and self.xboxMap.getMechRightTrig() == 0:
-            self.shooterMotors.runLoader(self.loaderMotorSpeed, Direction.kBackwards)
-            self.logger.debug("left trig manual", self.xboxMap.getMechLeftTrig())
-            self.shooterMotors.runShooter(-1)
-
-        else:
-            self.shooterMotors.stopShooter()
-            self.shooterMotors.stopLoader()
+        self.feeder.run(Type.kIntake)
 
     @state
+    def runLoaderManually(self):
+        """Trigger-based manual loader."""
+        self.feeder.run(Type.kLoader)
+
+    @state(first = True)
     def checkForBall(self):
         """Checks for ball to enter the loader, runs the loader if entry sensor is broken."""
         self.shooterMotors.stopLoader()
@@ -78,7 +67,7 @@ class LoaderLogic(StateMachine):
     @state
     def loadBall(self):
         """Loads ball if ball has entered."""
-        self.shooterMotors.runLoader(self.loaderMotorSpeed, Direction.kForwards)
+        self.shooterMotors.runLoader(self.automaticLoaderSpeed, Direction.kForwards)
         self.next_state('waitForBallIntake')
 
     @state
@@ -87,14 +76,14 @@ class LoaderLogic(StateMachine):
         if self.sensors.loadingSensor(State.kNotTripped):
             self.next_state('stopBall')
 
-    @timed_state(duration = .13, next_state = 'checkForBall')
+    @timed_state(duration = loaderStoppingDelay, next_state = 'checkForBall')
     def stopBall(self):
         """Stops ball after a short delay."""
         pass
 
     @state
     def shooting(self):
-        """Prevent loading actions if shooter is running."""
+        """While shooting, do nothing with the loader."""
         pass
 
     @state
@@ -106,7 +95,7 @@ class LoaderLogic(StateMachine):
             self.next_state('runLoaderManually')
 
     def execute(self):
-        """Constantly runs state machine. Necessary for function."""
+        """Constantly runs state machine and intake. Necessary for function."""
         self.engage()
         self.runIntake()
         super().execute()
