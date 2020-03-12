@@ -1,6 +1,6 @@
 from robotMap import XboxMap
 from components.shooterMotors import ShooterMotorCreation, Direction
-from components.breakSensors import Sensors, State
+from components.breakSensors import Sensors, State, Index
 from components.feederMap import FeederMap, Type
 from magicbot import StateMachine, state, timed_state, tunable, feedback
 import logging
@@ -71,7 +71,7 @@ class ShooterLogic(StateMachine):
     @state
     def initShooting(self):
         """Smart shooter initialization (reversing if necessary)."""
-        if self.sensors.shootingSensor(State.kTripped):
+        if self.sensors.getSensor(Index.kShootingSensor, State.kTripped):
             self.shooterMotors.runLoader(self.shootingLoaderSpeed, Direction.kBackwards)
 
         else:
