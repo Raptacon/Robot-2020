@@ -98,7 +98,6 @@ class MyRobot(MagicRobot):
         """
         self.xboxMap.controllerInput()
         self.breakSensors.calcBallCount()
-        print("BALL COUNT: ", self.breakSensors.ballCount)
         driveLeft = utils.math.expScale(self.xboxMap.getDriveLeft(), self.sensitivityExponent) * self.driveTrain.driveMotorsMultiplier
         driveRight = utils.math.expScale(self.xboxMap.getDriveRight(), self.sensitivityExponent) * self.driveTrain.driveMotorsMultiplier
 
