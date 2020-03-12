@@ -71,7 +71,7 @@ class ShooterLogic(StateMachine):
     @state
     def initShooting(self):
         """Smart shooter initialization (reversing if necessary)."""
-        if self.sensors.getSensor(Index.kShootingSensor, State.kTripped)
+        if self.sensors.getSensor(Index.kShootingSensor, State.kTripped):
             self.shooterMotors.runLoader(self.shootingLoaderSpeed, Direction.kBackwards)
 
         else:
