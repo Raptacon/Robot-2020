@@ -7,6 +7,7 @@ from wpilib import XboxController
 from magicbot import MagicRobot, tunable
 
 # Component imports:
+import components
 from components.driveTrain import DriveTrain
 from components.pneumatics import Pneumatics
 from components.buttonManager import ButtonManager, ButtonEvent
@@ -26,6 +27,7 @@ from utils.motorHelper import createMotor
 from utils.sensorFactories import gyroFactory, breaksensorFactory
 from utils.acturatorFactories import compressorFactory, solenoidFactory
 import utils.math
+from utils.wrappers import getComponents
 
 class MyRobot(MagicRobot):
     """
@@ -51,6 +53,7 @@ class MyRobot(MagicRobot):
         """
         self.map = RobotMap()
         self.xboxMap = XboxMap(XboxController(1), XboxController(0))
+        self.getComponents.components()
 
         self.instantiateSubsystemGroup("motors", createMotor)
         self.instantiateSubsystemGroup("gyros", gyroFactory)
@@ -120,6 +123,12 @@ class MyRobot(MagicRobot):
         Called during test mode alot
         """
         pass
+
+    # def createComponents(self, component_name):
+    #     """
+    #     Creates approprate components for robot used.
+    #     """
+        
 
     def instantiateSubsystemGroup(self, groupName, factory):
         """

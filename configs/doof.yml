@@ -57,6 +57,8 @@ driveTrain:
         triggerThresholdTime: 50
         currentLimit: 40
       inverted: True
+
+    controller: "drive"
   
 loaderMotors:
   subsystem: "loader"
