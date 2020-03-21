@@ -7,7 +7,6 @@ from wpilib import XboxController
 from magicbot import MagicRobot, tunable
 
 # Component imports:
-import components
 from components.driveTrain import DriveTrain
 from components.pneumatics import Pneumatics
 from components.buttonManager import ButtonManager, ButtonEvent
@@ -22,12 +21,12 @@ from components.feederMap import FeederMap
 
 # Other imports:
 from robotMap import RobotMap, XboxMap
-from utils.componentUtils import testComponentCompatibility
+from utils.componentUtils import testComponentCompatibility, createComponents
 from utils.motorHelper import createMotor
 from utils.sensorFactories import gyroFactory, breaksensorFactory
 from utils.acturatorFactories import compressorFactory, solenoidFactory
 import utils.math
-from utils.wrappers import getComponents
+# from utils.wrappers import createComponents
 
 class MyRobot(MagicRobot):
     """
@@ -53,13 +52,15 @@ class MyRobot(MagicRobot):
         """
         self.map = RobotMap()
         self.xboxMap = XboxMap(XboxController(1), XboxController(0))
-        self.getComponents.components()
+        # self.getComponents.components()
 
         self.instantiateSubsystemGroup("motors", createMotor)
         self.instantiateSubsystemGroup("gyros", gyroFactory)
         self.instantiateSubsystemGroup("digitalInput", breaksensorFactory)
         self.instantiateSubsystemGroup("compressors", compressorFactory)
         self.instantiateSubsystemGroup("solenoids", solenoidFactory)
+
+        createComponents(self)
 
         # Check each componet for compatibility
         testComponentCompatibility(self, ShooterLogic)

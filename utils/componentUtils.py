@@ -2,6 +2,7 @@
 File to hold misc component helper commands
 """
 
+from . import __all__
 import components
 import typing
 
@@ -11,6 +12,7 @@ def testComponentCompatibility(robot, component_type):
     If the component is not compatibile with the robot type, it will attempt to create basic bindings and
     disable the on_enable and execute() methods of the compeont.
     """
+
     # Iterate over variables with type annotations
     if not hasattr(component_type, "compatString"):
         robot.logger.warn("%s has no compatString set. Assuming compatible", component_type)
@@ -51,3 +53,9 @@ def testComponentCompatibility(robot, component_type):
     component_type.execute = components.dummyFunc
     component_type.on_enable = components.dummyFunc
     component_type.setup = components.dummyFunc
+
+def createComponents(robot):
+    for module in __all__:
+        componentString = module[0].upper() + module[1:]
+        component = eval('components.module.componentString')
+        testComponentCompatibility(robot, component)

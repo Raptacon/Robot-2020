@@ -58,8 +58,6 @@ driveTrain:
         currentLimit: 40
       inverted: True
 
-    controller: "drive"
-  
 loaderMotors:
   subsystem: "loader"
   description: "All motors used in the robot loader mechanism live here for the loader component"

@@ -1,11 +1,10 @@
-import components
-import os
+from . import __all__
+from utils.componentUtils import testComponentCompatibility
 
 class RobotTerminatedError(Exception):
     exit(1)
 
-class getComponents:
-    def components(self):
-        component_count = len([name for name in os.listdir('.') if os.path.isfile(name)])
-        print(component_count)
-
+def createComponents(robot):
+    for module in __all__:
+        component = module[0].upper() + module[1:]
+        testComponentCompatibility(robot, component)
