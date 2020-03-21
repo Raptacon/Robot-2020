@@ -63,14 +63,14 @@ class MyRobot(MagicRobot):
         createComponents(self)
 
         # Check each componet for compatibility
-        testComponentCompatibility(self, ShooterLogic)
-        testComponentCompatibility(self, ShooterMotorCreation)
-        testComponentCompatibility(self, DriveTrain)
-        testComponentCompatibility(self, Winch)
-        testComponentCompatibility(self, ButtonManager)
-        testComponentCompatibility(self, Pneumatics)
-        testComponentCompatibility(self, Elevator)
-        testComponentCompatibility(self, ScorpionLoader)
+        # testComponentCompatibility(self, ShooterLogic)
+        # testComponentCompatibility(self, ShooterMotorCreation)
+        # testComponentCompatibility(self, DriveTrain)
+        # testComponentCompatibility(self, Winch)
+        # testComponentCompatibility(self, ButtonManager)
+        # testComponentCompatibility(self, Pneumatics)
+        # testComponentCompatibility(self, Elevator)
+        # testComponentCompatibility(self, ScorpionLoader)
 
     def autonomousInit(self):
         """Run when autonomous is enabled."""
