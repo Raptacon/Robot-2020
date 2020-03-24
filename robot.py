@@ -133,7 +133,6 @@ class MyRobot(MagicRobot):
         container = getattr(self, containerName)
 
         subsystems = config.getSubsystems()
-        print('these subs are:', subsystems)
         createdCount = 0
         for subsystem in subsystems:
             items = {key:factory(descp) for (key, descp) in config.getGroupDict(subsystem, groupName).items()}

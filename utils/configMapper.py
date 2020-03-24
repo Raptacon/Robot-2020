@@ -1,6 +1,5 @@
 import yaml
 import logging as log
-from pprint import pprint
 import os
 from pathlib import Path
 
@@ -28,8 +27,10 @@ class ConfigMapper:
         self.subsystems = self.__extractSubsystems(loadedFile)
         try:
             self.configCompat = loadedFile['compatibility']
-        except NoCompatibilityError:
-            log.error("No compatibility key found in config file. Unable to bind correct components.")
+        except:
+            raise NoCompatibilityError(
+                "No compatibility key found in config file. Unable to bind correct components."
+            )
 
     def __loadFile(self, fileName):
         """
@@ -54,7 +55,7 @@ class ConfigMapper:
                 fileName = data.pop('file')
                 fileType = data.pop('type')
                 if not fileType == 'yaml':
-                    raise IncorrectFileTypeError("File type must be 'yaml'")
+                    raise IncorrectFileTypeError("File type must be 'yaml'. File type found: %s" %(fileType))
                 loadedFile = self.__loadFile(fileName)
                 self.__extractSubsystems(loadedFile)
 
@@ -63,17 +64,18 @@ class ConfigMapper:
     def __getSubsystemDicts(self, subsystem, groupName):
         """
         Internally processes a subsystem, returning a dict of specific information.
+        A 'groupName' is required to determine what factory to use. This is the name used in the config file under 'groups'.
         This information is typically used in the factories.
         """
         updatedSubsystem = {}
-        # Loops through subsystem dict and finds nested dicts. When it finds one, dig deeper by running process again.
+        # Loops through subsystem dict and finds nested dicts. When it finds one, dig deeper by running process again
         # This specifically assures that it wont look deeper if it encounters 'groups' key
         for key in subsystem:
             if isinstance(subsystem[key], dict) and 'groups' not in subsystem:
                 updatedValues = self.__getSubsystemDicts(subsystem[key], groupName)
                 updatedSubsystem.update(updatedValues)
 
-            # After searching, update new dict with values/dicts beyond 'groups' key
+            # After searching, update new dict with values/dicts beyond 'groups' key based on a groupName
             if 'groups' in subsystem[key]:
                 if groupName in subsystem[key]["groups"]:
                     updatedSubsystem.update(subsystem[key])
@@ -112,8 +114,7 @@ class ConfigMapper:
         Checks compatibility of the component based on the compatString and the compatibility key in the config file.
         """
         compatString = [x.lower() for x in compatString]
-        root = self.configCompat # This is the compatibility of the loaded file
-        print(root)
+        root = [self.configCompat] # This is the compatibility of the loaded file
         if root == "all" or "all" in compatString:
             return True
         for string in root:
@@ -132,7 +133,6 @@ def findConfig():
     home = str(Path.home()) + os.path.sep
     defaultConfig = "doof.yml"
     robotConfigFile = home + "robotConfig"
-    
 
     if not os.path.isfile(robotConfigFile):
         log.error("Could not find %s. Using default", robotConfigFile)
@@ -142,7 +142,6 @@ def findConfig():
         configFileName = file.readline().strip()
         file.close()
         configFile = configPath + configFileName
-        
         if os.path.isfile(configFile):
             log.info("Using %s config file", configFile)
             return configFileName, configPath
@@ -155,31 +154,3 @@ def findConfig():
         log.error("Using default %s", defaultConfig)
 
     return defaultConfig, configPath
-
-
-# if __name__ == "__main__":
-#     mapper = ConfigMapper("doof.yml", "configs")
-#     print("Subsystem driveTrain:", mapper.getSubsystem("driveTrain"))
-    
-#     print("driveTrain Motors")
-#     pprint(mapper.getGroupDict("driveTrain", "motors"))
-    
-#     print("Shooter motors:")
-#     pprint(mapper.getGroupDict("shooter", "motors", "loaderMotors"))
-
-#     print("All motors:")
-#     mapper.getGroupDict("/", "motors")
-#     #print()
-#     pprint(mapper.getGroupDict("/", "motors"))
-
-#     print("CANTalonFXFollower motors:")
-#     data = mapper.getTypesDict("/", "CANTalonFXFollower")
-#     #print()
-#     pprint(data)
-
-#     compatTest = ["Dog", "all", "doof", "minibot", "DOOF"]
-#     for item in compatTest:
-#         compat = mapper.checkCompatibilty(item)
-#         print(f"{item} is {compat}")
-
-#     print("Subsystems: ", mapper.getSubsystems())

@@ -13,7 +13,7 @@ class ShooterMotors:
     """
     compatString = ["doof"]
 
-    #logger: logging
+    logger: logging
     motors_shooter: dict
     motors_loader: dict
 

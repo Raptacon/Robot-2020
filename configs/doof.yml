@@ -12,8 +12,6 @@ system:
 driveTrain:
   subsystem: "driveTrain"
   description: "All motors used in the drive train live here"
-  #Right motor must always be called rightMotor, left motor must always be leftMotor. Look through motorHelper to see what values are necessary,
-#it varies by motor.
   motors:
     groups:
       - "motors"

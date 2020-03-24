@@ -21,6 +21,7 @@ class ButtonManager(object):
     Class manages the buttons on a HID device. If a HID device is registered users should not
     use any registered buttons directly.
     """
+    compatString = ['all']
 
     def setup(self):
         """
