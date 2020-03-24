@@ -7,6 +7,10 @@ import components
 import typing
 
 class InvalidComponentNameError(Exception):
+    """
+    Thrown when a class name for a component isn't proper with valid syntax.
+    This will likely be fixed and removed soon.
+    """
     pass
 
 def testComponentCompatibility(robot, component_type):
