@@ -62,7 +62,7 @@ def createMotor(motorDescp, motors = {}):
         setREVCurrentLimits(motor, motorDescp)
 
     else:
-        print("Unknown Motor")
+        print("Unknown Motor %s" %motorDescp['type'])
 
     if 'inverted' in motorDescp:
         motor.setInverted(motorDescp['inverted'])

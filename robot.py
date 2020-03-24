@@ -10,9 +10,9 @@ from magicbot import MagicRobot, tunable
 from components.driveTrain import DriveTrain
 from components.pneumatics import Pneumatics
 from components.buttonManager import ButtonManager, ButtonEvent
-from components.breakSensors import Sensors
+from components.breakSensors import BreakSensors
 from components.winch import Winch
-from components.shooterMotors import ShooterMotorCreation
+from components.shooterMotors import ShooterMotors
 from components.shooterLogic import ShooterLogic
 from components.loaderLogic import LoaderLogic
 from components.elevator import Elevator
@@ -21,7 +21,7 @@ from components.feederMap import FeederMap
 
 # Other imports:
 from robotMap import RobotMap, XboxMap
-from utils.componentUtils import testComponentCompatibility, createComponents
+from utils.componentUtils import createComponents
 from utils.motorHelper import createMotor
 from utils.sensorFactories import gyroFactory, breaksensorFactory
 from utils.acturatorFactories import compressorFactory, solenoidFactory
@@ -35,8 +35,8 @@ class MyRobot(MagicRobot):
     shooter: ShooterLogic
     loader: LoaderLogic
     feeder: FeederMap
-    sensors: Sensors
-    shooterMotors: ShooterMotorCreation
+    sensors: BreakSensors
+    shooterMotors: ShooterMotors
     driveTrain: DriveTrain
     winch: Winch
     buttonManager: ButtonManager
@@ -60,17 +60,8 @@ class MyRobot(MagicRobot):
         self.instantiateSubsystemGroup("compressors", compressorFactory)
         self.instantiateSubsystemGroup("solenoids", solenoidFactory)
 
+        # Creates appropriate components for the robot used
         createComponents(self)
-
-        # Check each componet for compatibility
-        # testComponentCompatibility(self, ShooterLogic)
-        # testComponentCompatibility(self, ShooterMotorCreation)
-        # testComponentCompatibility(self, DriveTrain)
-        # testComponentCompatibility(self, Winch)
-        # testComponentCompatibility(self, ButtonManager)
-        # testComponentCompatibility(self, Pneumatics)
-        # testComponentCompatibility(self, Elevator)
-        # testComponentCompatibility(self, ScorpionLoader)
 
     def autonomousInit(self):
         """Run when autonomous is enabled."""
@@ -125,16 +116,10 @@ class MyRobot(MagicRobot):
         """
         pass
 
-    # def createComponents(self, component_name):
-    #     """
-    #     Creates approprate components for robot used.
-    #     """
-        
-
     def instantiateSubsystemGroup(self, groupName, factory):
         """
         For each subsystem find all groupNames and call factory.
-        Each one is saved to groupName_subsystem and subsystem_groupName
+        Each one is saved to groupName_subsystem.
         """
         config = self.map.configMapper
         containerName = "subsystem" + groupName[0].upper() + groupName[1:]
@@ -148,6 +133,7 @@ class MyRobot(MagicRobot):
         container = getattr(self, containerName)
 
         subsystems = config.getSubsystems()
+        print('these subs are:', subsystems)
         createdCount = 0
         for subsystem in subsystems:
             items = {key:factory(descp) for (key, descp) in config.getGroupDict(subsystem, groupName).items()}
@@ -159,7 +145,7 @@ class MyRobot(MagicRobot):
             self.logger.info("Creating %s", groupName_subsystem)
             setattr(self, groupName_subsystem, container[subsystem])
 
-        self.logger.info(f"Created {createdCount} items for {groupName} groups with `{factory.__name__}` into `{containerName}")
+        self.logger.info(f"Created {createdCount} items for {groupName} groups with `{factory.__name__}` into `{containerName}`")
 
 
 if __name__ == '__main__':

@@ -1,5 +1,5 @@
 from robotMap import XboxMap
-from components.shooterMotors import ShooterMotorCreation, Direction
+from components.shooterMotors import ShooterMotors, Direction
 from enum import Enum, auto
 from magicbot import tunable
 import logging
@@ -14,7 +14,7 @@ class FeederMap:
 
     compatString = ["doof"]
 
-    shooterMotors: ShooterMotorCreation
+    shooterMotors: ShooterMotors
     xboxMap: XboxMap
     logger: logging
 

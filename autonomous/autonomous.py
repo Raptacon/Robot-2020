@@ -1,7 +1,6 @@
 from magicbot import AutonomousStateMachine, tunable, timed_state, state
 from components.driveTrain import DriveTrain
 from components.shooterLogic import ShooterLogic
-from components.shooterMotors import ShooterMotorCreation
 from components.pneumatics import Pneumatics
 
 class Autonomous(AutonomousStateMachine):
@@ -11,7 +10,6 @@ class Autonomous(AutonomousStateMachine):
     DEFAULT = True
     driveTrain: DriveTrain
     shooter: ShooterLogic
-    shooterMotors: ShooterMotorCreation
     pneumatics: Pneumatics
     drive_speed = tunable(.25)
 

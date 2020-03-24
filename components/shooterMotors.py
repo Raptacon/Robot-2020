@@ -7,13 +7,13 @@ class Direction(Enum):
     kBackwards = auto()
     kDisabled = auto()
 
-class ShooterMotorCreation:
+class ShooterMotors:
     """
     Allows you to run motors in the shooter
     """
     compatString = ["doof"]
 
-    logger: logging
+    #logger: logging
     motors_shooter: dict
     motors_loader: dict
 

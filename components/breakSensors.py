@@ -8,7 +8,7 @@ class State:
     kTripped = False
     kNotTripped = True
 
-class Sensors:
+class BreakSensors:
 
     digitalInput_breaksensors: dict
 

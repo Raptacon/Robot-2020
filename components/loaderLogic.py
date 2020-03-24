@@ -1,6 +1,6 @@
 from robotMap import XboxMap
-from components.shooterMotors import ShooterMotorCreation, Direction
-from components.breakSensors import Sensors, State
+from components.shooterMotors import ShooterMotors, Direction
+from components.breakSensors import BreakSensors, State
 from components.feederMap import FeederMap, Type
 from magicbot import StateMachine, state, timed_state, tunable, feedback
 import logging
@@ -10,10 +10,10 @@ class LoaderLogic(StateMachine):
     compatString = ["doof"]
 
     # Component/module related things
-    shooterMotors: ShooterMotorCreation
+    shooterMotors: ShooterMotors
     feeder: FeederMap
     logger: logging
-    sensors: Sensors
+    sensors: BreakSensors
     xboxMap: XboxMap
 
     # Tunable

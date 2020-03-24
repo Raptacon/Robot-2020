@@ -4,188 +4,122 @@ from pprint import pprint
 import os
 from pathlib import Path
 
-class ConfigMapper(object):
-    def __init__(self, filename, configDir):
-        """
-        Initlizes the config off a tree of yamls.
-        "/" holds global config
-        "<subsystem>" holds configs for subsystems
-        configDir points to folder with configs. Future work make it take a list and search.
-        """
-        self.configDir = configDir
-        initialData = self.__loadFile(filename)
-        log.debug("Intial data %s", initialData)
-        self.subsystems = self.__convertToSubsystems(initialData, "/")
-        root = self.subsystems["/"]
-        if not "compatibility" in root:
-            log.warning("No Compatibility string found. Matching all")
-            self.subsystems["compatibility"] = ["any"]
-        if not isinstance(root["compatibility"], list):
-            root["compatibility"] = [root["compatibility"]]
-        
-        root["compatibility"] =  [x.lower() for x in root["compatibility"]]
+class IncorrectFileTypeError(Exception):
+    """
+    Thrown when the key 'file' in the config file is not 'yaml'.
+    """
+    pass
 
+class NoCompatibilityError(Exception):
+    """
+    Thrown when the config file has no 'compatibility' key.
+    """
+    pass
+
+class ConfigMapper:
+    """
+    Class used to handle most config/file related activites.
+    """
+    # NOTE: All methods starting with '__' are PRIVATE, meaning they aren't used outside of this file.
+    def __init__(self, fileName, configDir):
+        self.configDir = configDir
+        loadedFile = self.__loadFile(fileName)
+        self.extractedSubsystems = {}
+        self.subsystems = self.__extractSubsystems(loadedFile)
+        try:
+            self.configCompat = loadedFile['compatibility']
+        except NoCompatibilityError:
+            log.error("No compatibility key found in config file. Unable to bind correct components.")
+
+    def __loadFile(self, fileName):
+        """
+        Loads a yaml file and returns the contents as a dictionary.
+        """
+        with open(self.configDir + os.path.sep + fileName) as file:
+            loadedFile = yaml.load(file, yaml.FullLoader)
+            return loadedFile
+
+    def __extractSubsystems(self, fileInfo):
+        """
+        Finds all the subsystems in a config file and returns their names as dictionaries.
+        If a file must be loaded, it's loaded and the subsystems are read/created.
+        """
+        for key, data in fileInfo.items():
+            if 'subsystem' in data and isinstance(data, dict):
+                subsystem = fileInfo[key]
+                subsystemName = data['subsystem']
+                self.extractedSubsystems[subsystemName] = subsystem
+
+            if 'file' in data and isinstance(data, dict):
+                fileName = data.pop('file')
+                fileType = data.pop('type')
+                if not fileType == 'yaml':
+                    raise IncorrectFileTypeError("File type must be 'yaml'")
+                loadedFile = self.__loadFile(fileName)
+                self.__extractSubsystems(loadedFile)
+
+        return self.extractedSubsystems
+
+    def __getSubsystemDicts(self, subsystem, groupName):
+        """
+        Internally processes a subsystem, returning a dict of specific information.
+        This information is typically used in the factories.
+        """
+        updatedSubsystem = {}
+        # Loops through subsystem dict and finds nested dicts. When it finds one, dig deeper by running process again.
+        # This specifically assures that it wont look deeper if it encounters 'groups' key
+        for key in subsystem:
+            if isinstance(subsystem[key], dict) and 'groups' not in subsystem:
+                updatedValues = self.__getSubsystemDicts(subsystem[key], groupName)
+                updatedSubsystem.update(updatedValues)
+
+            # After searching, update new dict with values/dicts beyond 'groups' key
+            if 'groups' in subsystem[key]:
+                if groupName in subsystem[key]["groups"]:
+                    updatedSubsystem.update(subsystem[key])
+
+            # Remove 'groups' key from new dict
+            if 'groups' in updatedSubsystem:
+                updatedSubsystem.pop('groups')
+
+        return updatedSubsystem
 
     def getSubsystem(self, subsystem):
         """
-        returns the complete config for specified subsystem or none if not found
+        Returns the complete config for a specified subsystem. If none is found, return 'None'.
         """
-        #gives the values.
-
         if subsystem in self.subsystems:
             return self.subsystems[subsystem]
         return None
 
-    def checkCompatibilty(self, compatString):
+    def getSubsystems(self):
         """
-        Checks if a string is marked as compatible in the config
+        Returns a list of the subsystem names.
+        """
+        subsystems = list(self.subsystems.keys())
+        return subsystems
+
+    def getGroupDict(self, subsystem, groupName):
+        """
+        Retrieves important values from the config file and returns them as a dictionary.
+        """
+        rawSubsystem = self.getSubsystem(subsystem)
+        subsystemDict = self.__getSubsystemDicts(rawSubsystem, groupName)
+        return subsystemDict
+
+    def checkCompatibility(self, compatString):
+        """
+        Checks compatibility of the component based on the compatString and the compatibility key in the config file.
         """
         compatString = [x.lower() for x in compatString]
-
-        root = self.getSubsystem("/")
+        root = self.configCompat # This is the compatibility of the loaded file
+        print(root)
         if root == "all" or "all" in compatString:
             return True
-        for string in root["compatibility"]:
+        for string in root:
             if string in compatString:
                 return True
         return False
-
-    def getSubsystems(self):
-        subsystems = list(self.subsystems.keys())
-        subsystems.remove("/")
-        return subsystems
-
-    def getGroupDict(self, subsystem, groupName, name = None):
-        """
-        returns a dictonary with data from a subsystem matching the groups and
-        if given then name.
-        i.e.
-        if you have a lifter with
-        lifter.sensors.groups=sensor
-        lifter.intakeMotors.groups=motors
-        lifter.beltMotors.groups=motors
-        calling getTypeDict("lifter", "motors")
-        returns all motors in intakeMotors and beltMotors
-
-        calling getTypeDict("lifter", "motors", "beltMotors")
-        returns all motors in beltMotors
-
-        calling getTypeDict("lifter", "sensor")
-        returns all sensors
-        """
-        data = self.getSubsystem(subsystem)
-        data =  self.__getGroups(data, groupName, name)
-        if "groups" in data:
-            data.pop("groups")
-
-        return data
-
-    def getTypesDict(self, subsystem, typeNames, name = None):
-        """
-        returns a dictonary with data from a subsystem matching the type(s) and
-        Once a type is found in an entry it is not searched any deeper
-        """
-        if not isinstance(typeNames, list):
-            typeNames = [typeNames]
-        data = self.getSubsystem(subsystem)
-        data = self.__getTypes(data, typeNames, name)
-        
-        return data
-
-    def __getGroups(self, data, groupName, name):
-        """
-        internal call, recusivley search the data for entries with
-        groups in "types" and if a name is given only types inside key with name
-        """
-
-        retVal = {}
-        for key in data:
-            if isinstance(data[key], dict):
-                recusiveDict = self.__getGroups(data[key], groupName, name)
-                retVal.update(recusiveDict)
-
-            if isinstance(data[key], dict) and "groups" in data[key]:
-                if name and not key == name:
-                    continue
-
-                if groupName in data[key]["groups"]:
-                    retVal.update(data[key])
-        return retVal
-
-    def __getTypes(self, data, typeNames, name):
-        """
-        internal call, recusivley search the data for entries with
-        typeName in ["types"] and if a name is given only types inside key with name
-        """
-        retVal = {}
-        for key in data:
-            if isinstance(data[key], dict):
-                recusiveDict = self.__getTypes(data[key], typeNames, name)
-                retVal.update(recusiveDict)
-
-            if isinstance(data[key], dict) and "type" in data[key]:
-                if name and not key == name:
-                    continue
-
-                if data[key]["type"] in typeNames:
-                    retVal[key] = data[key]
-        return retVal
-
-
-    def __loadFile(self, filename):
-        """
-        Loads a yaml or yml file and returns the contents as dictionary
-        """
-        with open(self.configDir + os.path.sep + filename) as file:
-            values = yaml.load(file, yaml.FullLoader)
-            return values
-
-
-    def __convertToSubsystems(self, inputData, defSubsystem):
-        """
-        Takes a dictionary and searchs for subsystem types to create leafs of a new tree.
-        Loads files as "file" is encountered
-        """
-        if "subsystem" in inputData:
-            subsystem = inputData["subsystem"]
-        else:
-            subsystem = defSubsystem
-
-        processedData = {}
-        processedData[subsystem] = {}
-
-        for key in inputData:
-
-            #if file, load file and walk
-            if isinstance(inputData[key], dict) and "file" in inputData[key]:
-                fileName = inputData[key].pop("file")
-                fileType = inputData[key].pop("type")
-                if not fileType == "yaml":
-                    log.error("Unknonw file type fileType. Trying Yaml")
-                log.info("Loading %s into entry %s", fileName, key)
-                data = self.__loadFile(fileName)
-                #Flatten the root node of newly loaded yaml file.
-                for loadedKey in data:
-                    if isinstance(data[loadedKey], dict):
-                        inputData[key].update(data[loadedKey])
-                    else:
-                        inputData[key][loadedKey] = data[loadedKey]
-
-            #if subsystem, walk subsystem
-            if "subsystem" in inputData[key] and isinstance(inputData[key], dict):
-                log.info("Walking subsystem")
-                #make a new subsystem
-                print("Crashing????")
-                print(inputData[key])
-                print(inputData[key]["subsystem"])
-                processedData[inputData[key]["subsystem"]] = self.__convertToSubsystems(inputData[key], inputData[key]["subsystem"])
-
-            #copy field over if no special processing
-            processedData[subsystem][key] = inputData[key]
-        
-        return processedData
-
-
 
 def findConfig():
     """
@@ -223,29 +157,29 @@ def findConfig():
     return defaultConfig, configPath
 
 
-if __name__ == "__main__":
-    mapper = ConfigMapper("doof.yml", "configs")
-    print("Subsystem driveTrain:", mapper.getSubsystem("driveTrain"))
+# if __name__ == "__main__":
+#     mapper = ConfigMapper("doof.yml", "configs")
+#     print("Subsystem driveTrain:", mapper.getSubsystem("driveTrain"))
     
-    print("driveTrain Motors")
-    pprint(mapper.getGroupDict("driveTrain", "motors"))
+#     print("driveTrain Motors")
+#     pprint(mapper.getGroupDict("driveTrain", "motors"))
     
-    print("Shooter motors:")
-    pprint(mapper.getGroupDict("shooter", "motors", "loaderMotors"))
+#     print("Shooter motors:")
+#     pprint(mapper.getGroupDict("shooter", "motors", "loaderMotors"))
 
-    print("All motors:")
-    mapper.getGroupDict("/", "motors")
-    #print()
-    pprint(mapper.getGroupDict("/", "motors"))
+#     print("All motors:")
+#     mapper.getGroupDict("/", "motors")
+#     #print()
+#     pprint(mapper.getGroupDict("/", "motors"))
 
-    print("CANTalonFXFollower motors:")
-    data = mapper.getTypesDict("/", "CANTalonFXFollower")
-    #print()
-    pprint(data)
+#     print("CANTalonFXFollower motors:")
+#     data = mapper.getTypesDict("/", "CANTalonFXFollower")
+#     #print()
+#     pprint(data)
 
-    compatTest = ["Dog", "all", "doof", "minibot", "DOOF"]
-    for item in compatTest:
-        compat = mapper.checkCompatibilty(item)
-        print(f"{item} is {compat}")
+#     compatTest = ["Dog", "all", "doof", "minibot", "DOOF"]
+#     for item in compatTest:
+#         compat = mapper.checkCompatibilty(item)
+#         print(f"{item} is {compat}")
 
-    print("Subsystems: ", mapper.getSubsystems())
+#     print("Subsystems: ", mapper.getSubsystems())

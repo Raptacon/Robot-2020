@@ -6,6 +6,9 @@ from . import __all__
 import components
 import typing
 
+class InvalidComponentNameError(Exception):
+    pass
+
 def testComponentCompatibility(robot, component_type):
     """
     takes a robot and a component_type to check
@@ -18,7 +21,7 @@ def testComponentCompatibility(robot, component_type):
         robot.logger.warn("%s has no compatString set. Assuming compatible", component_type)
         return
 
-    if robot.map.configMapper.checkCompatibilty(component_type.compatString):
+    if robot.map.configMapper.checkCompatibility(component_type.compatString):
         return
 
     robot.logger.warn("%s is not compatible. Disabling", component_type)
@@ -56,6 +59,9 @@ def testComponentCompatibility(robot, component_type):
 
 def createComponents(robot):
     for module in __all__:
-        componentString = module[0].upper() + module[1:]
-        component = eval('components.module.componentString')
+        component_class = module[0].upper() + module[1:]
+        try:
+            component = eval('components.' + module + '.' + component_class)
+        except InvalidComponentNameError:
+            print("Component name must be a captialized version of component file.")
         testComponentCompatibility(robot, component)
