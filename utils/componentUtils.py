@@ -63,6 +63,6 @@ def createComponents(robot):
         component_class = module[0].upper() + module[1:]
         try:
             component = eval('components.' + module + '.' + component_class)
-        except InvalidComponentNameError:
-            print("Component name must be a captialized version of component file.")
+        except:
+            raise InvalidComponentNameError("Component name must be a captialized version of component file.")
         testComponentCompatibility(robot, component)
