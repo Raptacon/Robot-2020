@@ -161,3 +161,35 @@ def findConfig():
         log.error("Using default %s", defaultConfig)
 
     return defaultConfig, configPath
+
+if __name__ == '__main__':
+    """
+    Standard testing for elements of the config. To run this, simply run the python file
+    by itself.
+    """
+    configFile, configPath = findConfig()
+    print('')
+    print("Config file used:", configFile)
+    print("Config path:", configPath)
+    print('')
+
+    mapper = ConfigMapper(configFile, configPath)
+
+    subsystemList = mapper.getSubsystems()
+    print("Subsystem list:", subsystemList, '\n')
+
+    # NOTE that these group names are as of the time of this writing. They may change in the future.
+    groupNames = ['motors', 'gyros', 'digitalInput', 'compressors', 'solenoids']
+    print("groupNames:", groupNames, '\n')
+
+    for subsystem in subsystemList:
+        subsys = mapper.getSubsystem(subsystem)
+        print("Subsystem %s: %s \n" %(subsystem, subsys))
+        for groupName in groupNames:
+            groupDicts = mapper.getGroupDict(subsystem, groupName)
+            if not len(groupDicts) == 0:
+                print("Group dicts %s: %s \n \n" %(subsystem, groupDicts))
+
+    exampleCompatString = ['doof']
+    isCompatible = mapper.checkCompatibility(exampleCompatString)
+    print("Is %s compatible? %s <--- (This should say 'True')" %(exampleCompatString, isCompatible))

@@ -25,11 +25,17 @@ def testComponentCompatibility(robot, component_type):
         robot.logger.warn("%s has no compatString set. Assuming compatible", component_type)
         return
 
-    if robot.map.configMapper.checkCompatibility(component_type.compatString):
+    compatString = component_type.compatString
+
+    assert isinstance(compatString, list), (
+        f"compatString in component {component_type} must be of list type. Current type in file: {type(compatString)}."
+    )
+
+    if robot.map.configMapper.checkCompatibility(compatString):
         robot.logger.info("Component %s is compatible. Enabling", component_type)
         return
 
-    robot.logger.warn("Component %s is not compatible (compatString is %s). Disabling", component_type, component_type.compatString)
+    robot.logger.warn("Component %s is not compatible (compatString is %s). Disabling", component_type, compatString)
 
     for n, inject_type in typing.get_type_hints(component_type).items():
         # If the variable is private ignore it
