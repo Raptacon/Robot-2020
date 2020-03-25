@@ -181,7 +181,7 @@ if __name__ == '__main__':
     subsystemList = mapper.getSubsystems()
     print("Subsystem list:", subsystemList, '\n')
 
-    # NOTE that these group names are as of the time of this writing. They may change in the future.
+    # NOTE that these are the group names as of the time of this writing. They may change in the future.
     groupNames = ['motors', 'gyros', 'digitalInput', 'compressors', 'solenoids']
     print("groupNames:", groupNames, '\n')
 
