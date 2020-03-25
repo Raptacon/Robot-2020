@@ -75,6 +75,9 @@ class ConfigMapper:
         This information is typically used in the factories.
         """
         updatedSubsystem = {}
+
+        assert subsystem is not None, "Loaded subsystem must not be 'None'."
+
         # Loops through subsystem dict and finds nested dicts. When it finds one, dig deeper by running process again
         # This specifically assures that it wont look deeper if it encounters 'groups' key
         for key in subsystem:
