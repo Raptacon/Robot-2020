@@ -26,10 +26,10 @@ def testComponentCompatibility(robot, component_type):
         return
 
     if robot.map.configMapper.checkCompatibility(component_type.compatString):
-        robot.logger.info("%s is compatible. Enabling", component_type)
+        robot.logger.info("Component %s is compatible. Enabling", component_type)
         return
 
-    robot.logger.warn("%s is not compatible (compatString is %s). Disabling", component_type, component_type.compatString)
+    robot.logger.warn("Component %s is not compatible (compatString is %s). Disabling", component_type, component_type.compatString)
 
     for n, inject_type in typing.get_type_hints(component_type).items():
         # If the variable is private ignore it

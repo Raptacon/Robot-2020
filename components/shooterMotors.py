@@ -11,7 +11,7 @@ class ShooterMotors:
     """
     Allows you to run motors in the shooter
     """
-    compatString = ["doof"]
+    compatString = ['doof']
 
     logger: logging
     motors_shooter: dict

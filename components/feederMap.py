@@ -12,7 +12,7 @@ class Type(Enum):
 class FeederMap:
     """Simple map that holds the logic for running elements of the feeder."""
 
-    compatString = ["doof"]
+    compatString = ['doof']
 
     shooterMotors: ShooterMotors
     xboxMap: XboxMap

@@ -7,7 +7,7 @@ import logging
 
 class ShooterLogic(StateMachine):
     """StateMachine-based shooter. Has both manual and automatic modes."""
-    compatString = ["doof"]
+    compatString = ['doof']
 
     # Component/module related things
     shooterMotors: ShooterMotors
