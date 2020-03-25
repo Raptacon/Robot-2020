@@ -53,9 +53,16 @@ class ConfigMapper:
 
             if 'file' in data and isinstance(data, dict):
                 fileName = data.pop('file')
-                fileType = data.pop('type')
+                try:
+                    fileType = data.pop('type')
+                except:
+                    raise KeyError(
+                        "Unable to load file '%s': No file type found." %(key)
+                        )
                 if not fileType == 'yaml':
-                    raise IncorrectFileTypeError("File type must be 'yaml'. File type found: %s" %(fileType))
+                    raise IncorrectFileTypeError(
+                        "Unable to load file '%s': File type must be 'yaml'. File type found: %s" %(key, fileType)
+                    )
                 loadedFile = self.__loadFile(fileName)
                 self.__extractSubsystems(loadedFile)
 
