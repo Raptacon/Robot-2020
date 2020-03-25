@@ -115,7 +115,7 @@ class ConfigMapper:
         """
         compatString = [x.lower() for x in compatString]
         root = [self.configCompat] # This is the compatibility of the loaded file
-        if root == "all" or "all" in compatString:
+        if "all" in root or "all" in compatString:
             return True
         for string in root:
             if string in compatString:
