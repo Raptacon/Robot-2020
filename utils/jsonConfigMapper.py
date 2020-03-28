@@ -61,7 +61,7 @@ class ConfigMapper:
         else:
             raise AttributeError(
                 """
-                Requested config '%s' could not be found. Current configs: %s. 
+                Requested config '%s' could not be found. Current configs: %s.
                 Is there a 'compatibility' key in '%s'?
                 """ %(requestedConfig, robotConfigs, requestedConfig)
             )
