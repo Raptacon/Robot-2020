@@ -22,7 +22,7 @@ from components.feederMap import FeederMap
 # Other imports:
 from robotMap import XboxMap
 from utils.componentUtils import testComponentCompatibility
-from utils.jsonConfigMapper import ConfigMapper, getConfig
+from utils.jsonConfigMapper import ConfigMapper, findConfig
 from utils.motorHelper import createMotor
 from utils.sensorFactories import gyroFactory, breaksensorFactory
 from utils.acturatorFactories import compressorFactory, solenoidFactory
@@ -50,7 +50,7 @@ class MyRobot(MagicRobot):
         """
         Robot-wide initialization code should go here. Replaces robotInit
         """
-        self.mapper = ConfigMapper('config.json', getConfig())
+        self.mapper = ConfigMapper('config.json', findConfig())
         self.xboxMap = XboxMap(XboxController(1), XboxController(0))
 
         self.instantiateSubsystemGroup("motors", createMotor)

@@ -8,7 +8,7 @@ from string import ascii_lowercase
 
 class ConfigMapper:
     """
-    Class to accept a .json config file and 'config' argument. This is most likely the return of getConfig().
+    Class to accept a .json config file and 'config' argument. This is most likely the return of findConfig().
     This parses the information in the file into a python dictionary.
     """
 
@@ -158,7 +158,7 @@ class ConfigMapper:
                 return True
         return False
 
-def getConfig(use_encoding = True, strict = False):
+def findConfig(use_encoding = True, strict = False):
     """
     Sets the config to be used one the robot. To manually set a config, run 'echo [config name] > RobotConfig' on the robot.
     This will create a file called 'RobotConfig' on the robot with the config requested.
@@ -223,7 +223,7 @@ if __name__ == '__main__':
     Standard testing for elements of the config. To run this, simply run the python file by itself.
     """
 
-    config = getConfig()
+    config = findConfig()
 
     mapper = ConfigMapper('config.json', config = config)
 
