@@ -1,15 +1,4 @@
-from utils import configMapper
 from wpilib import XboxController
-
-class RobotMap():
-    """
-    Robot map gathers all the hard coded values needed to interface with
-    hardware into a single location
-    """
-    def __init__(self):
-        """intilize the robot map"""
-        configFile, configPath = configMapper.findConfig()
-        self.configMapper = configMapper.ConfigMapper(configFile, configPath)
 
 class XboxMap():
     """

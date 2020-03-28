@@ -16,7 +16,7 @@ def testComponentCompatibility(robot, component_type):
         robot.logger.warn("%s has no compatString set. Assuming compatible", component_type)
         return
 
-    if robot.map.configMapper.checkCompatibilty(component_type.compatString):
+    if robot.mapper.checkCompatibility(component_type.compatString):
         return
 
     robot.logger.warn("%s is not compatible. Disabling", component_type)

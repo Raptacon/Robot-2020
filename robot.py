@@ -20,8 +20,9 @@ from components.scorpionLoader import ScorpionLoader
 from components.feederMap import FeederMap
 
 # Other imports:
-from robotMap import RobotMap, XboxMap
+from robotMap import XboxMap
 from utils.componentUtils import testComponentCompatibility
+from utils.jsonConfigMapper import ConfigMapper, setConfig
 from utils.motorHelper import createMotor
 from utils.sensorFactories import gyroFactory, breaksensorFactory
 from utils.acturatorFactories import compressorFactory, solenoidFactory
@@ -49,7 +50,7 @@ class MyRobot(MagicRobot):
         """
         Robot-wide initialization code should go here. Replaces robotInit
         """
-        self.map = RobotMap()
+        self.mapper = ConfigMapper('config.json', setConfig())
         self.xboxMap = XboxMap(XboxController(1), XboxController(0))
 
         self.instantiateSubsystemGroup("motors", createMotor)
@@ -126,7 +127,7 @@ class MyRobot(MagicRobot):
         For each subsystem find all groupNames and call factory.
         Each one is saved to groupName_subsystem and subsystem_groupName
         """
-        config = self.map.configMapper
+        config = self.mapper
         containerName = "subsystem" + groupName[0].upper() + groupName[1:]
         
         if not hasattr(self, containerName):
@@ -153,4 +154,5 @@ class MyRobot(MagicRobot):
 
 
 if __name__ == '__main__':
+
     wpilib.run(MyRobot)

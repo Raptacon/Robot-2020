@@ -1,0 +1,215 @@
+{
+"default": "doof",
+"doof": {
+    "compatibility": "doof",
+    "system": {
+        "subsystem": "system",
+        "description": "Contains system wide resources such as one off hardware devices",
+        "gyro": {
+            "groups": ["gyros"],
+            "navx": {
+                "type": "navx",
+                "method": "spi"
+            }
+        }
+    },
+    "driveTrain": {
+        "subsystem": "driveTrain",
+        "description": "All motors used in the drive train live here",
+        "motors": {
+            "groups": 
+                ["motors", "hardware"],
+            "rightMotor": {
+                "channel": 30,
+                "type": "CANTalonFX",
+                "inverted": true,
+                "pid": null,
+                "currentLimits": {
+                    "triggerThresholdCurrent": 60,
+                    "triggerThresholdTime": 50,
+                    "currentLimit": 40
+                }
+            },
+            "rightFollower": {
+                "channel": 31,
+                "masterChannel": 30,
+                "type": "CANTalonFXFollower",
+                "currentLimits": {
+                    "triggerThresholdCurrent": 60,
+                    "triggerThresholdTime": 50,
+                    "currentLimit": 40
+                },
+                "inverted": true
+            },
+            "leftMotor": {
+                "channel": 20,
+                "type": "CANTalonFX",
+                "inverted": true,
+                "pid": null,
+                "currentLimits": {
+                    "triggerThresholdCurrent": 60,
+                    "triggerThresholdTime": 50,
+                    "currentLimit": 40
+                }
+            },
+            "leftFollower": {
+                "channel": 21,
+                "masterChannel": 20,
+                "type": "CANTalonFXFollower",
+                "currentLimits": {
+                    "triggerThresholdCurrent": 60,
+                    "triggerThresholdTime": 50,
+                    "currentLimit": 40
+                },
+                "inverted": true
+            }
+        }
+    },
+    "loaderMotors": {
+        "subsystem": "loader",
+        "description": "All motors used in the robot loader mechanism live here for the loader component",
+        "loaderMotors": {
+            "groups": ["motors"],
+            "intakeMotor": {
+                "channel": 50,
+                "type": "CANTalonSRX",
+                "inverted": false,
+                "pid": null,
+                "currentLimits": {
+                    "absMax": 10,
+                    "absMaxTimeMs": 50,
+                    "maxNominal": 6
+                }
+            },
+            "loaderMotor": {
+                "channel": 51,
+                "type": "CANTalonSRX",
+                "inverted": true,
+                "pid": null,
+                "currentLimits": {
+                    "absMax": 60,
+                    "absMaxTimeMs": 50,
+                    "maxNominal": 40
+                }
+            },
+            "elevatorMotor": {
+                "channel": 60,
+                "type": "CANTalonSRX",
+                "inverted": false,
+                "pid": null,
+                "currentLimits": {
+                    "absMax": 60,
+                    "absMaxTimeMs": 50,
+                    "maxNominal": 40
+                }
+            }
+        }
+    },
+    "loaderSensors": {
+        "subsystem": "breaksensors",
+        "description": "All IR break sensors used for the loader live here for the loader/LED component",
+        "loaderSensors": {
+            "groups": ["digitalInput"],
+            "sensor1": {
+                "type": "RIODigitalIn",
+                "channel": 5,
+                "description": "Loading sensor"
+            },
+            "sensor2": {
+                "type": "RIODigitalIn",
+                "channel": 4,
+                "description": "Second bottom sensor"
+            },
+            "sensor3": {
+                "type": "RIODigitalIn",
+                "channel": 3,
+                "description": "Middle sensor"
+            },
+            "sensor4": {
+                "type": "RIODigitalIn",
+                "channel": 2,
+                "description": "Second top sensor"
+            },
+            "sensor5": {
+                "type": "RIODigitalIn",
+                "channel": 1,
+                "description": "Shooting sensor"
+            }
+        }
+    },
+    "shooterMotors": {
+        "subsystem": "shooter",
+        "description": "All motors used in the robot shooter mechanism live here for the shooter component",
+        "shooterMotors": {
+            "groups": ["motors"],
+            "shooterMotor": {
+                "channel": 52,
+                "type": "SparkMax",
+                "inverted": true,
+                "motorType": "kBrushless",
+                "pid": {
+                    "controlType": "Velocity",
+                    "kP": 0.0004,
+                    "kI": 0,
+                    "kD": 0,
+                    "kF": 0.000175,
+                    "feedbackDevice": 1,
+                    "kPreScale": 1,
+                    "coastOnZero": true
+                },
+                "currentLimits": {
+                    "freeLimit": 30,
+                    "stallLimit": 30,
+                    "stallLimitRPM": 50,
+                    "secondaryLimit": 35
+                }
+            }
+        }
+    },
+    "subconfigs":
+        ["winch", "pneumatics"]
+    },
+"winch": {
+    "subsystem": "winch",
+    "description": "All motors used in the robot winch mechanism live here for the winch component",
+    "motors": {
+        "groups": ["motors"],
+        "winchMotor": {
+            "channel": 40,
+            "type": "SparkMax",
+            "inverted": true,
+            "motorType": "kBrushless",
+            "sensorPhase": true,
+            "currentLimits": {
+                "freeLimit": 30,
+                "stallLimit": 30,
+                "stallLimitRPM": 50,
+                "secondaryLimit": 35
+            },
+            "pid": null
+        }
+    }
+},
+"pneumatics": {
+    "subsystem": "pneumatics",
+    "description": "All pneumatics goes here Solenoids should be moved to proper subsystem later",
+    "compressors": {
+        "groups": ["compressors"],
+        "compressor": {
+            "type": "compressor"
+        }
+    },
+    "solenoids": {
+        "groups": ["solenoids"],
+        "loader": {
+            "type": "doubleSolenoid",
+            "channel": {
+                "forward": 6,
+                "reverse": 7,
+                "pcm": 0
+            },
+            "default": "kForward"
+        }
+    }
+}
+}
