@@ -129,7 +129,7 @@ class ConfigMapper:
 
         if subsystem in self.subsystems:
             return self.subsystems[subsystem]
-        return None
+        raise AttributeError("Subsystem '%s' not found, unable to retrieve." %(subsystem))
 
     def getSubsystems(self):
         """
