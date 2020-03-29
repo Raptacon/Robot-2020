@@ -25,6 +25,7 @@ from utils.componentUtils import testComponentCompatibility
 from utils.motorHelper import createMotor
 from utils.sensorFactories import gyroFactory, breaksensorFactory
 from utils.acturatorFactories import compressorFactory, solenoidFactory
+from utils.robotLog import log
 import utils.math
 
 class MyRobot(MagicRobot):
@@ -151,6 +152,6 @@ class MyRobot(MagicRobot):
 
         self.logger.info(f"Created {createdCount} items for {groupName} groups with `{factory.__name__}` into `{containerName}")
 
-
 if __name__ == '__main__':
+    log()
     wpilib.run(MyRobot)
