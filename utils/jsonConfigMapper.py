@@ -201,6 +201,8 @@ def findConfig(use_encoding = True, strict = False):
         with open(configDir) as file:
             raw_string = file.readline().strip()
             for char in raw_string:
+                if char.isupper():
+                    char = char.lower()
                 if char in alphabet:
                     valid_chars.append(char)
         configString = ''.join(valid_chars)
@@ -220,6 +222,10 @@ def findConfig(use_encoding = True, strict = False):
             "Config '%s' has special character(s) %s which are disallowed." %(configString, invalid_chars)
         )
 
+    if any(char.isupper() for char in configString):
+        log.warning("Config requested '%s' had uppercase characters, which have been lowered." %(configString))
+        configString = configString.lower()
+
     return configString
 
 if __name__ == '__main__':
@@ -229,7 +235,7 @@ if __name__ == '__main__':
 
     config = findConfig()
 
-    mapper = ConfigMapper('config.json', config = config)
+    mapper = ConfigMapper('robot.json', config = config)
 
     print("Config to be used:", mapper.currentConfig)
 
