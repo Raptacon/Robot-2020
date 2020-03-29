@@ -50,7 +50,7 @@ class MyRobot(MagicRobot):
         """
         Robot-wide initialization code should go here. Replaces robotInit
         """
-        self.mapper = ConfigMapper('robot.json', findConfig())
+        self.mapper = ConfigMapper('robot.json', config = findConfig())
         self.xboxMap = XboxMap(XboxController(1), XboxController(0))
 
         self.instantiateSubsystemGroup("motors", createMotor)
