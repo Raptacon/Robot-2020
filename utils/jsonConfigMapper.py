@@ -8,8 +8,12 @@ from string import ascii_lowercase
 
 class ConfigMapper:
     """
-    Class to accept a .json config file and 'config' argument. This is most likely the return of findConfig().
+    Class to accept a .json config file and 'config' argument.
     This parses the information in the file into a python dictionary.
+
+    :param fileName: Name of the file to be loaded. NOTE this file must be in the root directory.
+
+    :param config: Name of the config to look for and load.
     """
 
     #log.basicConfig(level=log.INFO)
