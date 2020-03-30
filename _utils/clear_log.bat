@@ -1,0 +1,1 @@
+type nul > _utils\_robot_log.txt

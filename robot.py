@@ -153,5 +153,5 @@ class MyRobot(MagicRobot):
         self.logger.info(f"Created {createdCount} items for {groupName} groups with `{factory.__name__}` into `{containerName}")
 
 if __name__ == '__main__':
-    log()
+    log(simulations=True)
     wpilib.run(MyRobot)

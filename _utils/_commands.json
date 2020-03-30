@@ -1,4 +1,4 @@
 {
-    "view-log": "_utils/_view_log.bat",
-    "clear-log": "_utils/_clear_log.py"
+    "view-log": "_utils/view_log.bat",
+    "clear-log": "_utils/clear_log.bat"
 }
