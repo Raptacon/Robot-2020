@@ -17,11 +17,13 @@ def __getRunInfo():
         tag_name = tag.readline().strip()
         runtime_version = tag_name
 
+    # Determine simulation status
     if wpilib.RobotBase.isSimulation():
         is_simulation = True
     else:
         is_simulation = False
 
+    # Get date info
     currentDT = datetime.now()
     date = currentDT.strftime("%a, %b %d, %Y")
     time = currentDT.strftime("%I:%M:%S %p")
@@ -37,7 +39,7 @@ def __createEntry(is_sim, version, commit, date, time):
     log_dir = dirname(__file__) + os.path.sep + '..' + os.path.sep + '_utils' + os.path.sep + '_robot_log.txt'
     if is_sim:
         run_type = "Simulation"
-    elif is_sim == False:
+    elif not is_sim:
         run_type = "Deploy"
     with open(log_dir, 'a') as txt_file:
         txt_file.write(
