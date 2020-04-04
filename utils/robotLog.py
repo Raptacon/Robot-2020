@@ -36,7 +36,7 @@ def __createEntry(is_sim, version, commit, date, time):
     Requires info arguments.
     """
 
-    log_dir = dirname(__file__) + os.path.sep + '..' + os.path.sep + '_utils' + os.path.sep + '_robot_log.txt'
+    log_dir = dirname(__file__) + os.path.sep + '..' + os.path.sep + '_system_utils' + os.path.sep + '_robot_log.txt'
     if is_sim:
         run_type = "Simulation"
     elif not is_sim:
