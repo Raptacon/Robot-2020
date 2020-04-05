@@ -124,7 +124,7 @@ class ConfigMapper:
 
     def getSubsystem(self, subsystem):
         """
-        Returns the complete config for a specified subsystem. If none is found, return 'None'.
+        Returns the complete config for a specified subsystem. If none is found, raise error.
         """
 
         if subsystem in self.subsystems:
