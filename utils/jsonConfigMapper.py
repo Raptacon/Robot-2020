@@ -112,9 +112,9 @@ class ConfigMapper:
                 updatedSubsystem.update(updatedValues)
 
             # After searching, update new dict with values/dicts beyond 'groups' key based on a groupName
-            if 'groups' in subsystem[key]:
-                if groupName in subsystem[key]["groups"]:
-                    updatedSubsystem.update(subsystem[key])
+            if 'groups' in subsystem:
+                if groupName in subsystem["groups"]:
+                    updatedSubsystem.update(subsystem)
 
             # Remove 'groups' key from new dict
             if 'groups' in updatedSubsystem:
