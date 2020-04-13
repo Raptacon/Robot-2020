@@ -17,8 +17,7 @@
         "subsystem": "driveTrain",
         "description": "All motors used in the drive train live here",
         "motors": {
-            "groups": 
-                ["motors", "hardware"],
+            "groups": ["motors", "hardware"],
             "rightMotor": {
                 "channel": 30,
                 "type": "CANTalonFX",
