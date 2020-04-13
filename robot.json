@@ -168,7 +168,7 @@
     },
     "subconfigs":
         ["winch", "pneumatics"]
-    },
+},
 "winch": {
     "subsystem": "winch",
     "description": "All motors used in the robot winch mechanism live here for the winch component",
