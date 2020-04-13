@@ -17,8 +17,7 @@
         "subsystem": "driveTrain",
         "description": "All motors used in the drive train live here",
         "motors": {
-            "groups": 
-                ["motors", "hardware"],
+            "groups": ["motors", "hardware"],
             "rightMotor": {
                 "channel": 30,
                 "type": "CANTalonFX",
@@ -168,7 +167,7 @@
     },
     "subconfigs":
         ["winch", "pneumatics"]
-    },
+},
 "winch": {
     "subsystem": "winch",
     "description": "All motors used in the robot winch mechanism live here for the winch component",
