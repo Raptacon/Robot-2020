@@ -2,22 +2,8 @@
 "default": "doof",
 "doof": {
     "compatibility": "doof",
-    "system": {
-        "subsystem": "system",
-        "description": "Contains system wide resources such as one off hardware devices",
-        "gyro": {
-            "groups": ["gyros"],
-            "navx": {
-                "type": "navx",
-                "method": "spi"
-            }
-        }
-    },
-    "driveTrain": {
-        "subsystem": "driveTrain",
-        "description": "All motors used in the drive train live here",
-        "motors": {
-            "groups": ["motors", "hardware"],
+    "motors": [
+        {"subsystem": "driveTrain",
             "rightMotor": {
                 "channel": 30,
                 "type": "CANTalonFX",
@@ -62,13 +48,8 @@
                 },
                 "inverted": true
             }
-        }
-    },
-    "loaderMotors": {
-        "subsystem": "loader",
-        "description": "All motors used in the robot loader mechanism live here for the loader component",
-        "loaderMotors": {
-            "groups": ["motors"],
+        },
+        {"subsystem": "loader",
             "intakeMotor": {
                 "channel": 50,
                 "type": "CANTalonSRX",
@@ -102,13 +83,50 @@
                     "maxNominal": 40
                 }
             }
+        },
+        {"subsystem": "shooter",
+            "shooterMotor": {
+                "channel": 52,
+                "type": "SparkMax",
+                "inverted": true,
+                "motorType": "kBrushless",
+                "pid": {
+                    "controlType": "Velocity",
+                    "kP": 0.0004,
+                    "kI": 0,
+                    "kD": 0,
+                    "kF": 0.000175,
+                    "feedbackDevice": 1,
+                    "kPreScale": 1,
+                    "coastOnZero": true
+                },
+                "currentLimits": {
+                    "freeLimit": 30,
+                    "stallLimit": 30,
+                    "stallLimitRPM": 50,
+                    "secondaryLimit": 35
+                }
+            }
+        },
+        {"subsystem": "winch",
+            "winchMotor": {
+                "channel": 40,
+                "type": "SparkMax",
+                "inverted": true,
+                "motorType": "kBrushless",
+                "sensorPhase": true,
+                "currentLimits": {
+                    "freeLimit": 30,
+                    "stallLimit": 30,
+                    "stallLimitRPM": 50,
+                    "secondaryLimit": 35
+                },
+                "pid": null
+            }
         }
-    },
-    "loaderSensors": {
-        "subsystem": "breaksensors",
-        "description": "All IR break sensors used for the loader live here for the loader/LED component",
-        "loaderSensors": {
-            "groups": ["digitalInput"],
+    ],
+    "sensors": [
+        {"subsystem": "breaksensors",
             "sensor1": {
                 "type": "RIODigitalIn",
                 "channel": 5,
@@ -134,81 +152,33 @@
                 "channel": 1,
                 "description": "Shooting sensor"
             }
-        }
-    },
-    "shooterMotors": {
-        "subsystem": "shooter",
-        "description": "All motors used in the robot shooter mechanism live here for the shooter component",
-        "shooterMotors": {
-            "groups": ["motors"],
-            "shooterMotor": {
-                "channel": 52,
-                "type": "SparkMax",
-                "inverted": true,
-                "motorType": "kBrushless",
-                "pid": {
-                    "controlType": "Velocity",
-                    "kP": 0.0004,
-                    "kI": 0,
-                    "kD": 0,
-                    "kF": 0.000175,
-                    "feedbackDevice": 1,
-                    "kPreScale": 1,
-                    "coastOnZero": true
-                },
-                "currentLimits": {
-                    "freeLimit": 30,
-                    "stallLimit": 30,
-                    "stallLimitRPM": 50,
-                    "secondaryLimit": 35
-                }
+        },
+        {"subsystem": "gyros",
+            "navx": {
+                "type": "navx",
+                "method": "spi"
             }
         }
-    },
-    "subconfigs":
-        ["winch", "pneumatics"]
-},
-"winch": {
-    "subsystem": "winch",
-    "description": "All motors used in the robot winch mechanism live here for the winch component",
-    "motors": {
-        "groups": ["motors"],
-        "winchMotor": {
-            "channel": 40,
-            "type": "SparkMax",
-            "inverted": true,
-            "motorType": "kBrushless",
-            "sensorPhase": true,
-            "currentLimits": {
-                "freeLimit": 30,
-                "stallLimit": 30,
-                "stallLimitRPM": 50,
-                "secondaryLimit": 35
-            },
-            "pid": null
+    ],
+    "compressors": [
+        {"subsystem": "pneumatics",
+            "compressor": {
+                "type": "compressor"
+            }
         }
-    }
-},
-"pneumatics": {
-    "subsystem": "pneumatics",
-    "description": "All pneumatics goes here Solenoids should be moved to proper subsystem later",
-    "compressors": {
-        "groups": ["compressors"],
-        "compressor": {
-            "type": "compressor"
+    ],
+    "solenoids": [
+        {"subsystem": "pneumatics",
+            "loader": {
+                "type": "doubleSolenoid",
+                "channel": {
+                    "forward": 6,
+                    "reverse": 7,
+                    "pcm": 0
+                },
+                "default": "kForward"
+            }
         }
-    },
-    "solenoids": {
-        "groups": ["solenoids"],
-        "loader": {
-            "type": "doubleSolenoid",
-            "channel": {
-                "forward": 6,
-                "reverse": 7,
-                "pcm": 0
-            },
-            "default": "kForward"
-        }
-    }
+    ]
 }
 }
