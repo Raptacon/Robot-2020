@@ -3,6 +3,7 @@
 "doof": {
     "compatibility": "doof",
     "motors": [
+        {"factory": "motorHelper"},
         {"subsystem": "driveTrain",
             "rightMotor": {
                 "channel": 30,
@@ -125,7 +126,8 @@
             }
         }
     ],
-    "sensors": [
+    "breaksensors": [
+        {"factory": "breaksensorFactory"},
         {"subsystem": "breaksensors",
             "sensor1": {
                 "type": "RIODigitalIn",
@@ -152,7 +154,10 @@
                 "channel": 1,
                 "description": "Shooting sensor"
             }
-        },
+        }
+    ],
+    "gyros": [
+        {"factory": "gyroFactory"},
         {"subsystem": "gyros",
             "navx": {
                 "type": "navx",
@@ -161,6 +166,7 @@
         }
     ],
     "compressors": [
+        {"factory": "compressorFactory"},
         {"subsystem": "pneumatics",
             "compressor": {
                 "type": "compressor"
@@ -168,6 +174,7 @@
         }
     ],
     "solenoids": [
+        {"factory": "compressorFactory"},
         {"subsystem": "pneumatics",
             "loader": {
                 "type": "doubleSolenoid",
