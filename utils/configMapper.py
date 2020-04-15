@@ -3,18 +3,6 @@ import logging as log
 import os
 from pathlib import Path
 
-class IncorrectFileTypeError(Exception):
-    """
-    Thrown when the key 'file' in the config file is not 'yaml'.
-    """
-    pass
-
-class NoCompatibilityError(Exception):
-    """
-    Thrown when the config file has no 'compatibility' key.
-    """
-    pass
-
 class ConfigMapper:
     """
     Class used to handle most config/file related activites.
@@ -28,7 +16,7 @@ class ConfigMapper:
         try:
             self.configCompat = loadedFile['compatibility']
         except:
-            raise NoCompatibilityError(
+            raise AttributeError(
                 "No compatibility key found in config file. Unable to bind correct components."
             )
 
@@ -56,11 +44,11 @@ class ConfigMapper:
                 try:
                     fileType = data.pop('type')
                 except:
-                    raise KeyError(
+                    raise FileNotFoundError(
                         "Unable to load file '%s': No file type found." %(key)
                         )
                 if not fileType == 'yaml':
-                    raise IncorrectFileTypeError(
+                    raise FileNotFoundError(
                         "Unable to load file '%s': File type must be 'yaml'. File type found: %s" %(key, fileType)
                     )
                 loadedFile = self.__loadFile(fileName)
@@ -76,8 +64,6 @@ class ConfigMapper:
         """
         updatedSubsystem = {}
 
-        assert subsystem is not None, "Loaded subsystem must not be 'None'."
-
         # Loops through subsystem dict and finds nested dicts. When it finds one, dig deeper by running process again
         # This specifically assures that it wont look deeper if it encounters 'groups' key
         for key in subsystem:
@@ -86,9 +72,9 @@ class ConfigMapper:
                 updatedSubsystem.update(updatedValues)
 
             # After searching, update new dict with values/dicts beyond 'groups' key based on a groupName
-            if 'groups' in subsystem[key]:
-                if groupName in subsystem[key]["groups"]:
-                    updatedSubsystem.update(subsystem[key])
+            if 'groups' in subsystem:
+                if groupName in subsystem["groups"]:
+                    updatedSubsystem.update(subsystem)
 
             # Remove 'groups' key from new dict
             if 'groups' in updatedSubsystem:
