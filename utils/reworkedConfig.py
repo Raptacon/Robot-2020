@@ -5,6 +5,7 @@ import logging as log
 from chardet import detect
 from string import ascii_lowercase
 from pathlib import Path
+from factories import *
 
 class ConfigMapper:
 
@@ -77,7 +78,10 @@ class ConfigMapper:
                         print(f"Group Name: {group}, Subsystem Name: {subsystem_name}, Factory: {factory}, Group: {subsystem}")
     
     def almostThere(self, robot, groupName, subsystemName, group, factory):
-        pass
+        try:
+            import
+        factories_directory = dirname(__file__) + os.path.sep + '..' + os.path.sep + 'factories'
+
 
     def checkCompatibility(self, compatString):
         """
