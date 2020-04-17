@@ -5,7 +5,20 @@ import logging as log
 from chardet import detect
 from string import ascii_lowercase
 from pathlib import Path
-from . import __all__ as modules
+from importlib import import_module
+
+try:
+    from . import factory_modules as modules
+except ImportError as e:
+    print("Unable to import list of factory modules from '__init__.py'. Error:", e)
+    modules = None
+
+try:
+    import factories
+    factory_import_successful = True
+except ImportError as e:
+    print("Unable to import module 'factories'. Error:", e)
+    factory_import_successful = False
 
 class ConfigMapper:
 
@@ -75,11 +88,27 @@ class ConfigMapper:
                     if 'subsystem' in dictionary:
                         subsystem_name = dictionary.pop('subsystem')
                         subsystem = dictionary
-                        print(f"Group Name: {group}, Subsystem Name: {subsystem_name}, Factory: {factory}, Group: {subsystem}")
-                        print('blah', modules)
+                        self.almostThere(None, group, subsystem_name, subsystem, factory)
 
     def almostThere(self, robot, groupName, subsystemName, group, factory_name):
-        pass
+
+        factory = None
+
+        if modules is None or not factory_import_successful:
+            print(f"Group Name: {groupName}, Subsystem Name: {subsystemName}, Factory: {factory_name}, Group: {group}")
+            return
+
+        for file in modules:
+            factory_module = 'factories.' + file
+            factory_file = import_module(factory_module)
+            if hasattr(factory_file, factory_name):
+                factory = eval(factory_module + '.' + factory_name)
+
+        if factory is not None:
+            print("Factory:", factory)
+        else:
+            raise AttributeError(f"Factory '{factory_name}' doesn't exist in the 'factories' directory.")
+
 
     def checkCompatibility(self, compatString):
         """
