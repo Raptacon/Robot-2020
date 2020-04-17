@@ -5,7 +5,7 @@ import logging as log
 from chardet import detect
 from string import ascii_lowercase
 from pathlib import Path
-from factories import *
+from . import __all__ as modules
 
 class ConfigMapper:
 
@@ -76,12 +76,10 @@ class ConfigMapper:
                         subsystem_name = dictionary.pop('subsystem')
                         subsystem = dictionary
                         print(f"Group Name: {group}, Subsystem Name: {subsystem_name}, Factory: {factory}, Group: {subsystem}")
-    
-    def almostThere(self, robot, groupName, subsystemName, group, factory):
-        try:
-            import
-        factories_directory = dirname(__file__) + os.path.sep + '..' + os.path.sep + 'factories'
+                        print('blah', modules)
 
+    def almostThere(self, robot, groupName, subsystemName, group, factory_name):
+        pass
 
     def checkCompatibility(self, compatString):
         """

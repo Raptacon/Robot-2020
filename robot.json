@@ -3,7 +3,7 @@
 "doof": {
     "compatibility": "doof",
     "motors": [
-        {"factory": "motorHelper"},
+        {"factory": "createMotor"},
         {"subsystem": "driveTrain",
             "rightMotor": {
                 "channel": 30,

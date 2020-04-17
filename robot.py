@@ -23,9 +23,9 @@ from components.feederMap import FeederMap
 from robotMap import XboxMap
 from utils.componentUtils import testComponentCompatibility
 from utils.jsonConfigMapper import ConfigMapper, findConfig
-from utils.motorHelper import createMotor
-from utils.sensorFactories import gyroFactory, breaksensorFactory
-from utils.acturatorFactories import compressorFactory, solenoidFactory
+from factories.motorHelper import createMotor
+from factories.sensorFactories import gyroFactory, breaksensorFactory
+from factories.acturatorFactories import compressorFactory, solenoidFactory
 import utils.math
 
 class MyRobot(MagicRobot):
@@ -50,6 +50,8 @@ class MyRobot(MagicRobot):
         """
         Robot-wide initialization code should go here. Replaces robotInit
         """
+
+        
         self.mapper = ConfigMapper('robot.json', config = findConfig())
         self.xboxMap = XboxMap(XboxController(1), XboxController(0))
 
