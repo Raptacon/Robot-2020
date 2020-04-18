@@ -10,7 +10,7 @@ from importlib import import_module
 try:
     from . import factory_modules as modules
 except ImportError as e:
-    err_string = ("Unable to import list of factory modules from '__init__.py'. Error:", e)
+    err_string = "Unable to import list of factory modules from '__init__.py'. Error:", e
     log.error(err_string)
     modules = None
 
@@ -18,11 +18,14 @@ try:
     import factories
     factory_import_successful = True
 except ModuleNotFoundError as e:
-    err_string = ("Unable to import module 'factories'. Error:", e)
+    err_string = "Unable to import module 'factories'. Error:", e
     log.error(err_string)
     factory_import_successful = False
 
 class ConfigMapper:
+    """
+
+    """
 
     def __init__(self, robot, fileName: str, specifiedConfig = None):
         self.robot = robot
@@ -82,6 +85,10 @@ class ConfigMapper:
         return config, configName
 
     def __mapFactories(self, config):
+        """
+        Extracts factories and subsystems from a loaded config file.
+        """
+
         for group, data in config.items():
             if isinstance(data, list):
                 for dictionary in data:
@@ -93,6 +100,9 @@ class ConfigMapper:
                         self.__generateFactoryObjects(self.robot, group, subsystem_name, subsystem, factory)
 
     def __generateFactoryObjects(self, robot, groupName, subsystemName, group, factory_name):
+        """
+        Generates objects from factories based on information from a config file.
+        """
 
         factory = None
 
