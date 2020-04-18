@@ -10,20 +10,22 @@ from importlib import import_module
 try:
     from . import factory_modules as modules
 except ImportError as e:
-    print("Unable to import list of factory modules from '__init__.py'. Error:", e)
+    err_string = ("Unable to import list of factory modules from '__init__.py'. Error:", e)
+    log.error(err_string)
     modules = None
 
 try:
     import factories
     factory_import_successful = True
-except ImportError as e:
-    print("Unable to import module 'factories'. Error:", e)
+except ModuleNotFoundError as e:
+    err_string = ("Unable to import module 'factories'. Error:", e)
+    log.error(err_string)
     factory_import_successful = False
 
 class ConfigMapper:
 
     def __init__(self, robot, fileName: str, specifiedConfig = None):
-        #self.robot = robot
+        self.robot = robot
         self.configFileName = fileName
         loadedFile = self.__loadFile(fileName)
         config, configName = self.__getConfig(loadedFile, requestedConfig = specifiedConfig)
@@ -31,7 +33,7 @@ class ConfigMapper:
         self.configName = configName
         self.configCompat = config['compatibility']
 
-        self.testStuff(config)
+        self.__mapFactories(config)
 
     def __loadFile(self, fileName):
         configFile = dirname(__file__) + os.path.sep + '..' + os.path.sep + fileName
@@ -79,7 +81,7 @@ class ConfigMapper:
         # Return filtered config and name of config
         return config, configName
 
-    def testStuff(self, config):
+    def __mapFactories(self, config):
         for group, data in config.items():
             if isinstance(data, list):
                 for dictionary in data:
@@ -88,9 +90,9 @@ class ConfigMapper:
                     if 'subsystem' in dictionary:
                         subsystem_name = dictionary.pop('subsystem')
                         subsystem = dictionary
-                        self.almostThere(None, group, subsystem_name, subsystem, factory)
+                        self.__generateFactoryObjects(self.robot, group, subsystem_name, subsystem, factory)
 
-    def almostThere(self, robot, groupName, subsystemName, group, factory_name):
+    def __generateFactoryObjects(self, robot, groupName, subsystemName, group, factory_name):
 
         factory = None
 
@@ -104,8 +106,18 @@ class ConfigMapper:
             if hasattr(factory_file, factory_name):
                 factory = eval(factory_module + '.' + factory_name)
 
+        containerName = subsystemName.upper() + groupName.upper()
+
+        if not hasattr(robot, containerName):
+            setattr(robot, containerName, {})
+
+        container = getattr(robot, containerName)
+
         if factory is not None:
-            print("Factory:", factory)
+            items = {key:factory(descp) for (key, descp) in group.items()}
+            groupName_subsystemName = '_'.join([groupName, subsystemName])
+            container[subsystemName] = items
+            setattr(robot, groupName_subsystemName, container[subsystemName])
         else:
             raise AttributeError(f"Factory '{factory_name}' doesn't exist in the 'factories' directory.")
 

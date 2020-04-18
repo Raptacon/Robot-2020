@@ -126,7 +126,7 @@
             }
         }
     ],
-    "breaksensors": [
+    "digitalInput": [
         {"factory": "breaksensorFactory"},
         {"subsystem": "breaksensors",
             "sensor1": {
@@ -158,7 +158,7 @@
     ],
     "gyros": [
         {"factory": "gyroFactory"},
-        {"subsystem": "gyros",
+        {"subsystem": "system",
             "navx": {
                 "type": "navx",
                 "method": "spi"

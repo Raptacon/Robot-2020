@@ -22,13 +22,8 @@ from components.feederMap import FeederMap
 # Other imports:
 from robotMap import XboxMap
 from utils.componentUtils import testComponentCompatibility
-# from utils.jsonConfigMapper import ConfigMapper, findConfig
-# from factories.motorHelper import createMotor
-# from factories.sensorFactories import gyroFactory, breaksensorFactory
-# from factories.acturatorFactories import compressorFactory, solenoidFactory
+from utils.reworkedConfig import ConfigMapper, findConfig
 import utils.math
-
-from utils.reworkedConfig import ConfigMapper
 
 class MyRobot(MagicRobot):
     """
@@ -53,17 +48,8 @@ class MyRobot(MagicRobot):
         Robot-wide initialization code should go here. Replaces robotInit
         """
 
-        
-        #self.mapper = ConfigMapper('robot.json', config = findConfig())
-
-        self.mapper = ConfigMapper(None, 'robot.json')
+        self.mapper = ConfigMapper(self, 'robot.json', specifiedConfig = findConfig())
         self.xboxMap = XboxMap(XboxController(1), XboxController(0))
-
-        # self.instantiateSubsystemGroup("motors", createMotor)
-        # self.instantiateSubsystemGroup("gyros", gyroFactory)
-        # self.instantiateSubsystemGroup("digitalInput", breaksensorFactory)
-        # self.instantiateSubsystemGroup("compressors", compressorFactory)
-        # self.instantiateSubsystemGroup("solenoids", solenoidFactory)
 
         # Check each componet for compatibility
         testComponentCompatibility(self, ShooterLogic)
