@@ -114,36 +114,5 @@ class MyRobot(MagicRobot):
         """
         pass
 
-    # def instantiateSubsystemGroup(self, groupName, factory):
-    #     """
-    #     For each subsystem find all groupNames and call factory.
-    #     Each one is saved to groupName_subsystem and subsystem_groupName
-    #     """
-    #     config = self.mapper
-    #     containerName = "subsystem" + groupName[0].upper() + groupName[1:]
-        
-    #     if not hasattr(self, containerName):
-    #         setattr(self, containerName, {})
-    #         self.subsystemGyros = {}
-
-    #     #note this is a dicontary refernce, so changes to it
-    #     #are changes to self.<containerName>
-    #     container = getattr(self, containerName)
-
-    #     subsystems = config.getSubsystems()
-    #     createdCount = 0
-    #     for subsystem in subsystems:
-    #         items = {key:factory(descp) for (key, descp) in config.getGroupDict(subsystem, groupName).items()}
-    #         if(len(items) == 0):
-    #             continue
-    #         container[subsystem] = items
-    #         createdCount += len(container[subsystem])
-    #         groupName_subsystem = "_".join([groupName,subsystem])
-    #         self.logger.info("Creating %s", groupName_subsystem)
-    #         setattr(self, groupName_subsystem, container[subsystem])
-
-    #     self.logger.info(f"Created {createdCount} items for {groupName} groups with `{factory.__name__}` into `{containerName}")
-
-
 if __name__ == '__main__':
     wpilib.run(MyRobot)

@@ -24,7 +24,14 @@ except ModuleNotFoundError as e:
 
 class ConfigMapper:
     """
+    Class to accept a config file, config to use, and robot to map config to. This class is designed exclusively
+    for ONE config file in the rood directory.
 
+    :param robot: Robot to set dictionary attributes to.
+
+    :param filename: Config file to load.
+
+    :param specifiedConfig: If desired, specify a config to use. Default is 'doof'.
     """
 
     def __init__(self, robot, fileName: str, specifiedConfig = None):
@@ -32,10 +39,8 @@ class ConfigMapper:
         self.configFileName = fileName
         loadedFile = self.__loadFile(fileName)
         config, configName = self.__getConfig(loadedFile, requestedConfig = specifiedConfig)
-
         self.configName = configName
         self.configCompat = config['compatibility']
-
         self.__mapFactories(config)
 
     def __loadFile(self, fileName):
