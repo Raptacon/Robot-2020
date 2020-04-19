@@ -94,15 +94,15 @@ class ConfigMapper:
         Extracts factories and subsystems from a loaded config file.
         """
 
-        for group, data in config.items():
+        for group_name, data in config.items():
             if isinstance(data, list):
                 for dictionary in data:
                     if 'factory' in dictionary:
                         factory = dictionary['factory']
                     if 'subsystem' in dictionary:
                         subsystem_name = dictionary.pop('subsystem')
-                        subsystem = dictionary
-                        self.__generateFactoryObjects(self.robot, group, subsystem_name, subsystem, factory)
+                        group = dictionary
+                        self.__generateFactoryObjects(self.robot, group_name, subsystem_name, group, factory)
 
     def __generateFactoryObjects(self, robot, groupName, subsystemName, group, factory_name):
         """
@@ -135,7 +135,6 @@ class ConfigMapper:
             setattr(robot, groupName_subsystemName, container[subsystemName])
         else:
             raise AttributeError(f"Factory '{factory_name}' doesn't exist in the 'factories' directory.")
-
 
     def checkCompatibility(self, compatString):
         """
