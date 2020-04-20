@@ -20,6 +20,9 @@ except ModuleNotFoundError as e:
     err_string = "Unable to import module 'factories'. Error:", e
     log.error(err_string)
 
+# NOTE/FIXME/TODO: This is only to make flake8 happy... should be fixed. Maybe look at pipeline?
+factories.dummy()
+
 class ConfigMapper:
     """
     Class to accept a config file, config to use, and robot to map config to. This class is designed exclusively
