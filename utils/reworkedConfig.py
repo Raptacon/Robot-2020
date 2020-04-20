@@ -16,11 +16,9 @@ except ImportError as e:
 
 try:
     import factories
-    factory_import_successful = True
 except ModuleNotFoundError as e:
     err_string = "Unable to import module 'factories'. Error:", e
     log.error(err_string)
-    factory_import_successful = False
 
 class ConfigMapper:
     """
@@ -111,7 +109,7 @@ class ConfigMapper:
 
         factory = None
 
-        if modules is None or not factory_import_successful:
+        if modules is None:
             print(f"Group Name: {groupName}, Subsystem Name: {subsystemName}, Factory: {factory_name}, Group: {group}")
             return
 
