@@ -103,9 +103,9 @@ class ConfigMapper:
                     if 'subsystem' in dictionary:
                         subsystem_name = dictionary.pop('subsystem')
                         group = dictionary
-                        self.__generateFactoryObjects(self.robot, group_name, subsystem_name, group, factory)
+                        self.__generateFactoryObjects(group_name, subsystem_name, group, factory)
 
-    def __generateFactoryObjects(self, robot, groupName, subsystemName, group, factory_name):
+    def __generateFactoryObjects(self, groupName, subsystemName, group, factory_name):
         """
         Generates objects from factories based on information from a config file.
         """
@@ -124,16 +124,16 @@ class ConfigMapper:
 
         containerName = subsystemName.upper() + groupName.upper()
 
-        if not hasattr(robot, containerName):
-            setattr(robot, containerName, {})
+        if not hasattr(self.robot, containerName):
+            setattr(self.robot, containerName, {})
 
-        container = getattr(robot, containerName)
+        container = getattr(self.robot, containerName)
 
         if factory is not None:
             items = {key:factory(descp) for (key, descp) in group.items()}
             groupName_subsystemName = '_'.join([groupName, subsystemName])
             container[subsystemName] = items
-            setattr(robot, groupName_subsystemName, container[subsystemName])
+            setattr(self.robot, groupName_subsystemName, container[subsystemName])
         else:
             raise AttributeError(f"Factory '{factory_name}' doesn't exist in the 'factories' directory.")
 
