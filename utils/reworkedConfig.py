@@ -21,7 +21,8 @@ except ModuleNotFoundError as e:
     log.error(err_string)
 
 # NOTE/FIXME/TODO: This is only to make flake8 happy... should be fixed. Maybe look at pipeline?
-factories.dummy()
+if __name__ != '__main__':
+    factories.dummy()
 
 class ConfigMapper:
     """
