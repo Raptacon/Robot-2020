@@ -8,20 +8,16 @@ from pathlib import Path
 from importlib import import_module
 
 try:
-    from . import factory_modules as modules
-except ImportError as e:
-    err_string = "Unable to import list of factory modules from '__init__.py'. Error:", e
-    log.error(err_string)
-    modules = None
-
-try:
+    from factories import factory_modules
     import factories
-except ModuleNotFoundError as e:
-    err_string = "Unable to import module 'factories'. Error:", e
-    log.error(err_string)
+except ImportError:
+    if __name__ != '__main__':
+        raise
+    else:
+        factory_modules = None
 
-# NOTE/FIXME/TODO: This is only to make flake8 happy... should be fixed. Maybe look at pipeline?
 if __name__ != '__main__':
+    # NOTE This is only for flake8
     factories.dummy()
 
 class ConfigMapper:
@@ -40,16 +36,21 @@ class ConfigMapper:
         self.robot = robot
         self.configFileName = fileName
         loadedFile = self.__loadFile(fileName)
-        config, configName = self.__getConfig(loadedFile, requestedConfig = specifiedConfig)
-        self.configName = configName
+        factory_data = self.__getFactories(loadedFile)
+        config, self.configName = self.__getConfig(loadedFile, requestedConfig = specifiedConfig)
         self.configCompat = config['compatibility']
-        self.__mapFactories(config)
+        self.subsystems = self.__extractSubsystems(config)
+        for subsystem_name, subsystem_data in self.subsystems.items():
+            self.__generateFactoryObjects(factory_data, subsystem_name, subsystem_data)
 
     def __loadFile(self, fileName):
         configFile = dirname(__file__) + os.path.sep + '..' + os.path.sep + fileName
         with open(configFile) as file:
             loadedFile = json.load(file)
         return loadedFile
+
+    def __getFactories(self, config):
+        return config['factories']
 
     def __getConfig(self, configFile, requestedConfig = None):
         """
@@ -91,52 +92,47 @@ class ConfigMapper:
         # Return filtered config and name of config
         return config, configName
 
-    def __mapFactories(self, config):
-        """
-        Extracts factories and subsystems from a loaded config file.
-        """
+    def __extractSubsystems(self, config):
 
-        for group_name, data in config.items():
-            if isinstance(data, list):
-                for dictionary in data:
-                    if 'factory' in dictionary:
-                        factory = dictionary['factory']
-                    if 'subsystem' in dictionary:
-                        subsystem_name = dictionary.pop('subsystem')
-                        group = dictionary
-                        self.__generateFactoryObjects(group_name, subsystem_name, group, factory)
+        subsystems = {}
 
-    def __generateFactoryObjects(self, groupName, subsystemName, group, factory_name):
-        """
-        Generates objects from factories based on information from a config file.
-        """
+        for subsystem, data in config['subsystems'].items():
+            subsystems[subsystem] = data
+
+        return subsystems
+
+    def __generateFactoryObjects(self, factory_data, subsystem_name, subsystem_data):
 
         factory = None
 
-        if modules is None:
-            print(f"Group Name: {groupName}, Subsystem Name: {subsystemName}, Factory: {factory_name}, Group: {group}")
-            return
+        if factory_modules is None:
+            return # TODO Add some informative print here
 
-        for file in modules:
-            factory_module = 'factories.' + file
-            factory_file = import_module(factory_module)
-            if hasattr(factory_file, factory_name):
-                factory = eval(factory_module + '.' + factory_name)
+        for group_name, group_info in subsystem_data.items():
+            if group_name in factory_data:
+                factory_name = factory_data[group_name]
+                for file in factory_modules:
+                    factory_module = 'factories.' + file
+                    factory_file = import_module(factory_module)
+                    if hasattr(factory_file, factory_name):
+                        factory = eval(factory_module + '.' + factory_name)
+            else:
+                raise AttributeError(f"Group '{group_name}' has no associated factory.")
 
-        containerName = subsystemName.upper() + groupName.upper()
+            containerName = subsystem_name.upper() + group_name.upper()
 
-        if not hasattr(self.robot, containerName):
-            setattr(self.robot, containerName, {})
+            if not hasattr(self.robot, containerName):
+                setattr(self.robot, containerName, {})
 
-        container = getattr(self.robot, containerName)
+            container = getattr(self.robot, containerName)
 
-        if factory is not None:
-            items = {key:factory(descp) for (key, descp) in group.items()}
-            groupName_subsystemName = '_'.join([groupName, subsystemName])
-            container[subsystemName] = items
-            setattr(self.robot, groupName_subsystemName, container[subsystemName])
-        else:
-            raise AttributeError(f"Factory '{factory_name}' doesn't exist in the 'factories' directory.")
+            if factory is not None:
+                items = {key:factory(descp) for key, descp in group_info.items()}
+                groupName_subsystemName = '_'.join([group_name, subsystem_name])
+                container[subsystem_name] = items
+                setattr(self.robot, groupName_subsystemName, container[subsystem_name])
+            else:
+                raise AttributeError(f"Factory '{factory_name}' doesn't exist in the 'factories' directory.")
 
     def checkCompatibility(self, compatString):
         """
@@ -144,6 +140,8 @@ class ConfigMapper:
         """
 
         compatString = [x.lower() for x in compatString]
+        compatString = ''.join(compatString)
+
         root = [self.configCompat] # This is the compatibility of the loaded config
         if "all" in root or "all" in compatString:
             return True
@@ -219,4 +217,19 @@ def findConfig(use_encoding = True, strict = False):
     return configString
 
 if __name__ == '__main__':
-    configMapper = ConfigMapper(None, 'robot.json')
+    mapper = ConfigMapper(None, 'robot.json')
+
+    configFileName = mapper.configFileName
+    configCompat = mapper.configCompat
+    configName = mapper.configName
+
+    print("Config File:", configFileName)
+    print("Config Name:", configName)
+
+    for subsystem_name, subsystem_data in mapper.subsystems.items():
+        print("Subsystem:", subsystem_name)
+        print(subsystem_data, '\n')
+
+    dummyConfigString = 'doof'
+    isCompatible = mapper.checkCompatibility(dummyConfigString)
+    print(f"Is {dummyConfigString} compatible with {configCompat}? {isCompatible}")
