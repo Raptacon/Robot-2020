@@ -113,7 +113,7 @@ class ConfigMapper:
         factory = None
 
         if factory_modules is None:
-            return # TODO Add some informative print here
+            return
 
         for group_name, group_info in subsystem_data.items():
             if group_name in factory_data:
@@ -230,8 +230,9 @@ if __name__ == '__main__':
     configCompat = mapper.configCompat
     configName = mapper.configName
 
+    print('')
     print("Config File:", configFileName)
-    print("Config Name:", configName)
+    print("Config Name:", configName, '\n')
 
     for subsystem_name, subsystem_data in mapper.subsystems.items():
         print("Subsystem:", subsystem_name)
@@ -239,4 +240,4 @@ if __name__ == '__main__':
 
     dummyConfigString = 'doof'
     isCompatible = mapper.checkCompatibility(dummyConfigString)
-    print(f"Is {dummyConfigString} compatible with {configCompat}? {isCompatible}")
+    print(f"Is '{dummyConfigString}' compatible with '{configCompat}'? {isCompatible}")
