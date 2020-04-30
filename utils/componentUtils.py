@@ -53,6 +53,9 @@ def testComponentCompatibility(robot, component_name, component_type):
     component_type.setup = components.dummyFunc
 
 def createComponents(robot):
+    """
+    Creates all the components annotated on a robot.
+    """
     components = typing.get_type_hints(robot).items()
     for component_name, component in components:
         testComponentCompatibility(robot, component_name, component)
