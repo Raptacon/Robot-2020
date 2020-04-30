@@ -4,9 +4,7 @@ File to hold misc component helper commands
 
 import components
 import typing
-import sys
 import inspect
-from importlib import import_module
 
 def testComponentCompatibility(robot, component_name, component_type):
     """
