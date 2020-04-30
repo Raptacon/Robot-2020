@@ -4,8 +4,11 @@ File to hold misc component helper commands
 
 import components
 import typing
+import sys
+import inspect
+from importlib import import_module
 
-def testComponentCompatibility(robot, component_type):
+def testComponentCompatibility(robot, component_name, component_type):
     """
     takes a robot and a component_type to check
     If the component is not compatibile with the robot type, it will attempt to create basic bindings and
@@ -13,13 +16,13 @@ def testComponentCompatibility(robot, component_type):
     """
     # Iterate over variables with type annotations
     if not hasattr(component_type, "compatString"):
-        robot.logger.warn("%s has no compatString set. Assuming compatible", component_type)
+        robot.logger.warn("'%s' has no compatString set. Assuming compatible", component_name)
         return
 
     if robot.map.configMapper.checkCompatibilty(component_type.compatString):
         return
 
-    robot.logger.warn("%s is not compatible. Disabling", component_type)
+    robot.logger.warn("'%s' is not compatible. Disabling", component_name)
 
     for n, inject_type in typing.get_type_hints(component_type).items():
         # If the variable is private ignore it
@@ -51,3 +54,8 @@ def testComponentCompatibility(robot, component_type):
     component_type.execute = components.dummyFunc
     component_type.on_enable = components.dummyFunc
     component_type.setup = components.dummyFunc
+
+def createComponents(robot):
+    components = typing.get_type_hints(robot).items()
+    for component_name, component in components:
+        testComponentCompatibility(robot, component_name, component)

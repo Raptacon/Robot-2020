@@ -21,7 +21,7 @@ from components.feederMap import FeederMap
 
 # Other imports:
 from robotMap import RobotMap, XboxMap
-from utils.componentUtils import testComponentCompatibility
+from utils.componentUtils import createComponents
 from utils.motorHelper import createMotor
 from utils.sensorFactories import gyroFactory, breaksensorFactory
 from utils.acturatorFactories import compressorFactory, solenoidFactory
@@ -58,15 +58,7 @@ class MyRobot(MagicRobot):
         self.instantiateSubsystemGroup("compressors", compressorFactory)
         self.instantiateSubsystemGroup("solenoids", solenoidFactory)
 
-        # Check each componet for compatibility
-        testComponentCompatibility(self, ShooterLogic)
-        testComponentCompatibility(self, ShooterMotorCreation)
-        testComponentCompatibility(self, DriveTrain)
-        testComponentCompatibility(self, Winch)
-        testComponentCompatibility(self, ButtonManager)
-        testComponentCompatibility(self, Pneumatics)
-        testComponentCompatibility(self, Elevator)
-        testComponentCompatibility(self, ScorpionLoader)
+        createComponents(self)
 
     def autonomousInit(self):
         """Run when autonomous is enabled."""
