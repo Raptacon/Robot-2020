@@ -106,7 +106,7 @@ class ConfigMapper:
 
     def __generateFactoryObjects(self, factory_data, subsystem_name, subsystem_data):
         """
-        Generates objects from factories based on information from a config. I then sets dictionary
+        Generates objects from factories based on information from a config. It then sets dictionary
         attributes to a specifed robot to be used for variable injection.
         """
 
