@@ -1,7 +1,7 @@
 import json
 import os
-from os.path import dirname
 import logging as log
+from os.path import dirname
 from chardet import detect
 from string import ascii_lowercase
 from pathlib import Path
@@ -36,10 +36,12 @@ class ConfigMapper:
         self.robot = robot
         self.configFileName = fileName
         loadedFile = self.__loadFile(fileName)
-        factory_data = self.__getFactories(loadedFile)
-        config, self.configName = self.__getConfig(loadedFile, requestedConfig = specifiedConfig)
-        self.configCompat = config['compatibility']
-        self.subsystems = self.__extractSubsystems(config)
+        (
+            factory_data,
+            self.configName, # Used for testing
+            self.configCompat, # Used for testing
+            self.subsystems 
+        ) = self.__getConfigInfo(loadedFile, requestedConfig = specifiedConfig)
         for subsystem_name, subsystem_data in self.subsystems.items():
             self.__generateFactoryObjects(factory_data, subsystem_name, subsystem_data)
 
@@ -49,10 +51,7 @@ class ConfigMapper:
             loadedFile = json.load(file)
         return loadedFile
 
-    def __getFactories(self, config):
-        return config['factories']
-
-    def __getConfig(self, configFile, requestedConfig = None):
+    def __getConfigInfo(self, configFile, requestedConfig = None):
         """
         Method takes a file name as the config file and finds a requested config for the robot, changing it appropriatly.
         If no config is requested, use the default config listed in the file.
@@ -87,22 +86,19 @@ class ConfigMapper:
                 Requested config '%s' could not be found. Current configs: %s.
                 Is there a 'compatibility' key in '%s'?
                 """ %(requestedConfig, robotConfigs, requestedConfig)
-            )
+            ) # TODO: Add 'strict' option to choose not to raise error if config is not found, rather use default
 
-        # Return filtered config and name of config
-        return config, configName
+        # Get factory information
+        factory_data = configFile['factories']
 
-    def __extractSubsystems(self, config):
-        """
-        Finds and extracts the subsystems in a config, then places them into a dictionary.
-        """
+        # Get config compatibility
+        configCompat = config['compatibility']
 
-        subsystems = {}
+        # Get subsystems
+        subsystems = config['subsystems']
 
-        for subsystem, data in config['subsystems'].items():
-            subsystems[subsystem] = data
-
-        return subsystems
+        # Return specific config info
+        return factory_data, configName, configCompat, subsystems
 
     def __generateFactoryObjects(self, factory_data, subsystem_name, subsystem_data):
         """
