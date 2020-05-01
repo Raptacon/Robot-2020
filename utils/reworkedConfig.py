@@ -40,7 +40,7 @@ class ConfigMapper:
             factory_data,
             self.configName, # Used for testing
             self.configCompat, # Used for testing
-            self.subsystems 
+            self.subsystems
         ) = self.__getConfigInfo(loadedFile, requestedConfig = specifiedConfig)
         for subsystem_name, subsystem_data in self.subsystems.items():
             self.__generateFactoryObjects(factory_data, subsystem_name, subsystem_data)
