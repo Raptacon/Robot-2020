@@ -42,6 +42,8 @@ class ConfigMapper:
             self.configCompat, # Used for testing
             self.subsystems
         ) = self.__getConfigInfo(loadedFile, requestedConfig = specifiedConfig)
+
+        # Loop through subsystems and pass data into function that generates objects from factories
         for subsystem_name, subsystem_data in self.subsystems.items():
             self.__generateFactoryObjects(factory_data, subsystem_name, subsystem_data)
 
@@ -122,7 +124,7 @@ class ConfigMapper:
             else:
                 raise AttributeError(f"Group '{group_name}' has no associated factory.")
 
-            containerName = subsystem_name.upper() + group_name.upper()
+            containerName = group_name[0].upper() + group_name[1:]
 
             if not hasattr(self.robot, containerName):
                 setattr(self.robot, containerName, {})
