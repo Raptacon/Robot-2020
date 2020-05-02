@@ -23,7 +23,7 @@ if __name__ != '__main__':
 class ConfigMapper:
     """
     Class to accept a config file, config to use, and robot to map config to. This class is designed exclusively
-    for ONE config file in the rood directory.
+    for ONE config file in the root directory.
 
     :param robot: Robot to set dictionary attributes to.
 
@@ -139,7 +139,7 @@ class ConfigMapper:
             else:
                 raise AttributeError(f"Factory '{factory_name}' doesn't exist in the 'factories' directory.")
 
-    def checkCompatibility(self, compatString):
+    def checkCompatibility(self, compatString) -> bool:
         """
         Checks compatibility of the component based on the compatString and the compatibility key in the config.
         """
@@ -155,7 +155,7 @@ class ConfigMapper:
                 return True
         return False
 
-def findConfig(use_encoding = True, strict = False):
+def findConfig(use_encoding = True, strict = False) -> str:
     """
     Sets the config to be used one the robot. To manually set a config, run 'echo [config name] > RobotConfig' on the robot.
     This will create a file called 'RobotConfig' on the robot with the config requested.
