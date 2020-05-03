@@ -157,13 +157,13 @@ class ConfigMapper:
 
 def findConfig(use_encoding = True, strict = False) -> str:
     """
-    Sets the config to be used one the robot. To manually set a config, run 'echo [config name] > RobotConfig' on the robot.
+    Sets the config to be used on the robot. To manually set a config, run 'echo [config name] > RobotConfig' on the robot.
     This will create a file called 'RobotConfig' on the robot with the config requested.
     It can then be read and processed appropriately.
     This method returns the name of the config as a string type.
 
     :param use_encoding: If set to True, use Unicode encoding to read the 'RobotConfig' file
-    (this likely wont need to be changed as it should always be used; should only be necessary if encoding fails).
+    (this likely won't need to be changed as it should always be used; should only be necessary if encoding fails).
 
     :param strict: If set to True, will raise an error and exit anytime the contents of the file aren't able to be processed
     (as opposed to returning the default value None). This includes requiring a config file to be present.
@@ -216,7 +216,7 @@ def findConfig(use_encoding = True, strict = False) -> str:
         )
 
     if any(char.isupper() for char in configString):
-        log.warning("Config requested '%s' had uppercase characters, which have been lowered." %(configString))
+        log.warning("Config requested '%s' has uppercase characters, which have been lowered." %(configString))
         configString = configString.lower()
 
     return configString
