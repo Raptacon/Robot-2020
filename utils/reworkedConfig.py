@@ -23,7 +23,7 @@ if __name__ != '__main__':
 class ConfigMapper:
     """
     Class to accept a config file, config to use, and robot to map config to. This class is designed exclusively
-    for ONE config file in the root directory.
+    for ONE .json config file.
 
     :param robot: Robot to set dictionary attributes to.
 
@@ -32,16 +32,23 @@ class ConfigMapper:
     :param specifiedConfig: If desired, specify a config to use. Default is 'doof'.
     """
 
-    def __init__(self, robot, fileName: str, specifiedConfig = None):
+    def __init__(
+        self,
+        robot,
+        fileName: str,
+        config = None,
+        ):
+
         self.robot = robot
         self.configFileName = fileName
         loadedFile = self.__loadFile(fileName)
+
         (
             factory_data,
             self.configName, # Used for testing
             self.configCompat, # Used for testing
             self.subsystems
-        ) = self.__getConfigInfo(loadedFile, requestedConfig = specifiedConfig)
+        ) = self.__getConfigInfo(loadedFile, requestedConfig = config)
 
         # Loop through subsystems and pass data into function that generates objects from factories
         for subsystem_name, subsystem_data in self.subsystems.items():
@@ -157,7 +164,7 @@ class ConfigMapper:
 
 def findConfig(use_encoding = True, strict = False) -> str:
     """
-    Sets the config to be used on the robot. To manually set a config, run 'echo [config name] > RobotConfig' on the robot.
+    Sets the config to be used on the robot. To manually set a config, run 'echo <config name> > RobotConfig' on the robot.
     This will create a file called 'RobotConfig' on the robot with the config requested.
     It can then be read and processed appropriately.
     This method returns the name of the config as a string type.
@@ -182,7 +189,9 @@ def findConfig(use_encoding = True, strict = False) -> str:
             configString = None
             return configString
         else:
-            raise FileNotFoundError("No 'RobotConfig' file found, unable to read contents. Aborting.")
+            raise FileNotFoundError(
+                "No 'RobotConfig' file found in %s, unable to read contents. Aborting." %(home)
+            )
 
     if use_encoding:
         encoding_type = ((detect(raw_data))['encoding']).lower()
@@ -222,7 +231,8 @@ def findConfig(use_encoding = True, strict = False) -> str:
     return configString
 
 if __name__ == '__main__':
-    mapper = ConfigMapper(None, 'robot.json')
+
+    mapper = ConfigMapper(None, 'robot.json', config = findConfig())
 
     configFileName = mapper.configFileName
     configCompat = mapper.configCompat
@@ -234,7 +244,9 @@ if __name__ == '__main__':
 
     for subsystem_name, subsystem_data in mapper.subsystems.items():
         print("Subsystem:", subsystem_name)
-        print(subsystem_data, '\n')
+        for group_name, group_data in subsystem_data.items():
+            print("Group: %s: %s" %(group_name, group_data))
+        print('')
 
     dummyConfigString = 'doof'
     isCompatible = mapper.checkCompatibility(dummyConfigString)
