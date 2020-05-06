@@ -50,7 +50,7 @@ class ConfigMapper:
             configName = default_config
 
         else:
-            loadedFile = self.__loadFile((base_data['configs_dir'] + config))  
+            loadedFile = self.__loadFile((base_data['configs_dir'] + config))
             configName = config
 
         self.configName = configName
@@ -118,9 +118,13 @@ class ConfigMapper:
             container = getattr(self.robot, containerName)
 
             items = {key:factory(descp) for key, descp in group_info.items()}
+            created_count = len(items)
             groupName_subsystemName = '_'.join([group_name, subsystem_name])
             container[subsystem_name] = items
             setattr(self.robot, groupName_subsystemName, container[subsystem_name])
+            log.info(
+                f"Creating {created_count} items for '{group_name}' in subsystem {subsystem_name}"
+            )
 
     def checkCompatibility(self, compatString) -> bool:
         """
@@ -165,6 +169,7 @@ def findConfig(use_encoding = True) -> str:
         encoding_type = ((detect(raw_data))['encoding']).lower()
         with open(configDir, 'r', encoding = encoding_type) as file:
             configString = file.readline().strip()
+        log.info("Using config '%s'" %(configString))
     else:
         valid_chars = []
         alphabet = list(ascii_lowercase)
