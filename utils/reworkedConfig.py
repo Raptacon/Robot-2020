@@ -49,14 +49,9 @@ class ConfigMapper:
             loadedFile = self.__loadFile((base_data['configs_dir'] + default_config))
             configName = default_config
 
-        elif '.json' not in config:
-            raise TypeError(
-                "Config requested '%s' is not a recognizable .json file. Use the file extention '.json'."
-            )
-
         else:
             loadedFile = self.__loadFile((base_data['configs_dir'] + config))  
-            configName = str(config)
+            configName = config
 
         self.configName = configName
         self.robot = robot
@@ -70,7 +65,10 @@ class ConfigMapper:
     def __loadFile(self, directory):
         try:
             with open(directory) as file:
-                loadedFile = json.load(file)
+                try:
+                    loadedFile = json.load(file)
+                except Exception:
+                    raise
             return loadedFile
         except FileNotFoundError:
             raise
