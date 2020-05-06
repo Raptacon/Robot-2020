@@ -78,8 +78,8 @@ class ConfigMapper:
         Takes data from a config file and extracts the config compatibility and config subsystems.
         """
 
-        assert 'compatibility' in configFile, "Robot configs MUST have a 'compatibility' key."
-        assert 'subsystems' in configFile, "Robot configs MUST have a 'subsystems' key."
+        assert 'compatibility' in configFile, "Robot config '%s' MUST have a 'compatibility' key." %(self.configName)
+        assert 'subsystems' in configFile, "Robot config '%s' MUST have a 'subsystems' key." %(self.configName)
 
         configCompat = configFile['compatibility']
         subsystems = configFile['subsystems']
@@ -105,6 +105,8 @@ class ConfigMapper:
                     factory_file = import_module(factory_module)
                     if hasattr(factory_file, factory_name):
                         factory = eval(factory_module + '.' + factory_name)
+                if factory is None:
+                    raise AttributeError(f"Factory '{factory_name}' doesn't exist in the 'factories' directory.")
             else:
                 raise AttributeError(f"Group '{group_name}' has no associated factory.")
 
@@ -115,13 +117,10 @@ class ConfigMapper:
 
             container = getattr(self.robot, containerName)
 
-            if factory is not None:
-                items = {key:factory(descp) for key, descp in group_info.items()}
-                groupName_subsystemName = '_'.join([group_name, subsystem_name])
-                container[subsystem_name] = items
-                setattr(self.robot, groupName_subsystemName, container[subsystem_name])
-            else:
-                raise AttributeError(f"Factory '{factory_name}' doesn't exist in the 'factories' directory.")
+            items = {key:factory(descp) for key, descp in group_info.items()}
+            groupName_subsystemName = '_'.join([group_name, subsystem_name])
+            container[subsystem_name] = items
+            setattr(self.robot, groupName_subsystemName, container[subsystem_name])
 
     def checkCompatibility(self, compatString) -> bool:
         """
