@@ -75,19 +75,15 @@ class ConfigMapper:
 
     def __getConfigInfo(self, configFile):
         """
-        Takes data from a config file and extracts important pieces.
+        Takes data from a config file and extracts the config compatibility and config subsystems.
         """
 
         assert 'compatibility' in configFile, "Robot configs MUST have a 'compatibility' key."
         assert 'subsystems' in configFile, "Robot configs MUST have a 'subsystems' key."
 
-        # Get config compatibility
         configCompat = configFile['compatibility']
-
-        # Get subsystems
         subsystems = configFile['subsystems']
 
-        # Return specific config info
         return configCompat, subsystems
 
     def __generateFactoryObjects(self, factory_data, subsystem_name, subsystem_data):
@@ -143,18 +139,15 @@ class ConfigMapper:
                 return True
         return False
 
-def findConfig(use_encoding = True, strict = False) -> str:
+def findConfig(use_encoding = True) -> str:
     """
     Sets the config to be used on the robot. To manually set a config, run 'echo <config name> > RobotConfig' on the robot.
     This will create a file called 'RobotConfig' on the robot with the config requested.
     It can then be read and processed appropriately.
-    This method returns the name of the config as a string type.
+    This method returns the name of the config file as a string type.
 
     :param use_encoding: If set to True, use Unicode encoding to read the 'RobotConfig' file
     (this likely won't need to be changed as it should always be used; should only be necessary if encoding fails).
-
-    :param strict: If set to True, will raise an error and exit anytime the contents of the file aren't able to be processed
-    (as opposed to returning the default value None). This includes requiring a config file to be present.
     """
 
     home = str(Path.home()) + os.path.sep
@@ -165,14 +158,9 @@ def findConfig(use_encoding = True, strict = False) -> str:
             raw_data = file.readline().strip()
         log.info("Config found in %s" %(configDir))
     except:
-        if not strict:
-            log.warning("Config file 'RobotConfig' could not be found; unable to load. This may be intentional.")
-            configString = None
-            return configString
-        else:
-            raise FileNotFoundError(
-                "No 'RobotConfig' file found in %s, unable to read contents. Aborting." %(home)
-            )
+        log.warning("Config file 'RobotConfig' could not be found; unable to load. This may be intentional.")
+        configString = None
+        return configString
 
     if use_encoding:
         encoding_type = ((detect(raw_data))['encoding']).lower()
@@ -192,13 +180,8 @@ def findConfig(use_encoding = True, strict = False) -> str:
         configString = ''.join(valid_chars)
 
     if not configString:
-        if not strict:
-            log.error("Config requested in unreadable, likely due to the file being empty; unable to load.")
-            configString = None
-        else:
-            raise SyntaxError(
-                "Config requested in unreadable, likely due to the file being empty; unable to load. Aborting."
-            )
+        log.error("Config requested in unreadable, likely due to the file being empty; unable to load.")
+        configString = None
 
     return configString
 
