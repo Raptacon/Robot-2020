@@ -1,0 +1,10 @@
+{
+    "default": "doof.json",
+    "factories": {
+        "motors": "createMotor",
+        "digitalInput": "breaksensorFactory",
+        "gyros": "gyroFactory",
+        "solenoids": "solenoidFactory",
+        "compressors": "compressorFactory"
+    }
+}

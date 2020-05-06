@@ -22,92 +22,75 @@ if __name__ != '__main__':
 
 class ConfigMapper:
     """
-    Class to accept a config file, config to use, and robot to map config to. This class is designed exclusively
-    for ONE .json config file.
+    Class to read a config file and parse its contents into a usable format to generate robot objects from
+    factories.
 
     :param robot: Robot to set dictionary attributes to.
 
-    :param filename: Config file to load.
-
-    :param specifiedConfig: If desired, specify a config to use. Default is 'doof'.
+    :param config: If desired, specify a config to use. Default is listed in setup.json
     """
 
-    def __init__(
-        self,
-        robot,
-        fileName: str,
-        config = None,
-        ):
+    def __init__(self, robot, config = None):
 
+        root_dir = dirname(__file__) + os.path.sep + '..'
+
+        base_data = {
+            'setup_dir': root_dir + os.path.sep + 'configs' + os.path.sep + 'setup.json',
+            'configs_dir': root_dir + os.path.sep + 'configs' + os.path.sep + 'robot' + os.path.sep
+        }
+
+        setup_data = self.__loadFile(base_data['setup_dir'])
+
+        default_config = setup_data['default']
+        factory_data = setup_data['factories']
+
+        if config is None:
+            log.warning("No config requested. Using default config: %s" %(default_config))
+            loadedFile = self.__loadFile((base_data['configs_dir'] + default_config))
+            configName = default_config
+
+        elif '.json' not in config:
+            raise TypeError(
+                "Config requested '%s' is not a recognizable .json file. Use the file extention '.json'."
+            )
+
+        else:
+            loadedFile = self.__loadFile((base_data['configs_dir'] + config))  
+            configName = str(config)
+
+        self.configName = configName
         self.robot = robot
-        self.configFileName = fileName
-        loadedFile = self.__loadFile(fileName)
 
-        (
-            factory_data,
-            self.configName, # Used for testing
-            self.configCompat, # Used for testing
-            self.subsystems
-        ) = self.__getConfigInfo(loadedFile, requestedConfig = config)
+        self.configCompat, self.subsystems = self.__getConfigInfo(loadedFile)
 
         # Loop through subsystems and pass data into function that generates objects from factories
         for subsystem_name, subsystem_data in self.subsystems.items():
             self.__generateFactoryObjects(factory_data, subsystem_name, subsystem_data)
 
-    def __loadFile(self, fileName):
-        configFile = dirname(__file__) + os.path.sep + '..' + os.path.sep + fileName
-        with open(configFile) as file:
-            loadedFile = json.load(file)
-        return loadedFile
+    def __loadFile(self, directory):
+        try:
+            with open(directory) as file:
+                loadedFile = json.load(file)
+            return loadedFile
+        except FileNotFoundError:
+            raise
 
-    def __getConfigInfo(self, configFile, requestedConfig = None):
+    def __getConfigInfo(self, configFile):
         """
-        Method takes a file name as the config file and finds a requested config for the robot, changing it appropriatly.
-        If no config is requested, use the default config listed in the file.
+        Takes data from a config file and extracts important pieces.
         """
 
-        config = {}
-        defaultConfig = configFile['default']
-        robotConfigs = []
-
-        # Create a list of all robot configs (excluding subconfigs)
-        # NOTE: For a config to be defined as a robot config, a 'compatibility' key must be declared
-        for key in configFile:
-            if 'compatibility' in configFile[key]:
-                robotConfigs.append(key)
-
-        # If no requested config, use default
-        if requestedConfig == None:
-            log.warning("No config requested. Using default: %s" %(defaultConfig))
-            config.update(configFile[defaultConfig])
-            configName = defaultConfig
-
-        # Find requested config in list of config names, then use
-        elif requestedConfig in robotConfigs:
-            log.info("Requsted config '%s' found in %s. Loading..." %(requestedConfig, self.configFileName))
-            config.update(configFile[requestedConfig])
-            configName = requestedConfig
-
-        # If requested config isn't found, raise error and exit
-        else:
-            raise AttributeError(
-                """
-                Requested config '%s' could not be found. Current configs: %s.
-                Is there a 'compatibility' key in '%s'?
-                """ %(requestedConfig, robotConfigs, requestedConfig)
-            ) # TODO: Add 'strict' option to choose not to raise error if config is not found, rather use default
-
-        # Get factory information
-        factory_data = configFile['factories']
+        assert 'compatibility' in configFile, "Robot configs MUST have a 'compatibility' key."
+        assert 'subsystems' in configFile, "Robot configs MUST have a 'subsystems' key."
 
         # Get config compatibility
-        configCompat = config['compatibility']
+        configCompat = configFile['compatibility']
 
         # Get subsystems
-        subsystems = config['subsystems']
+        subsystems = configFile['subsystems']
 
         # Return specific config info
-        return factory_data, configName, configCompat, subsystems
+        return configCompat, subsystems
 
     def __generateFactoryObjects(self, factory_data, subsystem_name, subsystem_data):
         """
@@ -200,6 +183,7 @@ def findConfig(use_encoding = True, strict = False) -> str:
     else:
         valid_chars = []
         alphabet = list(ascii_lowercase)
+        alphabet.append('.') # Necessary to specify '.json' file extention
         with open(configDir) as file:
             raw_string = file.readline().strip()
             for char in raw_string:
@@ -218,28 +202,16 @@ def findConfig(use_encoding = True, strict = False) -> str:
                 "Config requested in unreadable, likely due to the file being empty; unable to load. Aborting."
             )
 
-    if not all(char.isalpha() for char in configString):
-        invalid_chars = [char for char in configString if not char.isalpha()]
-        raise SyntaxError(
-            "Config '%s' has special character(s) %s which are disallowed." %(configString, invalid_chars)
-        )
-
-    if any(char.isupper() for char in configString):
-        log.warning("Config requested '%s' has uppercase characters, which have been lowered." %(configString))
-        configString = configString.lower()
-
     return configString
 
 if __name__ == '__main__':
 
-    mapper = ConfigMapper(None, 'robot.json', config = findConfig())
+    mapper = ConfigMapper(None, config = findConfig())
 
-    configFileName = mapper.configFileName
     configCompat = mapper.configCompat
     configName = mapper.configName
 
     print('')
-    print("Config File:", configFileName)
     print("Config Name:", configName, '\n')
 
     for subsystem_name, subsystem_data in mapper.subsystems.items():
