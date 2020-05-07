@@ -1,0 +1,19 @@
+{
+    "compatibility": "minibot",
+    "subsystems": {
+        "driveTrain": {
+            "motors": {
+                "rightMotor": {
+                    "channel": 30,
+                    "type": "CANTalonSRX",
+                    "inverted": false
+                },
+                "leftMotor": {
+                    "channel": 20,
+                    "type": "CANTalonSRX",
+                    "inverted": false
+                }
+            }
+        }
+    }
+}
