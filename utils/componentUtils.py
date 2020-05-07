@@ -4,6 +4,7 @@ File to hold misc component helper commands
 
 import components
 import typing
+from inspect import isclass
 
 def testComponentCompatibility(robot, component_name, component_type):
     """
@@ -58,4 +59,7 @@ def createComponents(robot):
     """
     components = typing.get_type_hints(robot).items()
     for component_name, component in components:
-        testComponentCompatibility(robot, component_name, component)
+        if isclass(component):
+            testComponentCompatibility(robot, component_name, component)
+        else:
+            continue

@@ -10,6 +10,8 @@ class State:
 
 class Sensors:
 
+    compatString = ["doof"]
+
     digitalInput_breaksensors: dict
 
     def on_enable(self):

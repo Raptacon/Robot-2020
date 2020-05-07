@@ -22,6 +22,8 @@ class ButtonManager(object):
     use any registered buttons directly.
     """
 
+    compatString = ["all"]
+
     def setup(self):
         """
         Sets up Button manager.
