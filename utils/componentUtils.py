@@ -4,6 +4,7 @@ File to hold misc component helper commands
 
 import components
 import typing
+from inspect import ismodule
 
 def testComponentCompatibility(robot, component_type):
     """
@@ -35,7 +36,7 @@ def testComponentCompatibility(robot, component_type):
             inject_type = origin
 
         # If the type is not actually a type, give a meaningful error
-        if not isinstance(inject_type, type):
+        if not isinstance(inject_type, type) and not ismodule(inject_type):
             raise TypeError(
                 "Component %s has a non-type annotation on %s (%r); lone non-injection variable annotations are disallowed, did you want to assign a static variable?"
                 % (inject_type, n, inject_type)
