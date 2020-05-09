@@ -123,7 +123,7 @@ class ConfigMapper:
             container[subsystem_name] = items
             setattr(self.robot, groupName_subsystemName, container[subsystem_name])
             log.info(
-                f"Creating {created_count} items for '{group_name}' in subsystem {subsystem_name}"
+                f"Creating {created_count} item(s) for '{group_name}' in subsystem {subsystem_name}"
             )
 
     def checkCompatibility(self, compatString) -> bool:
