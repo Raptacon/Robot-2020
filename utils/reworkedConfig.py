@@ -2,7 +2,6 @@ import json
 import os
 import inspect
 import logging as log
-from os.path import dirname, sep
 from chardet import detect
 from string import ascii_lowercase
 from pathlib import Path
@@ -25,7 +24,7 @@ class FileHandler:
     @staticmethod
     def load(directory):
         with open(directory) as file:
-                loadedFile = json.load(file)
+            loadedFile = json.load(file)
         return loadedFile
 
     @staticmethod
