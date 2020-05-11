@@ -22,7 +22,7 @@ from components.feederMap import FeederMap
 # Other imports:
 from robotMap import XboxMap
 from utils.componentUtils import testComponentCompatibility
-from utils.reworkedConfig import ConfigMapper, findConfig
+from utils.reworkedConfig import ConfigurationManager, findConfig
 import utils.math
 
 class MyRobot(MagicRobot):
@@ -48,7 +48,7 @@ class MyRobot(MagicRobot):
         Robot-wide initialization code should go here. Replaces robotInit
         """
 
-        self.mapper = ConfigMapper(self, config = findConfig())
+        self.mapper = ConfigurationManager(findConfig())
         self.xboxMap = XboxMap(XboxController(1), XboxController(0))
 
         # Check each componet for compatibility

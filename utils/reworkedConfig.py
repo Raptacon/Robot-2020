@@ -1,88 +1,108 @@
 import json
 import os
+import inspect
 import logging as log
-from os.path import dirname
+from os.path import dirname, sep
 from chardet import detect
 from string import ascii_lowercase
 from pathlib import Path
 from importlib import import_module
-
-try:
-    from factories import factory_modules
-    import factories
-except ImportError:
-    if __name__ != '__main__':
-        raise
-    else:
-        factory_modules = None
+from typing import Optional
 
 if __name__ != '__main__':
+    from factories import factory_modules
+    import factories
     # NOTE This is only for flake8
     factories.dummy()
+else:
+    factory_modules = None
 
-class ConfigMapper:
+class FileHandler:
+    """
+    Various helper methods for finding and loading files.
+    """
+
+    @staticmethod
+    def load(directory):
+        with open(directory) as file:
+                loadedFile = json.load(file)
+        return loadedFile
+
+    @staticmethod
+    def directory(name):
+        """
+        Attempt to get the directory of a requested file.
+        """
+
+        path = os.getcwd()
+
+        for root, dirs, files in os.walk(path):
+            del dirs
+            if name in files:
+                return os.path.join(root, name)
+
+class ConfigurationManager(FileHandler):
     """
     Class to read a config file and parse its contents into a usable format to generate robot objects from
     factories.
 
-    :param robot: Robot to set dictionary attributes to.
-
     :param config: If desired, specify a config to use. Default is listed in setup.json
     """
 
-    def __init__(self, robot, config = None):
+    def __init__(self, config: Optional[str]):
 
-        root_dir = dirname(__file__) + os.path.sep + '..'
+        #
+        # NOTE: Many instance variables declared here aren't used elsewhere within the class,
+        #       rather they are used for validating a config in the `if __name__ == '__main__'`
+        #       portion of this file.
+        #
 
-        base_data = {
-            'setup_dir': root_dir + os.path.sep + 'configs' + os.path.sep + 'setup.json',
-            'configs_dir': root_dir + os.path.sep + 'configs' + os.path.sep + 'robot' + os.path.sep
-        }
+        setup_dir = self.directory('setup.json')
+        setup_data = self.load(setup_dir)
+        default_config, requirements, factory_data = self.__getSetupInfo(setup_data)
 
-        setup_data = self.__loadFile(base_data['setup_dir'])
-
-        default_config = setup_data['default']
-        factory_data = setup_data['factories']
-
-        if config is None:
+        if not config:
             log.warning("No config requested. Using default config: %s" %(default_config))
-            loadedFile = self.__loadFile((base_data['configs_dir'] + default_config))
-            configName = default_config
+            _dir = self.directory(default_config)
+            loadedFile = self.load(_dir)
+            self.configName = default_config
 
         else:
-            loadedFile = self.__loadFile((base_data['configs_dir'] + config))
-            configName = config
+            _dir = self.directory(config)
+            loadedFile = self.load(_dir)
+            self.configName = config
 
-        self.configName = configName
-        self.robot = robot
+        if __name__ != '__main__':
+            self.robot = inspect.stack()[1][0].f_locals["self"]
 
-        self.configCompat, self.subsystems = self.__getConfigInfo(loadedFile)
+        self.configCompat, self.subsystems = self.__getConfigInfo(loadedFile, requirements)
 
         # Loop through subsystems and pass data into function that generates objects from factories
         for subsystem_name, subsystem_data in self.subsystems.items():
             self.__generateFactoryObjects(factory_data, subsystem_name, subsystem_data)
 
-    def __loadFile(self, directory):
-        try:
-            with open(directory) as file:
-                try:
-                    loadedFile = json.load(file)
-                except Exception:
-                    raise
-            return loadedFile
-        except FileNotFoundError:
-            raise
+    def __getSetupInfo(self, file):
 
-    def __getConfigInfo(self, configFile):
+        default = file['default']
+        requirements = file['requirements']
+        factory_data = file['factories']
+
+        return default, requirements, factory_data
+
+    def __getConfigInfo(self, file, requirements):
         """
-        Takes data from a config file and extracts the config compatibility and config subsystems.
+        Takes data from a config file and extracts all the keys.
         """
 
-        assert 'compatibility' in configFile, "Robot config '%s' MUST have a 'compatibility' key." %(self.configName)
-        assert 'subsystems' in configFile, "Robot config '%s' MUST have a 'subsystems' key." %(self.configName)
+        attributes = []
+        for attr in file:
+            attributes.append(attr)
+        for requirement in requirements:
+            if requirement not in attributes:
+                raise AttributeError(f"Required attribute {requirement} missing")
 
-        configCompat = configFile['compatibility']
-        subsystems = configFile['subsystems']
+        configCompat = file['compatibility']
+        subsystems = file['subsystems']
 
         return configCompat, subsystems
 
@@ -132,7 +152,7 @@ class ConfigMapper:
         """
 
         compatString = [x.lower() for x in compatString]
-        compatString = ''.join(compatString)
+        compatString = ''.join(compatString) # FIXME
 
         root = [self.configCompat] # This is the compatibility of the loaded config
         if "all" in root or "all" in compatString:
@@ -191,7 +211,7 @@ def findConfig(use_encoding = True) -> str:
 
 if __name__ == '__main__':
 
-    mapper = ConfigMapper(None, config = findConfig())
+    mapper = ConfigurationManager(findConfig())
 
     configCompat = mapper.configCompat
     configName = mapper.configName

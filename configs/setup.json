@@ -1,5 +1,9 @@
 {
     "default": "doof.json",
+    "requirements": [
+        "compatibility",
+        "subsystems"
+    ],
     "factories": {
         "motors": "createMotor",
         "digitalInput": "breaksensorFactory",
