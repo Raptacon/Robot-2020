@@ -99,7 +99,9 @@ class ConfigurationManager(FileHandler):
             attributes.append(attr)
         for requirement in requirements:
             if requirement not in attributes:
-                raise AttributeError(f"Required attribute {requirement} missing")
+                raise AttributeError(
+                    f"Required attribute '{requirement}' missing in '{self.configName}'"
+                )
 
         configCompat = file['compatibility']
         subsystems = file['subsystems']
