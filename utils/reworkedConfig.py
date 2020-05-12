@@ -61,7 +61,8 @@ class ConfigurationManager(FileHandler):
         #
 
         setup_data = self.load(self.directory('setup.json'))
-        default_config, requirements, factory_data = self.__getSetupInfo(setup_data)
+        default_config, requirements = self.__getSetupInfo(setup_data)
+        factory_data = self.load(self.directory('.factories.json'))
 
         try:
             _dir = self.directory(config)
@@ -86,9 +87,8 @@ class ConfigurationManager(FileHandler):
 
         default = file['default']
         requirements = file['requirements']
-        factory_data = file['factories']
 
-        return default, requirements, factory_data
+        return default, requirements
 
     def __getConfigInfo(self, file, requirements):
         """

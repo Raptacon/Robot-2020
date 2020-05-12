@@ -3,12 +3,5 @@
     "requirements": [
         "compatibility",
         "subsystems"
-    ],
-    "factories": {
-        "motors": "createMotor",
-        "digitalInput": "breaksensorFactory",
-        "gyros": "gyroFactory",
-        "solenoids": "solenoidFactory",
-        "compressors": "compressorFactory"
-    }
+    ]
 }
