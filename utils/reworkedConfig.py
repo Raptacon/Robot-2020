@@ -23,6 +23,10 @@ class FileHandler:
 
     @staticmethod
     def load(directory):
+        """
+        Load a .json file from a directory.
+        """
+
         with open(directory) as file:
             loadedFile = json.load(file)
         return loadedFile
