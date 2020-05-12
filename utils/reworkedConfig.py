@@ -48,7 +48,7 @@ class ConfigurationManager(FileHandler):
     :param config: If desired, specify a config to use. Default is listed in setup.json
     """
 
-    def __init__(self, config: Optional[str]):
+    def __init__(self, config: Optional[str] = None):
 
         #
         # NOTE: Many instance variables declared here aren't used elsewhere within the class,
@@ -56,20 +56,18 @@ class ConfigurationManager(FileHandler):
         #       portion of this file.
         #
 
-        setup_dir = self.directory('setup.json')
-        setup_data = self.load(setup_dir)
+        setup_data = self.load(self.directory('setup.json'))
         default_config, requirements, factory_data = self.__getSetupInfo(setup_data)
 
-        if not config:
+        try:
+            _dir = self.directory(config)
+            self.configName = config
+        except FileNotFoundError:
             log.warning("No config requested. Using default config: %s" %(default_config))
             _dir = self.directory(default_config)
-            loadedFile = self.load(_dir)
             self.configName = default_config
 
-        else:
-            _dir = self.directory(config)
-            loadedFile = self.load(_dir)
-            self.configName = config
+        loadedFile = self.load(_dir)
 
         if __name__ != '__main__':
             self.robot = inspect.stack()[1][0].f_locals["self"]
