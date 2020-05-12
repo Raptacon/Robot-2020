@@ -66,13 +66,13 @@ class ConfigurationManager(FileHandler):
 
         try:
             _dir = self.directory(config)
+            loadedFile = self.load(_dir)
             self.configName = config
-        except FileNotFoundError:
+        except TypeError:
             log.warning("No config requested. Using default config: %s" %(default_config))
             _dir = self.directory(default_config)
+            loadedFile = self.load(_dir)
             self.configName = default_config
-
-        loadedFile = self.load(_dir)
 
         if __name__ != '__main__':
             self.robot = inspect.stack()[1][0].f_locals["self"]
