@@ -165,56 +165,57 @@ class ConfigurationManager(FileHandler):
                 return True
         return False
 
-def findConfig(use_encoding = True) -> str:
-    """
-    Sets the config to be used on the robot. To manually set a config, run 'echo <config name> > RobotConfig' on the robot.
-    This will create a file called 'RobotConfig' on the robot with the config requested.
-    It can then be read and processed appropriately.
-    This method returns the name of the config file as a string type.
+    @staticmethod
+    def findConfig(use_encoding = True) -> str:
+        """
+        Sets the config to be used on the robot. To manually set a config, run 'echo <config name> > RobotConfig' on the robot.
+        This will create a file called 'RobotConfig' on the robot with the config requested.
+        It can then be read and processed appropriately.
+        This method returns the name of the config file as a string type.
 
-    :param use_encoding: If set to True, use Unicode encoding to read the 'RobotConfig' file
-    (this likely won't need to be changed as it should always be used; should only be necessary if encoding fails).
-    """
+        :param use_encoding: If set to True, use Unicode encoding to read the 'RobotConfig' file
+        (this likely won't need to be changed as it should always be used; should only be necessary if encoding fails).
+        """
 
-    home = str(Path.home()) + os.path.sep
-    configDir = home + 'RobotConfig'
+        home = str(Path.home()) + os.path.sep
+        configDir = home + 'RobotConfig'
 
-    try:
-        with open(configDir, 'rb') as file:
-            raw_data = file.readline().strip()
-        log.info("Config found in %s" %(configDir))
-    except:
-        log.warning("Config file 'RobotConfig' could not be found; unable to load. This may be intentional.")
-        configString = None
+        try:
+            with open(configDir, 'rb') as file:
+                raw_data = file.readline().strip()
+            log.info("Config found in %s" %(configDir))
+        except:
+            log.warning("Config file 'RobotConfig' could not be found; unable to load. This may be intentional.")
+            configString = None
+            return configString
+
+        if use_encoding:
+            encoding_type = ((detect(raw_data))['encoding']).lower()
+            with open(configDir, 'r', encoding = encoding_type) as file:
+                configString = file.readline().strip()
+            log.info("Using config '%s'" %(configString))
+        else:
+            valid_chars = []
+            alphabet = list(ascii_lowercase)
+            alphabet.append('.') # Necessary to specify '.json' file extention
+            with open(configDir) as file:
+                raw_string = file.readline().strip()
+                for char in raw_string:
+                    if char.isupper():
+                        char = char.lower()
+                    if char in alphabet:
+                        valid_chars.append(char)
+            configString = ''.join(valid_chars)
+
+        if not configString:
+            log.error("Config requested in unreadable, likely due to the file being empty; unable to load.")
+            configString = None
+
         return configString
-
-    if use_encoding:
-        encoding_type = ((detect(raw_data))['encoding']).lower()
-        with open(configDir, 'r', encoding = encoding_type) as file:
-            configString = file.readline().strip()
-        log.info("Using config '%s'" %(configString))
-    else:
-        valid_chars = []
-        alphabet = list(ascii_lowercase)
-        alphabet.append('.') # Necessary to specify '.json' file extention
-        with open(configDir) as file:
-            raw_string = file.readline().strip()
-            for char in raw_string:
-                if char.isupper():
-                    char = char.lower()
-                if char in alphabet:
-                    valid_chars.append(char)
-        configString = ''.join(valid_chars)
-
-    if not configString:
-        log.error("Config requested in unreadable, likely due to the file being empty; unable to load.")
-        configString = None
-
-    return configString
 
 if __name__ == '__main__':
 
-    mapper = ConfigurationManager(findConfig())
+    mapper = ConfigurationManager(ConfigurationManager.findConfig())
 
     configCompat = mapper.configCompat
     configName = mapper.configName
