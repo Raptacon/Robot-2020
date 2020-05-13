@@ -44,6 +44,8 @@ class FileHandler:
             if name in files:
                 return os.path.join(root, name)
 
+        raise FileNotFoundError(f"File '{name}' doesn't exist in {path}")
+
     @staticmethod
     def folder_directory(name) -> str:
         """
@@ -57,15 +59,17 @@ class FileHandler:
             if name in dirs:
                 return os.path.join(root, name)
 
+        raise FileNotFoundError(f"Folder '{name}' doesn't exist in {path}")
+
     @staticmethod
-    def get_all_files(folder, extentions = False) -> list:
+    def get_all_files(foldername, extentions = False) -> list:
         """
         Lists the names of all the files living within a folder.
         NOTE this function automatically removes `__init__.py`
         from the list.
         """
 
-        path = FileHandler.folder_directory(folder)
+        path = FileHandler.folder_directory(foldername)
 
         files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
 
@@ -106,7 +110,7 @@ class ConfigurationManager(FileHandler):
             _dir = self.file_directory(config)
             loadedFile = self.load(_dir)
             self.configName = config
-        except TypeError:
+        except (TypeError, FileNotFoundError):
             log.warning("No config requested. Using default config: %s" %(default_config))
             _dir = self.file_directory(default_config)
             loadedFile = self.load(_dir)
