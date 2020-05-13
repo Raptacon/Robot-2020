@@ -3,7 +3,7 @@ from tkinter import (
     StringVar,
     Button,
     Label,
-    OptionMenu
+    OptionMenu,
 )
 
 #from utils.reworkedConfig import FileHandler
@@ -23,8 +23,12 @@ class RoboWindow(_Commands):
 
     def _create_labels(self):
         run_type_label = Label(self.root, text = "Run Type:")
-        run_type_label.grid(row = 0, column = 0, padx = 50, pady = 50)
-        run_type_label.config(font = 18)
+        run_type_label.grid(row = 0, column = 0, padx = 10, pady = 30)
+        run_type_label.config(font = 10)
+
+        config_label = Label(self.root, text = "Configuration:")
+        config_label.grid(row = 1, column = 0)
+        config_label.config(font = 10)
 
     def _create_runtypes(self):
         OPTIONS = ["Simulation", "Deploy"]
@@ -33,7 +37,7 @@ class RoboWindow(_Commands):
 
         dropdown = OptionMenu(self.root, var, *OPTIONS)
         dropdown.grid(row = 0, column = 2)
-        dropdown.config(font = 18)
+        dropdown.config(font = 10)
 
     def _create_versions(self):
         pass
@@ -44,8 +48,8 @@ class RoboWindow(_Commands):
         var.set('Select...')
 
         dropdown = OptionMenu(self.root, var, *OPTIONS)
-        dropdown.grid(row = 2, column = 2)
-        dropdown.config(font = 18)
+        dropdown.grid(row = 1, column = 2)
+        dropdown.config(font = 10)
 
 if __name__ == '__main__':
 
