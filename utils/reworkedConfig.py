@@ -1,4 +1,5 @@
 import json
+import yaml
 import os
 import inspect
 import logging as log
@@ -22,13 +23,25 @@ class FileHandler:
     """
 
     @staticmethod
-    def load(directory):
+    def load(name):
         """
-        Load a .json file from a directory.
+        Load a .json or .yml file from a directory.
         """
 
+        directory = FileHandler.file_directory(name)
+
+        if not name.startswith('.'):
+            file_type = (name.split('.'))[1]
+        else:
+            file_type = (name.split('.'))[2] # This won't be used often
+
         with open(directory) as file:
-            loadedFile = json.load(file)
+            if file_type == 'json':
+                loadedFile = json.load(file)
+            elif file_type == 'yml':
+                loadedFile = yaml.load(file, yaml.FullLoader)
+            else:
+                raise TypeError(f"File type '{file_type}' is unsupported.")
         return loadedFile
 
     @staticmethod
@@ -102,18 +115,16 @@ class ConfigurationManager(FileHandler):
         #       portion of this file.
         #
 
-        setup_data = self.load(self.file_directory('setup.json'))
+        setup_data = self.load('setup.json')
         default_config, requirements = self.__getSetupInfo(setup_data)
-        factory_data = self.load(self.file_directory('.factories.json'))
+        factory_data = self.load('.factories.json')
 
         try:
-            _dir = self.file_directory(config)
-            loadedFile = self.load(_dir)
+            loadedFile = self.load(config)
             self.configName = config
         except (TypeError, FileNotFoundError):
             log.warning("No config requested. Using default config: %s" %(default_config))
-            _dir = self.file_directory(default_config)
-            loadedFile = self.load(_dir)
+            loadedFile = self.load(default_config)
             self.configName = default_config
 
         if __name__ != '__main__':
