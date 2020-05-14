@@ -152,7 +152,7 @@ class ConfigurationManager(FileHandler):
         if len(attributes) > 2:
             a = [t for t in attributes if t not in requirements]
             log.warning(
-                f"Loaded config '{self.configName}' has additional attributes {a}, which will not be used."
+                f"Loaded config '{self.configName}' has additional attribute(s) {a}, which will not be used."
             )
 
         configCompat = file['compatibility']
