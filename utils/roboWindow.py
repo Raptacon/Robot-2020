@@ -4,9 +4,12 @@ from tkinter import (
     Button,
     Label,
     OptionMenu,
-    Frame
+    Frame,
+    messagebox
 )
 
+from os import popen as cmd
+from string import ascii_letters as letters
 #from utils.reworkedConfig import FileHandler
 
 class _Commands:
@@ -30,11 +33,11 @@ class RoboWindow(_Commands):
         run_type_label = Label(self.root, text = "Run Type:", font=(None, 12))
         run_type_label.place(x = 20, y = 30)
 
-        config_label = Label(self.root, text = "Configuration:", font=(None, 12))
-        config_label.place(x = 20, y = 100)
-
         version_label = Label(self.root, text = "Version:", font=(None, 12))
-        version_label.place(x = 20, y = 170)
+        version_label.place(x = 20, y = 100)
+
+        config_label = Label(self.root, text = "Configuration:", font=(None, 12))
+        config_label.place(x = 20, y = 170)
 
     def _create_runtypes(self):
         OPTIONS = ["Simulation", "Deploy"]
@@ -45,21 +48,26 @@ class RoboWindow(_Commands):
         dropdown.config(width = 15)
         dropdown.place(x = 200, y = 30)
 
+    def _create_versions(self):
+        raw_tags = cmd('git tag').readlines()
+
+        OPTIONS = []
+        for tag in raw_tags:
+            OPTIONS.append(tag.rstrip('\n'))
+
+        self.versions_var = StringVar(self.root)
+        self.versions_var.set('Select...')
+
+        dropdown = OptionMenu(self.root, self.versions_var, *OPTIONS) # Ignore this error... window works fine.
+        dropdown.config(width = 15)
+        dropdown.place(x = 200, y = 100)
+
     def _create_configs(self):
         OPTIONS = ['doof', 'minibot', 'scorpion']#[FileHandler.get_all_files('robot')]
         self.configs_var = StringVar(self.root)
         self.configs_var.set('Select...')
 
         dropdown = OptionMenu(self.root, self.configs_var, *OPTIONS)
-        dropdown.config(width = 15)
-        dropdown.place(x = 200, y = 100)
-
-    def _create_versions(self):
-        OPTIONS = ['place', 'holder']
-        self.versions_var = StringVar(self.root)
-        self.versions_var.set('Select...')
-
-        dropdown = OptionMenu(self.root, self.versions_var, *OPTIONS)
         dropdown.config(width = 15)
         dropdown.place(x = 200, y = 170)
 
@@ -86,6 +94,7 @@ class RoboWindow(_Commands):
         runtype = self.runtype_var.get()
         config = self.configs_var.get()
         version = self.versions_var.get()
+
 
         if runtype == 'deploy':
             pass
