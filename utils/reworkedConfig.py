@@ -41,7 +41,8 @@ class FileHandler:
             elif file_type == 'yml':
                 loadedFile = yaml.load(file, yaml.FullLoader)
             else:
-                raise TypeError(f"File type '{file_type}' is unsupported.")
+                raise NotImplementedError(f"File type '{file_type}' is unsupported.")
+
         return loadedFile
 
     @staticmethod
@@ -57,7 +58,7 @@ class FileHandler:
             if name in files:
                 return os.path.join(root, name)
 
-        raise FileNotFoundError(f"File '{name}' doesn't exist in {path}")
+        raise NotADirectoryError(f"File '{name}' doesn't exist in {path}")
 
     @staticmethod
     def folder_directory(name) -> str:
@@ -72,7 +73,7 @@ class FileHandler:
             if name in dirs:
                 return os.path.join(root, name)
 
-        raise FileNotFoundError(f"Folder '{name}' doesn't exist in {path}")
+        raise NotADirectoryError(f"Folder '{name}' doesn't exist in {path}")
 
     @staticmethod
     def get_all_files(foldername, extentions = False) -> list:
@@ -104,7 +105,7 @@ class ConfigurationManager(FileHandler):
     Class to read a config file and parse its contents into a usable format to generate robot objects from
     factories.
 
-    :param config: If desired, specify a config to use. Default is listed in setup.json
+    :param config: If desired, specify a config to use. Default is listed in `setup.json`
     """
 
     def __init__(self, config: Optional[str] = None):
@@ -122,7 +123,7 @@ class ConfigurationManager(FileHandler):
         try:
             loadedFile = self.load(config)
             self.configName = config
-        except (TypeError, FileNotFoundError):
+        except NotADirectoryError:
             log.warning("No config requested. Using default config: %s" %(default_config))
             loadedFile = self.load(default_config)
             self.configName = default_config
@@ -207,22 +208,26 @@ class ConfigurationManager(FileHandler):
         Checks compatibility of the component based on the compatString and the compatibility key in the config.
         """
 
-        compatString = [x.lower() for x in compatString]
-        compatString = ''.join(compatString) # FIXME
+        _compatString = []
+
+        for item in compatString:
+            _item = [c.lower() for c in item]
+            _item = ''.join(_item)
+            _compatString.append(_item)
 
         root = [self.configCompat] # This is the compatibility of the loaded config
-        if "all" in root or "all" in compatString:
+        if "all" in root or "all" in _compatString:
             return True
-        for string in root:
-            if string in compatString:
+        for item in root:
+            if item in _compatString:
                 return True
         return False
 
     @staticmethod
     def findConfig(use_encoding = True) -> str:
         """
-        Sets the config to be used on the robot. To manually set a config, run 'echo <config name> > RobotConfig' on the robot.
-        This will create a file called 'RobotConfig' on the robot with the config requested.
+        Sets the config to be used on the robot. To manually set a config, run 'echo <config name> > RobotConfig'
+        on the robot. This will create a file called 'RobotConfig' on the robot with the config requested.
         It can then be read and processed appropriately.
         This method returns the name of the config file as a string type.
 
@@ -259,10 +264,6 @@ class ConfigurationManager(FileHandler):
                     if char in alphabet:
                         valid_chars.append(char)
             configString = ''.join(valid_chars)
-
-        if not configString:
-            log.error("Config requested in unreadable, likely due to the file being empty; unable to load.")
-            configString = None
 
         return configString
 
