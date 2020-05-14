@@ -136,7 +136,7 @@ class ConfigurationManager(FileHandler):
 
     def __getConfigInfo(self, file, requirements):
         """
-        Takes data from a config file and extracts all the keys.
+        Takes data from a config file and extracts the appropriate keys.
         """
 
         attributes = []
@@ -147,6 +147,12 @@ class ConfigurationManager(FileHandler):
                 raise AttributeError(
                     f"Required attribute '{requirement}' missing in '{self.configName}'"
                 )
+
+        if len(attributes) > 2:
+            a = [t for t in attributes if t not in requirements]
+            log.warning(
+                f"Loaded config '{self.configName}' has additional attributes {a}, which will not be used."
+            )
 
         configCompat = file['compatibility']
         subsystems = file['subsystems']
