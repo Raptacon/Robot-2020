@@ -1,3 +1,32 @@
 {
-
+    "runtype": {
+        "label": {
+            "x": 20,
+            "y": 30
+        },
+        "dropdown": {
+            "x": 60,
+            "y": 30
+        }
+    },
+    "configuration": {
+        "label": {
+            "x": 20,
+            "y": 30
+        },
+        "dropdown": {
+            "x": 60,
+            "y": 30
+        }
+    },
+    "version": {
+        "label": {
+            "x": 20,
+            "y": 30
+        },
+        "dropdown": {
+            "x": 60,
+            "y": 30
+        }
+    }
 }
