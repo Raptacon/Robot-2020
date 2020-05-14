@@ -12,16 +12,14 @@ from os import popen as cmd
 from string import ascii_letters as letters
 #from utils.reworkedConfig import FileHandler
 
-class _Commands:
-    pass
-
-class RoboWindow(_Commands):
+class RoboWindow:
 
     def __init__(self):
 
         self.root = Tk()
         #config_contents = FileHandler.load(FileHandler.file_directory('window.json'))
         Frame(self.root).winfo_toplevel().title("RoboWindow - Setup")
+        self.root.resizable(0,0)
         self._create_labels()
         self._create_runtypes()
         self._create_configs()
@@ -89,7 +87,10 @@ class RoboWindow(_Commands):
         ]
 
         if 'Select...' in dropdown_input:
-            self.root.destroy() # TODO: Add info telling user to select option for every dropdown
+            messagebox.showerror(title = "Invalid Choice",
+                                 message = "Please select an option for every dropdown menu.")
+
+            return
 
         runtype = self.runtype_var.get()
         config = self.configs_var.get()
