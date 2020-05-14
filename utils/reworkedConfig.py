@@ -128,6 +128,9 @@ class ConfigurationManager(FileHandler):
             self.__generateFactoryObjects(factory_data, subsystem_name, subsystem_data)
 
     def __getSetupInfo(self, file):
+        """
+        Get essential info from a setup file.
+        """
 
         default = file['default']
         requirements = file['requirements']
