@@ -45,8 +45,7 @@ class FileHandler:
 
         path = os.getcwd()
 
-        for root, dirs, files in os.walk(path):
-            del dirs
+        for root, _, files in os.walk(path):
             if name in files:
                 return os.path.join(root, name)
 
@@ -60,8 +59,7 @@ class FileHandler:
 
         path = os.getcwd()
 
-        for root, dirs, files in os.walk(path):
-            del files
+        for root, dirs, _ in os.walk(path):
             if name in dirs:
                 return os.path.join(root, name)
 
