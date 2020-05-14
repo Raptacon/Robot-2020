@@ -9,14 +9,6 @@ from pathlib import Path
 from importlib import import_module
 from typing import Optional
 
-if __name__ != '__main__':
-    from factories import factory_modules
-    import factories
-    # NOTE This is only for flake8
-    factories.dummy()
-else:
-    factory_modules = None
-
 class FileHandler:
     """
     Various helper methods for finding and loading files/folders.
@@ -118,12 +110,12 @@ class ConfigurationManager(FileHandler):
 
         setup_data = self.load('setup.json')
         default_config, requirements = self.__getSetupInfo(setup_data)
-        factory_data = self.load('.factories.json')
+        factory_data = self.load('factories.json')
 
-        try:
+        if config:
             loadedFile = self.load(config)
             self.configName = config
-        except NotADirectoryError:
+        else:
             log.warning("No config requested. Using default config: %s" %(default_config))
             loadedFile = self.load(default_config)
             self.configName = default_config
@@ -171,9 +163,13 @@ class ConfigurationManager(FileHandler):
 
         factory = None
 
-        if factory_modules is None:
+        if __name__ == '__main__':
             return
 
+        # Aquire list of every factory file
+        factory_modules = self.get_all_files('factories')
+
+        # Find appropriate factory and collect it
         for group_name, group_info in subsystem_data.items():
             if group_name in factory_data:
                 factory_name = factory_data[group_name]
@@ -181,12 +177,13 @@ class ConfigurationManager(FileHandler):
                     factory_module = 'factories.' + file
                     factory_file = import_module(factory_module)
                     if hasattr(factory_file, factory_name):
-                        factory = eval(factory_module + '.' + factory_name)
+                        factory = getattr(factory_file, factory_name)
                 if factory is None:
                     raise AttributeError(f"Factory '{factory_name}' doesn't exist in the 'factories' directory.")
             else:
                 raise AttributeError(f"Group '{group_name}' has no associated factory.")
 
+            # Set/get containers to hold dictionary attributes
             containerName = group_name[0].upper() + group_name[1:]
 
             if not hasattr(self.robot, containerName):
@@ -194,6 +191,7 @@ class ConfigurationManager(FileHandler):
 
             container = getattr(self.robot, containerName)
 
+            # Create dictionary attributes and set them to robot.py
             items = {key:factory(descp) for key, descp in group_info.items()}
             created_count = len(items)
             groupName_subsystemName = '_'.join([group_name, subsystem_name])
@@ -253,16 +251,11 @@ class ConfigurationManager(FileHandler):
                 configString = file.readline().strip()
             log.info("Using config '%s'" %(configString))
         else:
-            valid_chars = []
             alphabet = list(ascii_lowercase)
             alphabet.append('.') # Necessary to specify '.json' file extention
             with open(configDir) as file:
                 raw_string = file.readline().strip()
-                for char in raw_string:
-                    if char.isupper():
-                        char = char.lower()
-                    if char in alphabet:
-                        valid_chars.append(char)
+            valid_chars = [char for char in raw_string if char in alphabet]
             configString = ''.join(valid_chars)
 
         return configString
