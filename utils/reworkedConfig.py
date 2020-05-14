@@ -142,21 +142,14 @@ class ConfigurationManager(FileHandler):
         Takes data from a config file and extracts the appropriate keys.
         """
 
-        attributes = [attr for attr in file]
-        for requirement in requirements:
-            if requirement not in attributes:
-                raise AttributeError(
-                    f"Required attribute '{requirement}' missing in '{self.configName}'"
-                )
-
-        if len(attributes) > 2:
-            a = [t for t in attributes if t not in requirements]
-            log.warning(
-                f"Loaded config '{self.configName}' has additional attribute(s) {a}, which will not be used."
-            )
-
         configCompat = file['compatibility']
         subsystems = file['subsystems']
+
+        extra_attrs = [a for a in file if a not in ['compatibility', 'subsystems']]
+        if len(extra_attrs) > 0:
+            log.warning(
+                f"Loaded config '{self.configName}' has additional attribute(s) {extra_attrs}, which will not be used."
+            )
 
         return configCompat, subsystems
 
