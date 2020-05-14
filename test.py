@@ -2,5 +2,7 @@ import os
 from time import sleep
 
 os.popen('git checkout master')
-sleep(10)
-os.popen('git checkout RoboWindow')
+
+if os.popen('git branch --show-current').readline().strip() == 'master':
+    sleep(2)
+    os.popen('git checkout RoboWindow')
