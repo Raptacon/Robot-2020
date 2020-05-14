@@ -142,9 +142,7 @@ class ConfigurationManager(FileHandler):
         Takes data from a config file and extracts the appropriate keys.
         """
 
-        attributes = []
-        for attr in file:
-            attributes.append(attr)
+        attributes = [attr for attr in file]
         for requirement in requirements:
             if requirement not in attributes:
                 raise AttributeError(
