@@ -1,7 +1,6 @@
 import json
 import yaml
 import os
-import inspect
 import logging as log
 from chardet import detect
 from string import ascii_lowercase
