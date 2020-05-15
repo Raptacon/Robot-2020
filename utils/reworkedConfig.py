@@ -191,23 +191,3 @@ class ConfigurationManager(FileHandler):
             configString = ''.join(valid_chars)
 
         return configString
-
-if __name__ == '__main__':
-
-    mapper = ConfigurationManager(ConfigurationManager.findConfig())
-
-    configCompat = mapper.compatibility
-    configName = mapper.configName
-
-    print('')
-    print("Config Name:", configName, '\n')
-
-    for subsystem_name, subsystem_data in mapper.subsystems.items():
-        print("Subsystem:", subsystem_name)
-        for group_name, group_data in subsystem_data.items():
-            print("Group: %s: %s" %(group_name, group_data))
-        print('')
-
-    dummyConfigString = 'doof'
-    isCompatible = mapper.checkCompatibility(dummyConfigString)
-    print(f"Is '{dummyConfigString}' compatible with '{configCompat}'? {isCompatible}")
