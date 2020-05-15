@@ -94,6 +94,8 @@ class ConfigurationManager(FileHandler):
     Class to read a config file and parse its contents into a usable format to generate robot objects from
     factories.
 
+    :param robot: Robot to set dicionary attributes to.
+
     :param config: If desired, specify a config to use. Default is listed in `setup.json`
     """
 
@@ -108,6 +110,11 @@ class ConfigurationManager(FileHandler):
         else:
             log.warning("No config requested. Using default config: %s" %(default_config))
             loadedFile = self.load(default_config)
+
+        if len(loadedFile) != 2:
+            raise ValueError(
+                "Config should only have 2 keys, found %s" % len(loadedFile)
+            )
 
         self.compatibility = loadedFile['compatibility']
         subsystems = loadedFile['subsystems']
@@ -125,7 +132,7 @@ class ConfigurationManager(FileHandler):
                 )
 
     @staticmethod
-    def findConfig(use_encoding = True) -> str:
+    def findConfig() -> str:
         """
         Sets the config to be used on the robot. To manually set a config, run 'echo <config name> > RobotConfig'
         on the robot. This will create a file called 'RobotConfig' on the robot with the config requested.
@@ -148,17 +155,9 @@ class ConfigurationManager(FileHandler):
             configString = None
             return configString
 
-        if use_encoding:
-            encoding_type = ((detect(raw_data))['encoding']).lower()
-            with open(configDir, 'r', encoding = encoding_type) as file:
-                configString = file.readline().strip()
-            log.info("Using config '%s'" %(configString))
-        else: # TODO: Test on robot and determine if this is necessary. If encoding works, remove.
-            alphabet = list(ascii_lowercase)
-            alphabet.append('.') # Necessary to specify '.json' file extention
-            with open(configDir) as file:
-                raw_string = file.readline().strip()
-            valid_chars = [char for char in raw_string if char in alphabet]
-            configString = ''.join(valid_chars)
+        encoding_type = ((detect(raw_data))['encoding']).lower()
+        with open(configDir, 'r', encoding = encoding_type) as file:
+            configString = file.readline().strip()
+        log.info("Using config '%s'" %(configString))
 
         return configString
