@@ -61,5 +61,3 @@ def createComponents(robot):
     for component_name, component in components:
         if isclass(component):
             testComponentCompatibility(robot, component_name, component)
-        else:
-            continue
