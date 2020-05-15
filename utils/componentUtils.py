@@ -11,17 +11,23 @@ def testComponentCompatibility(robot, component_type):
     takes a robot and a component_type to check
     If the component is not compatibile with the robot type, it will attempt to create basic bindings and
     disable the on_enable and execute() methods of the compeont.
-    """
-    # Iterate over variables with type annotations
+    """   
+
     if not hasattr(component_type, "compatString"):
         robot.logger.warn("%s has no compatString set. Assuming compatible", component_type)
         return
 
-    if robot.mapper.checkCompatibility(component_type.compatString):
+    assert isinstance(component_type.compatString, list), "compatString must be a list type."
+
+    compCompat = component_type.compatString
+    compatibility = [robot.mapper.compatibility]
+
+    if bool(set(compCompat).intersection(compatibility)) or 'all' in compCompat or 'all' in compatibility:
         return
 
     robot.logger.warn("%s is not compatible. Disabling", component_type)
 
+    # Iterate over variables with type annotations
     for n, inject_type in typing.get_type_hints(component_type).items():
         # If the variable is private ignore it
         if n.startswith("_"):

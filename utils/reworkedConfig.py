@@ -99,29 +99,21 @@ class ConfigurationManager(FileHandler):
 
     def __init__(self, robot, config: Optional[str] = None):
 
-        #
-        # NOTE: Many instance variables declared here aren't used elsewhere within the class,
-        #       rather they are used for validating a config in the `if __name__ == '__main__'`
-        #       portion of this file.
-        #
-
         setup_data = self.load('setup.json')
         default_config = setup_data['default']
         factory_data = self.load('factories.json')
 
         if config:
             loadedFile = self.load(config)
-            self.configName = config
         else:
             log.warning("No config requested. Using default config: %s" %(default_config))
             loadedFile = self.load(default_config)
-            self.configName = default_config
 
         self.compatibility = loadedFile['compatibility']
-        self.subsystems = loadedFile['subsystems']
+        subsystems = loadedFile['subsystems']
 
         # Loop through subsystems and generate factory objects
-        for subsystem_name, subsystem_data in self.subsystems.items():
+        for subsystem_name, subsystem_data in subsystems.items():
             for group_name, group_info in subsystem_data.items():
 
                 factory = getattr(import_module(factory_data[group_name]['file']), factory_data[group_name]['func'])
@@ -131,26 +123,6 @@ class ConfigurationManager(FileHandler):
                 log.info(
                     f"Creating {len(items)} item(s) for '{group_name}' in subsystem {subsystem_name}"
                 )
-
-    def checkCompatibility(self, compatString) -> bool:
-        """
-        Checks compatibility of the component based on the compatString and the compatibility key in the config.
-        """
-
-        _compatString = []
-
-        for item in compatString:
-            _item = [c.lower() for c in item]
-            _item = ''.join(_item)
-            _compatString.append(_item)
-
-        root = [self.compatibility] # This is the compatibility of the loaded config
-        if "all" in root or "all" in _compatString:
-            return True
-        for item in root:
-            if item in _compatString:
-                return True
-        return False
 
     @staticmethod
     def findConfig(use_encoding = True) -> str:
@@ -181,7 +153,7 @@ class ConfigurationManager(FileHandler):
             with open(configDir, 'r', encoding = encoding_type) as file:
                 configString = file.readline().strip()
             log.info("Using config '%s'" %(configString))
-        else:
+        else: # TODO: Test on robot and determine if this is necessary. If encoding works, remove.
             alphabet = list(ascii_lowercase)
             alphabet.append('.') # Necessary to specify '.json' file extention
             with open(configDir) as file:
