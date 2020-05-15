@@ -11,6 +11,7 @@ class ShooterMotorCreation:
     """
     Allows you to run motors in the shooter
     """
+
     compatString = ["doof"]
 
     logger: logging

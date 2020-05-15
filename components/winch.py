@@ -1,6 +1,8 @@
 
 class Winch:
+
     compatString = ["doof"]
+
     motors_winch: dict
 
     def on_enable(self):

@@ -21,15 +21,12 @@ class FileHandler:
 
         directory = FileHandler.file_directory(name)
 
-        if not name.startswith('.'):
-            file_type = (name.split('.'))[1]
-        else:
-            file_type = (name.split('.'))[2] # This won't be used often
+        _, file_type = os.path.splitext(name)
 
         with open(directory) as file:
-            if file_type == 'json':
+            if file_type == '.json':
                 loadedFile = json.load(file)
-            elif file_type == 'yml':
+            elif file_type == '.yml':
                 loadedFile = yaml.load(file, yaml.FullLoader)
             else:
                 raise NotImplementedError(f"File type '{file_type}' is unsupported.")

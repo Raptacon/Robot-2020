@@ -17,6 +17,8 @@ class DriveTrain():
     driveMotorsMultiplier = tunable(.5)
     #gyros_system: dict
 
+    compatString = ["all"]
+
     def setup(self):
         self.tankLeftSpeed = 0
         self.tankRightSpeed = 0

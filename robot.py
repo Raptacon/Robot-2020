@@ -21,7 +21,7 @@ from components.feederMap import FeederMap
 
 # Other imports:
 from robotMap import XboxMap
-from utils.componentUtils import testComponentCompatibility
+from utils.componentUtils import createComponents
 from utils.reworkedConfig import ConfigurationManager
 import utils.math
 
@@ -52,14 +52,7 @@ class MyRobot(MagicRobot):
         self.xboxMap = XboxMap(XboxController(1), XboxController(0))
 
         # Check each componet for compatibility
-        testComponentCompatibility(self, ShooterLogic)
-        testComponentCompatibility(self, ShooterMotorCreation)
-        testComponentCompatibility(self, DriveTrain)
-        testComponentCompatibility(self, Winch)
-        testComponentCompatibility(self, ButtonManager)
-        testComponentCompatibility(self, Pneumatics)
-        testComponentCompatibility(self, Elevator)
-        testComponentCompatibility(self, ScorpionLoader)
+        createComponents(self)
 
     def autonomousInit(self):
         """Run when autonomous is enabled."""

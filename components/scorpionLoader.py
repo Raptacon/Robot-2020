@@ -2,7 +2,9 @@ from robotMap import XboxMap
 from magicbot import tunable
 
 class ScorpionLoader:
+
     compatString = ["scorpion"]
+
     motors_shooter: dict
     motors_loader: dict
     xboxMap: XboxMap

@@ -7,6 +7,7 @@ import logging
 
 class LoaderLogic(StateMachine):
     """StateMachine-based loader. Has both automatic and manual modes."""
+
     compatString = ["doof"]
 
     # Component/module related things

@@ -4,17 +4,15 @@ File to hold misc component helper commands
 
 import components
 import typing
-from inspect import ismodule
+from inspect import ismodule, isclass
 
-def testComponentCompatibility(robot, component_type):
+def testComponentCompatibility(robot, component_name, component_type):
     """
-    takes a robot and a component_type to check
-    If the component is not compatibile with the robot type, it will attempt to create basic bindings and
-    disable the on_enable and execute() methods of the compeont.
+    Checks the compatibility of a component.
     """   
 
     if not hasattr(component_type, "compatString"):
-        robot.logger.warn("%s has no compatString set. Assuming compatible", component_type)
+        robot.logger.warn("'%s' has no compatString set. Assuming compatible", component_name)
         return
 
     assert isinstance(component_type.compatString, list), "compatString must be a list type."
@@ -25,7 +23,7 @@ def testComponentCompatibility(robot, component_type):
     if bool(set(compCompat).intersection(compatibility)) or 'all' in compCompat or 'all' in compatibility:
         return
 
-    robot.logger.warn("%s is not compatible. Disabling", component_type)
+    robot.logger.warn("'%s' is not compatible. Disabling", component_name)
 
     # Iterate over variables with type annotations
     for n, inject_type in typing.get_type_hints(component_type).items():
@@ -58,3 +56,13 @@ def testComponentCompatibility(robot, component_type):
     component_type.execute = components.dummyFunc
     component_type.on_enable = components.dummyFunc
     component_type.setup = components.dummyFunc
+
+def createComponents(robot):
+    """
+    Creates all the components annotated on a robot.
+    """
+
+    components = typing.get_type_hints(robot).items()
+    for component_name, component in components:
+        if isclass(component):
+            testComponentCompatibility(robot, component_name, component)
