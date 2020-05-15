@@ -107,7 +107,7 @@ class ConfigurationManager(FileHandler):
         #
 
         setup_data = self.load('setup.json')
-        default_config, requirements = self.__getSetupInfo(setup_data)
+        default_config = setup_data['default']
         factory_data = self.load('factories.json')
 
         if config:
@@ -121,23 +121,13 @@ class ConfigurationManager(FileHandler):
         if __name__ != '__main__':
             self.robot = inspect.stack()[1][0].f_locals["self"]
 
-        self.configCompat, self.subsystems = self.__getConfigInfo(loadedFile, requirements)
+        self.configCompat, self.subsystems = self.__getConfigInfo(loadedFile)
 
         # Loop through subsystems and pass data into function that generates objects from factories
         for subsystem_name, subsystem_data in self.subsystems.items():
             self.__generateFactoryObjects(factory_data, subsystem_name, subsystem_data)
 
-    def __getSetupInfo(self, file):
-        """
-        Get essential info from a setup file.
-        """
-
-        default = file['default']
-        requirements = file['requirements']
-
-        return default, requirements
-
-    def __getConfigInfo(self, file, requirements):
+    def __getConfigInfo(self, file):
         """
         Takes data from a config file and extracts the appropriate keys.
         """
@@ -181,22 +171,12 @@ class ConfigurationManager(FileHandler):
             else:
                 raise AttributeError(f"Group '{group_name}' has no associated factory.")
 
-            # Set/get containers to hold dictionary attributes
-            containerName = group_name[0].upper() + group_name[1:]
-
-            if not hasattr(self.robot, containerName):
-                setattr(self.robot, containerName, {})
-
-            container = getattr(self.robot, containerName)
-
             # Create dictionary attributes and set them to robot.py
             items = {key:factory(descp) for key, descp in group_info.items()}
-            created_count = len(items)
             groupName_subsystemName = '_'.join([group_name, subsystem_name])
-            container[subsystem_name] = items
-            setattr(self.robot, groupName_subsystemName, container[subsystem_name])
+            setattr(self.robot, groupName_subsystemName, items)
             log.info(
-                f"Creating {created_count} item(s) for '{group_name}' in subsystem {subsystem_name}"
+                f"Creating {len(items)} item(s) for '{group_name}' in subsystem {subsystem_name}"
             )
 
     def checkCompatibility(self, compatString) -> bool:

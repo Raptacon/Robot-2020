@@ -1,7 +1,3 @@
 {
-    "default": "doof.json",
-    "requirements": [
-        "compatibility",
-        "subsystems"
-    ]
+    "default": "doof.json"
 }
