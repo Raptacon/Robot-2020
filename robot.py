@@ -48,7 +48,7 @@ class MyRobot(MagicRobot):
         Robot-wide initialization code should go here. Replaces robotInit
         """
 
-        self.mapper = ConfigurationManager(ConfigurationManager.findConfig())
+        self.mapper = ConfigurationManager(self, ConfigurationManager.findConfig())
         self.xboxMap = XboxMap(XboxController(1), XboxController(0))
 
         # Check each componet for compatibility

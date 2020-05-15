@@ -98,7 +98,7 @@ class ConfigurationManager(FileHandler):
     :param config: If desired, specify a config to use. Default is listed in `setup.json`
     """
 
-    def __init__(self, config: Optional[str] = None):
+    def __init__(self, robot, config: Optional[str] = None):
 
         #
         # NOTE: Many instance variables declared here aren't used elsewhere within the class,
@@ -118,66 +118,20 @@ class ConfigurationManager(FileHandler):
             loadedFile = self.load(default_config)
             self.configName = default_config
 
-        if __name__ != '__main__':
-            self.robot = inspect.stack()[1][0].f_locals["self"]
+        self.compatibility = loadedFile['compatibility']
+        self.subsystems = loadedFile['subsystems']
 
-        self.configCompat, self.subsystems = self.__getConfigInfo(loadedFile)
-
-        # Loop through subsystems and pass data into function that generates objects from factories
+        # Loop through subsystems and generate factory objects
         for subsystem_name, subsystem_data in self.subsystems.items():
-            self.__generateFactoryObjects(factory_data, subsystem_name, subsystem_data)
+            for group_name, group_info in subsystem_data.items():
 
-    def __getConfigInfo(self, file):
-        """
-        Takes data from a config file and extracts the appropriate keys.
-        """
-
-        configCompat = file['compatibility']
-        subsystems = file['subsystems']
-
-        extra_attrs = [a for a in file if a not in ['compatibility', 'subsystems']]
-        if len(extra_attrs) > 0:
-            log.warning(
-                f"Loaded config '{self.configName}' has additional attribute(s) {extra_attrs}, which will not be used."
-            )
-
-        return configCompat, subsystems
-
-    def __generateFactoryObjects(self, factory_data, subsystem_name, subsystem_data):
-        """
-        Generates objects from factories based on information from a config. It then sets dictionary
-        attributes to a specifed robot to be used for variable injection.
-        """
-
-        factory = None
-
-        if __name__ == '__main__':
-            return
-
-        # Aquire list of every factory file
-        factory_modules = self.get_all_files('factories')
-
-        # Find appropriate factory and collect it
-        for group_name, group_info in subsystem_data.items():
-            if group_name in factory_data:
-                factory_name = factory_data[group_name]
-                for file in factory_modules:
-                    factory_module = 'factories.' + file
-                    factory_file = import_module(factory_module)
-                    if hasattr(factory_file, factory_name):
-                        factory = getattr(factory_file, factory_name)
-                if factory is None:
-                    raise AttributeError(f"Factory '{factory_name}' doesn't exist in the 'factories' directory.")
-            else:
-                raise AttributeError(f"Group '{group_name}' has no associated factory.")
-
-            # Create dictionary attributes and set them to robot.py
-            items = {key:factory(descp) for key, descp in group_info.items()}
-            groupName_subsystemName = '_'.join([group_name, subsystem_name])
-            setattr(self.robot, groupName_subsystemName, items)
-            log.info(
-                f"Creating {len(items)} item(s) for '{group_name}' in subsystem {subsystem_name}"
-            )
+                factory = getattr(import_module(factory_data[group_name]['file']), factory_data[group_name]['func'])
+                items = {key:factory(descp) for key, descp in group_info.items()}
+                groupName_subsystemName = '_'.join([group_name, subsystem_name])
+                setattr(robot, groupName_subsystemName, items)
+                log.info(
+                    f"Creating {len(items)} item(s) for '{group_name}' in subsystem {subsystem_name}"
+                )
 
     def checkCompatibility(self, compatString) -> bool:
         """
@@ -191,7 +145,7 @@ class ConfigurationManager(FileHandler):
             _item = ''.join(_item)
             _compatString.append(_item)
 
-        root = [self.configCompat] # This is the compatibility of the loaded config
+        root = [self.compatibility] # This is the compatibility of the loaded config
         if "all" in root or "all" in _compatString:
             return True
         for item in root:
@@ -242,7 +196,7 @@ if __name__ == '__main__':
 
     mapper = ConfigurationManager(ConfigurationManager.findConfig())
 
-    configCompat = mapper.configCompat
+    configCompat = mapper.compatibility
     configName = mapper.configName
 
     print('')
