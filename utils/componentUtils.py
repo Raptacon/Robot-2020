@@ -9,7 +9,7 @@ from inspect import ismodule, isclass
 def testComponentCompatibility(robot, component_name, component_type):
     """
     Checks the compatibility of a component.
-    """   
+    """
 
     if not hasattr(component_type, "compatString"):
         robot.logger.warn("'%s' has no compatString set. Assuming compatible", component_name)

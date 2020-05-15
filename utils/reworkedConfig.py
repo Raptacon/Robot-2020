@@ -3,7 +3,6 @@ import yaml
 import os
 import logging as log
 from chardet import detect
-from string import ascii_lowercase
 from pathlib import Path
 from importlib import import_module
 from typing import Optional
