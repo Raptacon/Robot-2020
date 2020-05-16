@@ -102,18 +102,20 @@ class ConfigurationManager(FileHandler):
         factory_data = self.load('factories.json')
 
         if config:
-            loadedFile = self.load(config)
+            loadedConfig = self.load(config)
         else:
             log.warning("No config requested. Using default config: %s" %(default_config))
-            loadedFile = self.load(default_config)
+            loadedConfig = self.load(default_config)
 
-        if len(loadedFile) != 2:
-            raise ValueError(
-                "Config should only have 2 keys, found %s" % len(loadedFile)
+        if len(loadedConfig) != 2:
+            raise KeyError(
+                "Config should only have 2 keys, found %s" % len(loadedConfig)
             )
 
-        self.compatibility = loadedFile['compatibility']
-        subsystems = loadedFile['subsystems']
+        self.compatibility = loadedConfig['compatibility']
+        subsystems = loadedConfig['subsystems']
+
+        log.info(f"Creating {len(subsystems)} subsystems")
 
         # Loop through subsystems and generate factory objects
         for subsystem_name, subsystem_data in subsystems.items():
@@ -124,19 +126,16 @@ class ConfigurationManager(FileHandler):
                 groupName_subsystemName = '_'.join([group_name, subsystem_name])
                 setattr(robot, groupName_subsystemName, items)
                 log.info(
-                    f"Creating {len(items)} item(s) for '{group_name}' in subsystem {subsystem_name}"
+                    f"Created {len(items)} item(s) for '{group_name}' in subsystem {subsystem_name}"
                 )
 
     @staticmethod
     def findConfig() -> str:
         """
-        Sets the config to be used on the robot. To manually set a config, run 'echo <config name> > RobotConfig'
+        Sets the config to be used on the robot. To manually set a config, run `echo <config name> > RobotConfig`
         on the robot. This will create a file called 'RobotConfig' on the robot with the config requested.
         It can then be read and processed appropriately.
         This method returns the name of the config file as a string type.
-
-        :param use_encoding: If set to True, use Unicode encoding to read the 'RobotConfig' file
-        (this likely won't need to be changed as it should always be used; should only be necessary if encoding fails).
         """
 
         home = str(Path.home()) + os.path.sep

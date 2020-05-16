@@ -12,7 +12,7 @@ def testComponentCompatibility(robot, component_name, component_type):
     """
 
     if not hasattr(component_type, "compatString"):
-        robot.logger.warn("'%s' has no compatString set. Assuming compatible", component_name)
+        robot.logger.warn("'%s' has no compatString set. Assuming compatible.", component_name)
         return
 
     assert isinstance(component_type.compatString, list), "compatString must be a list type."
