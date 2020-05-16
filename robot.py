@@ -154,4 +154,15 @@ class MyRobot(MagicRobot):
 
 if __name__ == '__main__':
     log(simulations=True)
+    from sys import argv as args
+    from os import system as cmd
+    import os
+
+    if 'log' in args and len(args) == 2:
+        cmd(r'.\_system_utils\view_log.bat')
+        exit(1)
+
+    if 'log' in args and '--clear' in args and len(args) == 3:
+        cmd(r'.\_system_utils\clear_log.bat')
+
     wpilib.run(MyRobot)
