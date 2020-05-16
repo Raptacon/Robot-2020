@@ -50,8 +50,6 @@ class MyRobot(MagicRobot):
 
         self.mapper = ConfigurationManager(self, ConfigurationManager.findConfig())
         self.xboxMap = XboxMap(XboxController(1), XboxController(0))
-
-        # Check each componet for compatibility
         createComponents(self)
 
     def autonomousInit(self):
