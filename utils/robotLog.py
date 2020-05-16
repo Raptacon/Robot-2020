@@ -13,7 +13,7 @@ def __getRunInfo():
     branch_name = branch.readline().strip()
     runtime_version = branch_name
     if not branch_name:
-        tag = os.popen('git tag --contains ' + str(commit_hash))
+        tag = os.popen('git describe --tags')
         tag_name = tag.readline().strip()
         runtime_version = tag_name
 
