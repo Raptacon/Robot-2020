@@ -15,7 +15,7 @@ class FileHandler:
     @staticmethod
     def load(name):
         """
-        Load a .json or .yml file from a directory.
+        Load a .json or .yml file.
         """
 
         directory = FileHandler.file_directory(name)
@@ -126,7 +126,7 @@ class ConfigurationManager(FileHandler):
                 groupName_subsystemName = '_'.join([group_name, subsystem_name])
                 setattr(robot, groupName_subsystemName, items)
                 log.info(
-                    f"Created {len(items)} item(s) for '{group_name}' in subsystem {subsystem_name}"
+                    f"Created {len(items)} item(s) into '{groupName_subsystemName}'"
                 )
 
     @staticmethod
