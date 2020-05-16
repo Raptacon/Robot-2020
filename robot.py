@@ -153,7 +153,7 @@ class MyRobot(MagicRobot):
         self.logger.info(f"Created {createdCount} items for {groupName} groups with `{factory.__name__}` into `{containerName}")
 
 if __name__ == '__main__':
-    log(simulations=True)
+
     from sys import argv as args
     from os import system as cmd
     import os
@@ -164,5 +164,7 @@ if __name__ == '__main__':
 
     if 'log' in args and '--clear' in args and len(args) == 3:
         cmd(r'.\_system_utils\clear_log.bat')
+        exit(1)
 
+    log(simulations=True)
     wpilib.run(MyRobot)
