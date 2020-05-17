@@ -89,7 +89,8 @@ class RoboWindow:
         cmd('git push')
         cmd('git checkout ' + _ver)
 
-        messagebox.showinfo(title = "Success", message = f"Version change successful. Now on version: {_ver}")
+        messagebox.showinfo(title = "Success",
+                            message = f"Version change successful. Now on version: {_ver}\nThe window will now reload.")
 
         self.root.destroy()
         robowindow = RoboWindow()
