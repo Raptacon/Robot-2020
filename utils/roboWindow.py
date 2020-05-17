@@ -82,9 +82,6 @@ class RoboWindow:
 
     def _change_versions(self):
 
-        loading = Label(self.root, text = "Retrieving version... please wait.")
-        loading.place(x = 20, y = 350)
-
         _ver, _, _ = self._manage_versions()
 
         cmd('git stage .')
@@ -92,7 +89,6 @@ class RoboWindow:
         cmd('git push')
         cmd('git checkout ' + _ver)
 
-        #loading.forget
         messagebox.showinfo(title = "Success", message = f"Version change successful. Now on version: {_ver}")
 
     def _create_runtypes(self):
