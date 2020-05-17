@@ -171,7 +171,7 @@ class RoboWindow:
 
         _tag = str(scmd('git describe --tags').readline().strip())
 
-        if search('[a-zA-Z]', _tag):
+        if search('-', _tag):
             current_version = scmd('git branch --show-current').readline().strip()
             git_type = 'branch'
         else:
