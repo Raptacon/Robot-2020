@@ -154,6 +154,7 @@ class RoboWindow:
             cmd('deploy.bat')
         elif action == 'Simulation':
             self.root.destroy()
+            cmd(f'echo {config} > ..\\..\\RobotConfig')
             cmd('py robot.py sim')
         else:
             # TODO: Change when robot-logs are implemented
@@ -185,6 +186,7 @@ class RoboWindow:
 
         robowindow = RoboWindow()
         robowindow.root.geometry("500x550")
+        # robowindow.root.protocol("WM_DELETE_WINDOW", robowindow._revert_branch)
         # robowindow.root.iconbitmap(r'C:\Users\Chris\Documents\raptaconicon.ico')
         robowindow.root.mainloop()
 
