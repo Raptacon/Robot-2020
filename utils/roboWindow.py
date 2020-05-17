@@ -8,6 +8,7 @@ from tkinter import (
     messagebox
 )
 
+import os
 from os import system as cmd
 from os import popen as scmd
 from re import search
@@ -187,7 +188,10 @@ class RoboWindow:
         robowindow = RoboWindow()
         robowindow.root.geometry("500x550")
         # robowindow.root.protocol("WM_DELETE_WINDOW", robowindow._revert_branch)
-        # robowindow.root.iconbitmap(r'C:\Users\Chris\Documents\raptaconicon.ico')
+
+        icon = os.getcwd() + os.path.sep + 'utils' + os.path.sep + 'raptaconlogo_djA_icon.ico'
+
+        robowindow.root.iconbitmap(icon)
         robowindow.root.mainloop()
 
 if __name__ == '__main__':
