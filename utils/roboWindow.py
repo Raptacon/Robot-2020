@@ -94,7 +94,7 @@ class RoboWindow:
         cmd('git push')
         cmd('git checkout ' + _ver)
 
-        top.after(0, top.destroy)
+        top.after(20000, top.destroy)
         messagebox.showinfo(title = "Success", message = f"Version change successful. Now on version: {_ver}")
 
     def _create_runtypes(self):
