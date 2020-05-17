@@ -14,6 +14,7 @@ from os import system as cmd
 from os import popen as scmd
 from string import ascii_letters as letters
 from re import search
+from time import sleep as s
 #from . import reworkedConfig
 
 class RoboWindow:
@@ -86,6 +87,8 @@ class RoboWindow:
 
         loading = Label(self.root, text = "Retrieving version... please wait.")
         loading.place(x = 20, y = 350)
+
+        s(.5)
 
         cmd('git stage .')
         cmd('git commit -m "Automatic commit made by the RoboWindow"')
