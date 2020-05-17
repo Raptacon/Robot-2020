@@ -92,7 +92,7 @@ class RoboWindow:
         cmd('git push')
         cmd('git checkout ' + _ver)
 
-        loading.place_forget()
+        #loading.forget
         messagebox.showinfo(title = "Success", message = f"Version change successful. Now on version: {_ver}")
 
     def _create_runtypes(self):
