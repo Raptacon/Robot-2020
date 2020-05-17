@@ -16,6 +16,8 @@ from string import ascii_letters as letters
 from re import search
 #from . import reworkedConfig
 
+#TODO: Add instructions on how to use.
+
 class RoboWindow:
 
     def __init__(self):
