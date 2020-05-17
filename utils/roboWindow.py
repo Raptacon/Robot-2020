@@ -87,7 +87,7 @@ class RoboWindow:
 
         top = Toplevel()
         top.title("Loading...")
-        Message(top, text = "Retrieving version...")
+        Message(top, text = "Retrieving version...").place(x = 20, y = 325)
 
         cmd('git stage .')
         cmd('git commit -m "Automatic commit made by the RoboWindow"')
