@@ -3,16 +3,13 @@ from tkinter import (
     StringVar,
     Button,
     Label,
-    Message,
     OptionMenu,
     Frame,
     messagebox
 )
 
-from platform import system as op_sys
 from os import system as cmd
 from os import popen as scmd
-from string import ascii_letters as letters
 from re import search
 #from . import reworkedConfig
 
@@ -60,7 +57,7 @@ class RoboWindow:
             warning_label.place(x = 20, y = 258)
 
             warning_info = Label(
-                            self.root, 
+                            self.root,
                             text = "Please use the most recent version by clicking below.",
                             font = (None, 10)
                             )
@@ -144,7 +141,7 @@ class RoboWindow:
 
         if recent_version != current_version and self.use_recent and action != 'Show Log':
             if not (messagebox.askyesnocancel(title = "WARNING",
-                                   message = 
+                                   message =
                                    "You are not running the most recent version. Are you sure you want to continue?"
                                              )):
                 return
