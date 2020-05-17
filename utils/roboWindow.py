@@ -140,7 +140,7 @@ class RoboWindow:
 
         recent_version, current_version, _ = self._manage_versions()
 
-        if recent_version != current_version and self.use_recent:
+        if recent_version != current_version and self.use_recent and action != 'Show Log':
             if not (messagebox.askyesnocancel(title = "WARNING",
                                    message = 
                                    "You are not running the most recent version. Are you sure you want to continue?"
