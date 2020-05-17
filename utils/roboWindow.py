@@ -93,10 +93,7 @@ class RoboWindow:
                             message = f"Version change successful. Now on version: {_ver}\nThe window will now reload.")
 
         self.root.destroy()
-        robowindow = RoboWindow()
-        robowindow.root.geometry("500x550")
-        robowindow.root.iconbitmap('')
-        robowindow.root.mainloop()
+        self.start()
 
     def _create_runtypes(self):
         OPTIONS = ["Simulation", "Deploy", "Show Log"]
@@ -181,9 +178,22 @@ class RoboWindow:
 
         return most_recent_version, current_version, git_type
 
+    @staticmethod
+    def start():
+        """
+        Starts the roboWindow.
+        """
+
+        robowindow = RoboWindow()
+        robowindow.root.geometry("500x550")
+        robowindow.root.iconbitmap('')
+        robowindow.root.mainloop()
+
 if __name__ == '__main__':
 
-    robowindow = RoboWindow()
-    robowindow.root.geometry("500x550")
-    robowindow.root.iconbitmap('')
-    robowindow.root.mainloop()
+    # robowindow = RoboWindow()
+    # robowindow.root.geometry("500x550")
+    # robowindow.root.iconbitmap('')
+    # robowindow.root.mainloop()
+
+    RoboWindow.start()

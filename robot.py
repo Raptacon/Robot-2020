@@ -24,6 +24,7 @@ from robotMap import XboxMap
 from utils.componentUtils import testComponentCompatibility
 from utils.reworkedConfig import ConfigurationManager
 import utils.math
+from utils.roboWindow import RoboWindow
 
 class MyRobot(MagicRobot):
     """
@@ -115,4 +116,10 @@ class MyRobot(MagicRobot):
         pass
 
 if __name__ == '__main__':
+
+    from sys import argv as args
+
+    if len(args) == 1:
+        RoboWindow.start()
+
     wpilib.run(MyRobot)
