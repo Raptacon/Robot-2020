@@ -19,7 +19,6 @@ class FileHandler:
         """
 
         directory = FileHandler.file_directory(name)
-
         _, file_type = os.path.splitext(name)
 
         with open(directory) as file:
@@ -69,9 +68,7 @@ class FileHandler:
         """
 
         path = FileHandler.folder_directory(foldername)
-
         files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
-
         filtered_files = []
 
         for file in files:
@@ -108,9 +105,7 @@ class ConfigurationManager(FileHandler):
             loadedConfig = self.load(default_config)
 
         if len(loadedConfig) != 2:
-            raise KeyError(
-                "Config should only have 2 keys, found %s" % len(loadedConfig)
-            )
+            raise KeyError("Config should only have 2 keys, found %s" % len(loadedConfig))
 
         self.compatibility = loadedConfig['compatibility']
         subsystems = loadedConfig['subsystems']
@@ -120,22 +115,17 @@ class ConfigurationManager(FileHandler):
         # Loop through subsystems and generate factory objects
         for subsystem_name, subsystem_data in subsystems.items():
             for group_name, group_info in subsystem_data.items():
-
                 factory = getattr(import_module(factory_data[group_name]['file']), factory_data[group_name]['func'])
                 items = {key:factory(descp) for key, descp in group_info.items()}
                 groupName_subsystemName = '_'.join([group_name, subsystem_name])
                 setattr(robot, groupName_subsystemName, items)
-                log.info(
-                    f"Created {len(items)} item(s) into '{groupName_subsystemName}'"
-                )
+                log.info(f"Created {len(items)} item(s) into '{groupName_subsystemName}'")
 
     @staticmethod
     def findConfig() -> str:
         """
         Sets the config to be used on the robot. To manually set a config, run `echo <config name> > RobotConfig`
-        on the robot. This will create a file called 'RobotConfig' on the robot with the config requested.
-        It can then be read and processed appropriately.
-        This method returns the name of the config file as a string type.
+        on the robot.
         """
 
         home = str(Path.home()) + os.path.sep
@@ -145,14 +135,12 @@ class ConfigurationManager(FileHandler):
             with open(configDir, 'rb') as file:
                 raw_data = file.readline().strip()
             log.info("Config found in %s" %(configDir))
+            encoding_type = ((detect(raw_data))['encoding']).lower()
+            with open(configDir, 'r', encoding = encoding_type) as file:
+                configString = file.readline().strip()
+            log.info("Using config '%s'" %(configString))
         except:
             log.warning("Config file 'RobotConfig' could not be found; unable to load. This may be intentional.")
             configString = None
+        finally:
             return configString
-
-        encoding_type = ((detect(raw_data))['encoding']).lower()
-        with open(configDir, 'r', encoding = encoding_type) as file:
-            configString = file.readline().strip()
-        log.info("Using config '%s'" %(configString))
-
-        return configString
