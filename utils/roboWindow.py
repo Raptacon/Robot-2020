@@ -12,7 +12,7 @@ import os
 from os import system as cmd
 from os import popen as scmd
 from re import search
-#from . import reworkedConfig
+#from utils.reworkedConfig import FileHandler
 
 #TODO: Add instructions on how to use.
 
@@ -21,14 +21,14 @@ class RoboWindow:
     def __init__(self):
 
         self.root = Tk()
-        #config_contents = FileHandler.load('window.json')
+        #config_contents = FileHandler.load(FileHandler.file_directory('window.json'))
         self.use_recent = True # TODO: Put into config file
         Frame(self.root).winfo_toplevel().title("RoboWindow - Setup")
         self.root.resizable(0,0)
         self._create_labels()
         self._create_runtypes()
         self._create_configs()
-        self._create_buttons()
+        self._create_basic_buttons()
 
     def _create_labels(self):
 
@@ -42,7 +42,7 @@ class RoboWindow:
         config_label.place(x = 20, y = 140)
 
 
-        most_recent_version, current_version, git_type = self._manage_versions()
+        most_recent_version, current_version, git_type = self._get_version_info()
         recent = f"Most recent version: {most_recent_version}"
         current = f"Currently on {git_type}: {current_version}"
 
@@ -68,21 +68,9 @@ class RoboWindow:
             set_version.config(width = 30)
             set_version.place(x = 20, y = 300)
 
-            # info_text = ("1) Run [git status] in the commandline\n"
-            #              "2) If anything is changed, do the following. Otherwise, skip to step 3.\n"
-            #              "          a) Run [git stage .]\n"
-            #              '          b) Run [git commit -m "temp-changes"]\n'
-            #              "          c) Run [git push]\n"
-            #              "3) Run [git checkout <most_recent_version_here>]\n"
-            #              "4) Click 'Continue'"
-            #         )
-
-            # information = Message(self.root, text = info_text, width = 400, font = (None, 11))
-            # information.place(x = 20, y = 285)
-
     def _change_versions(self):
 
-        _ver, _, _ = self._manage_versions()
+        _ver, _, _ = self._get_version_info()
 
         cmd('git stage .')
         cmd('git commit -m "Automatic commit made by the RoboWindow"')
@@ -113,15 +101,15 @@ class RoboWindow:
         dropdown.config(width = 15)
         dropdown.place(x = 200, y = 140)
 
-    def _create_buttons(self):
+    def _create_basic_buttons(self):
 
         cancel = Button(self.root, text = "Cancel", command = self.root.destroy)
         cancel.config(width = 10)
         cancel.place(x = 300, y = 510)
 
-        continue_ = Button(self.root, text = "Continue", command = self._continue)
-        continue_.config(width = 10)
-        continue_.place(x = 400, y = 510)
+        continue_button = Button(self.root, text = "Continue", command = self._continue)
+        continue_button.config(width = 10)
+        continue_button.place(x = 400, y = 510)
 
     def _continue(self):
         dropdown_input = [
@@ -138,12 +126,11 @@ class RoboWindow:
 
             return
 
-        recent_version, current_version, _ = self._manage_versions()
+        recent_version, current_version, _ = self._get_version_info()
 
         if recent_version != current_version and self.use_recent and action != 'Show Log':
             if not (messagebox.askyesnocancel(title = "WARNING",
-                                   message =
-                                   "You are not running the most recent version. Are you sure you want to continue?"
+                                              message = "You are not running the most recent version. Are you sure you want to continue?"
                                              )):
                 return
 
@@ -164,7 +151,7 @@ class RoboWindow:
             #self.root.destroy()
             #cmd(r'..\_system_utils\view_log.bat')
 
-    def _manage_versions(self):
+    def _get_version_info(self):
         tag_branch = scmd('git rev-list --tags --max-count=1').readline().strip()
         most_recent_version = scmd('git tag --contains ' + str(tag_branch)).readline().strip()
 
