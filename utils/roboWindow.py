@@ -59,22 +59,37 @@ class RoboWindow:
 
             warning_info = Label(
                             self.root, 
-                            text = "Please use the most recent version, following the steps below.",
+                            text = "Please use the most recent version by clicking below.",
                             font = (None, 10)
                             )
             warning_info.place(x = 91, y = 260)
 
-            info_text = ("1) Run [git status] in the commandline\n"
-                         "2) If anything is changed, do the following. Otherwise, skip to step 3.\n"
-                         "          a) Run [git stage .]\n"
-                         '          b) Run [git commit -m "temp-changes"]\n'
-                         "          c) Run [git push]\n"
-                         "3) Run [git checkout <most_recent_version_here>]\n"
-                         "4) Click 'Continue'"
-                    )
+            set_version = Button(self.root, text = "Goto Current Version", command = self._change_versions)
+            set_version.config(width = 30)
+            set_version.place(x = 20, y = 300)
 
-            information = Message(self.root, text = info_text, width = 400, font = (None, 11))
-            information.place(x = 20, y = 285)
+            # info_text = ("1) Run [git status] in the commandline\n"
+            #              "2) If anything is changed, do the following. Otherwise, skip to step 3.\n"
+            #              "          a) Run [git stage .]\n"
+            #              '          b) Run [git commit -m "temp-changes"]\n'
+            #              "          c) Run [git push]\n"
+            #              "3) Run [git checkout <most_recent_version_here>]\n"
+            #              "4) Click 'Continue'"
+            #         )
+
+            # information = Message(self.root, text = info_text, width = 400, font = (None, 11))
+            # information.place(x = 20, y = 285)
+
+    def _change_versions(self):
+
+        _ver, _, _ = self._manage_versions()
+
+        cmd('git stage .')
+        cmd('git commit -m "Automatic commit made by the RoboWindow"')
+        cmd('git push')
+        cmd('git checkout ' + _ver)
+
+        messagebox.showinfo(title = "Success", message = f"Version change successful. Now on version: {_ver}")
 
     def _create_runtypes(self):
         OPTIONS = ["Simulation", "Deploy", "Show Log"]
