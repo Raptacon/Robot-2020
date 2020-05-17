@@ -6,6 +6,7 @@ from tkinter import (
     Message,
     OptionMenu,
     Frame,
+    Toplevel,
     messagebox
 )
 
@@ -84,11 +85,16 @@ class RoboWindow:
 
         _ver, _, _ = self._manage_versions()
 
+        top = Toplevel()
+        top.title("Loading...")
+        Message(top, text = "Retrieving version...")
+
         cmd('git stage .')
         cmd('git commit -m "Automatic commit made by the RoboWindow"')
         cmd('git push')
         cmd('git checkout ' + _ver)
 
+        top.after(0, top.destroy)
         messagebox.showinfo(title = "Success", message = f"Version change successful. Now on version: {_ver}")
 
     def _create_runtypes(self):
@@ -156,6 +162,8 @@ class RoboWindow:
             # TODO: Change when robot-logs are implemented
             self.root.destroy()
             raise NotImplementedError("Robot logs live in a different branch currently.")
+            #self.root.destroy()
+            #cmd(r'..\_system_utils\view_log.bat')
 
     def _manage_versions(self):
         tag_branch = scmd('git rev-list --tags --max-count=1').readline().strip()
