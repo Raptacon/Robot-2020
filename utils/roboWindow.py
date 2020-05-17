@@ -6,7 +6,6 @@ from tkinter import (
     Message,
     OptionMenu,
     Frame,
-    Toplevel,
     messagebox
 )
 
@@ -85,16 +84,15 @@ class RoboWindow:
 
         _ver, _, _ = self._manage_versions()
 
-        top = Toplevel()
-        top.title("Loading...")
-        Message(top, text = "Retrieving version...").place(x = 20, y = 325)
+        loading = Label(self.root, text = "Retrieving version... please wait.")
+        loading.place(x = 20, y = 350)
 
         cmd('git stage .')
         cmd('git commit -m "Automatic commit made by the RoboWindow"')
         cmd('git push')
         cmd('git checkout ' + _ver)
 
-        top.after(20000, top.destroy)
+        loading.pack_forget()
         messagebox.showinfo(title = "Success", message = f"Version change successful. Now on version: {_ver}")
 
     def _create_runtypes(self):
