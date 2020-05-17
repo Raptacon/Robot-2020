@@ -88,14 +88,14 @@ class RoboWindow:
         loading = Label(self.root, text = "Retrieving version... please wait.")
         loading.place(x = 20, y = 350)
 
-        s(.5)
+        #s(.5)
 
         cmd('git stage .')
         cmd('git commit -m "Automatic commit made by the RoboWindow"')
         cmd('git push')
         cmd('git checkout ' + _ver)
 
-        loading.place_forget()
+        #loading.place_forget()
         messagebox.showinfo(title = "Success", message = f"Version change successful. Now on version: {_ver}")
 
     def _create_runtypes(self):
