@@ -129,7 +129,10 @@ class RoboWindow:
             self.configs_var.get()
         ]
 
-        if 'Select...' in dropdown_input:
+        action = self.runtype_var.get()
+        config = self.configs_var.get()
+
+        if 'Select...' in dropdown_input and action != 'Show Log':
             messagebox.showerror(title = "Invalid Choice",
                                  message = "Please select an option for every dropdown menu.")
 
@@ -143,9 +146,6 @@ class RoboWindow:
                                    "You are not running the most recent version. Are you sure you want to continue?"
                                              )):
                 return
-
-        action = self.runtype_var.get()
-        config = self.configs_var.get()
 
         command = f"echo {config} > RobotConfig"
 
@@ -186,7 +186,7 @@ class RoboWindow:
 
         robowindow = RoboWindow()
         robowindow.root.geometry("500x550")
-        robowindow.root.iconbitmap('')
+        # robowindow.root.iconbitmap(r'C:\Users\Chris\Documents\raptaconicon.ico')
         robowindow.root.mainloop()
 
 if __name__ == '__main__':
