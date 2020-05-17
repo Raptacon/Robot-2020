@@ -91,6 +91,12 @@ class RoboWindow:
 
         messagebox.showinfo(title = "Success", message = f"Version change successful. Now on version: {_ver}")
 
+        self.root.destroy()
+        robowindow = RoboWindow()
+        robowindow.root.geometry("500x550")
+        robowindow.root.iconbitmap('')
+        robowindow.root.mainloop()
+
     def _create_runtypes(self):
         OPTIONS = ["Simulation", "Deploy", "Show Log"]
         self.runtype_var = StringVar(self.root)
