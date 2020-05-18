@@ -124,8 +124,7 @@ class ConfigurationManager(FileHandler):
         on the robot.
         """
 
-        home = str(Path.home()) + os.path.sep
-        configDir = home + 'RobotConfig'
+        configDir = str(Path.home()) + os.path.sep + 'RobotConfig'
 
         try:
             with open(configDir, 'rb') as file:
