@@ -84,8 +84,7 @@ class FileHandler:
 
 class ConfigurationManager(FileHandler):
     """
-    Class to read a config file and parse its contents into a usable format to generate robot objects from
-    factories.
+    Class to read a config file and generate robot objects from factories.
 
     :param robot: Robot to set dicionary attributes to.
 
@@ -94,21 +93,18 @@ class ConfigurationManager(FileHandler):
 
     def __init__(self, robot, config: Optional[str] = None):
 
-        setup_data = self.load('setup.json')
-        default_config = setup_data['default']
-        factory_data = self.load('factories.json')
+        default_config = (self.load('setup.json'))['default']
 
         if config:
+            log.info("Using config '%s'" %(config))
             loadedConfig = self.load(config)
         else:
             log.warning("No config requested. Using default config: %s" %(default_config))
             loadedConfig = self.load(default_config)
 
-        if len(loadedConfig) != 2:
-            raise KeyError("Config should only have 2 keys, found %s" % len(loadedConfig))
-
         self.compatibility = loadedConfig['compatibility']
         subsystems = loadedConfig['subsystems']
+        factory_data = self.load('factories.json')
 
         log.info(f"Creating {len(subsystems)} subsystems")
 
@@ -138,7 +134,6 @@ class ConfigurationManager(FileHandler):
             encoding_type = ((detect(raw_data))['encoding']).lower()
             with open(configDir, 'r', encoding = encoding_type) as file:
                 configString = file.readline().strip()
-            log.info("Using config '%s'" %(configString))
         except:
             log.warning("Config file 'RobotConfig' could not be found; unable to load. This may be intentional.")
             configString = None
