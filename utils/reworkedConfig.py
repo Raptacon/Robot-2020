@@ -5,7 +5,6 @@ import logging as log
 from chardet import detect
 from pathlib import Path
 from importlib import import_module
-from typing import Optional
 
 class FileHandler:
     """
