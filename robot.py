@@ -154,9 +154,9 @@ class MyRobot(MagicRobot):
 
 if __name__ == '__main__':
 
+    # NOTE this will be removed if/when the RoboWindow is implemented
     from sys import argv as args
     from os import system as cmd
-    import os
 
     if 'log' in args and len(args) == 2:
         cmd(r'.\_system_utils\view_log.bat')
