@@ -84,16 +84,35 @@ class FileHandler:
 
 class ConfigurationManager(FileHandler):
     """
-    Class to read a config file and generate robot objects from factories.
+    Read a config file and generate robot objects from factories.
+    To manually set a config, run `echo <config name> > RobotConfig` on the robot.
+    Default is listed in `setup.json`.
 
     :param robot: Robot to set dicionary attributes to.
-
-    :param config: If desired, specify a config to use. Default is listed in `setup.json`
     """
 
-    def __init__(self, robot, config: Optional[str] = None):
+    def __init__(self, robot):
 
         default_config = (self.load('setup.json'))['default']
+
+        def findConfig():
+
+            configDir = str(Path.home()) + os.path.sep + 'RobotConfig'
+
+            try:
+                with open(configDir, 'rb') as file:
+                    raw_data = file.readline().strip()
+                log.info("Config found in %s" %(configDir))
+                encoding_type = ((detect(raw_data))['encoding']).lower()
+                with open(configDir, 'r', encoding = encoding_type) as file:
+                    configString = file.readline().strip()
+            except:
+                log.warning(f"{configDir} could not be found.")
+                configString = None
+            finally:
+                return configString
+
+        config = findConfig()
 
         if config:
             log.info("Using config '%s'" %(config))
@@ -108,7 +127,7 @@ class ConfigurationManager(FileHandler):
 
         log.info(f"Creating {len(subsystems)} subsystems")
 
-        # Loop through subsystems and generate factory objects
+        # Generate robot objects from factoriesS
         for subsystem_name, subsystem_data in subsystems.items():
             for group_name, group_info in subsystem_data.items():
                 factory = getattr(import_module(factory_data[group_name]['file']), factory_data[group_name]['func'])
@@ -116,25 +135,3 @@ class ConfigurationManager(FileHandler):
                 groupName_subsystemName = '_'.join([group_name, subsystem_name])
                 setattr(robot, groupName_subsystemName, items)
                 log.info(f"Created {len(items)} item(s) into '{groupName_subsystemName}'")
-
-    @staticmethod
-    def findConfig() -> str:
-        """
-        Sets the config to be used on the robot. To manually set a config, run `echo <config name> > RobotConfig`
-        on the robot.
-        """
-
-        configDir = str(Path.home()) + os.path.sep + 'RobotConfig'
-
-        try:
-            with open(configDir, 'rb') as file:
-                raw_data = file.readline().strip()
-            log.info("Config found in %s" %(configDir))
-            encoding_type = ((detect(raw_data))['encoding']).lower()
-            with open(configDir, 'r', encoding = encoding_type) as file:
-                configString = file.readline().strip()
-        except:
-            log.warning("Config file 'RobotConfig' could not be found; unable to load. This may be intentional.")
-            configString = None
-        finally:
-            return configString
