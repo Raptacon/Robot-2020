@@ -15,7 +15,7 @@ def testComponentCompatibility(robot, component_name, component_type):
         robot.logger.warn("'%s' has no compatString set. Assuming compatible.", component_name)
         return
 
-    compCompat = [component_type.compatString]
+    compCompat = component_type.compatString
     compatibility = [robot.mapper.compatibility]
 
     if bool(set(compCompat).intersection(compatibility)) or 'all' in compCompat or 'all' in compatibility:
