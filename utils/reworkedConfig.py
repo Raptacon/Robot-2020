@@ -44,7 +44,7 @@ class ConfigurationManager(FileHandler):
         subsystems = loadedConfig['subsystems']
         factory_data = self.load('factories.json')
 
-        log.info(f"Creating {len(subsystems)} subsystems")
+        log.info(f"Creating {len(subsystems)} subsystem(s)")
 
         # Generate robot objects from factories
         for subsystem_name, subsystem_data in subsystems.items():
