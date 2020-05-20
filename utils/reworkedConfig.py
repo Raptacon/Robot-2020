@@ -16,10 +16,9 @@ class ConfigurationManager(FileHandler):
 
     def __init__(self, robot):
 
-        default_config = (self.load('setup.json'))['default']
-
         def findConfig():
 
+            default_config = (self.load('setup.json'))['default']
             configDir = str(Path.home()) + os.path.sep + 'RobotConfig'
 
             try:
@@ -32,8 +31,7 @@ class ConfigurationManager(FileHandler):
             except FileNotFoundError:
                 log.error(f"{configDir} could not be found.")
                 configString = default_config
-            finally:
-                return configString
+            return configString
 
         config = findConfig()
 
@@ -41,12 +39,11 @@ class ConfigurationManager(FileHandler):
         loadedConfig = self.load(config)
 
         self.compatibility = loadedConfig['compatibility']
+
+        # Generate objects from factories
         subsystems = loadedConfig['subsystems']
         factory_data = self.load('factories.json')
-
         log.info(f"Creating {len(subsystems)} subsystem(s)")
-
-        # Generate robot objects from factories
         for subsystem_name, subsystem_data in subsystems.items():
             for group_name, group_info in subsystem_data.items():
                 factory = getattr(import_module(factory_data[group_name]['file']), factory_data[group_name]['func'])
