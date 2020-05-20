@@ -1,6 +1,7 @@
 import json
 import yaml
 import os
+from chardet import detect
 
 class FileHandler:
     """
@@ -76,3 +77,21 @@ class FileHandler:
                 filtered_files.append(file)
 
         return filtered_files
+
+class SafeFileReader:
+    """
+    Read a file with the proper encoding.
+    """
+
+    def __init__(self, fileDir):
+        self.dir = fileDir
+
+    def __enter__(self):
+        with open(self.dir, 'rb') as rf:
+            raw_data = rf.readline().strip()
+        encoding_type = ((detect(raw_data))['encoding']).lower()
+        self.file = open(self.dir, 'r', encoding = encoding_type)
+        return self.file
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        self.file.close()
