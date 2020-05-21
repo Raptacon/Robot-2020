@@ -2,7 +2,7 @@ import os
 import logging as log
 from pathlib import Path
 from importlib import import_module
-from utils.filehandler import FileHandler, SafeFileReader
+from utils.filehandler import FileHandler
 
 class ConfigurationManager(FileHandler):
     """
@@ -21,7 +21,7 @@ class ConfigurationManager(FileHandler):
             configDir = str(Path.home()) + os.path.sep + 'RobotConfig'
 
             try:
-                with SafeFileReader(configDir) as file:
+                with self.read_file(configDir) as file:
                     configString = file.readline().strip()
                 log.info(f"Config found in {configDir}")
             except FileNotFoundError:
