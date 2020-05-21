@@ -1,6 +1,7 @@
 import os
 import logging as log
 from pathlib import Path
+from chardet import detect
 from importlib import import_module
 from utils.filehandler import FileHandler
 
@@ -21,9 +22,12 @@ class ConfigurationManager(FileHandler):
             configDir = str(Path.home()) + os.path.sep + 'RobotConfig'
 
             try:
-                with self.read_file(configDir) as file:
-                    configString = file.readline().strip()
+                with open(configDir, 'rb') as rf:
+                    raw_data = rf.readline().strip()
                 log.info(f"Config found in {configDir}")
+                encoding_type = ((detect(raw_data))['encoding']).lower()
+                with open(configDir, 'r', encoding = encoding_type) as file:
+                    configString = file.readline().strip()
             except FileNotFoundError:
                 log.error(f"{configDir} could not be found.")
                 configString = default_config
