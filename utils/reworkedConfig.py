@@ -39,10 +39,10 @@ class ConfigurationManager(FileHandler):
         loadedConfig = self.load(config)
 
         self.compatibility = loadedConfig['compatibility']
-
-        # Generate objects from factories
         subsystems = loadedConfig['subsystems']
         factory_data = self.load('factories.json')
+
+        # Generate objects from factories
         log.info(f"Creating {len(subsystems)} subsystem(s)")
         for subsystem_name, subsystem_data in subsystems.items():
             for group_name, group_info in subsystem_data.items():
