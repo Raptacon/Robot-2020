@@ -1,7 +1,6 @@
 import json
 import yaml
 import os
-from chardet import detect
 
 class FileHandler:
     """
