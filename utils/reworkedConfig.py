@@ -5,11 +5,12 @@ from chardet import detect
 from importlib import import_module
 from utils.filehandler import FileHandler
 
+
 class ConfigurationManager(FileHandler):
     """
     Read a config file and generate robot objects from factories.
-    To manually set a config, run `echo <config name> > RobotConfig` on the robot.
-    Default is listed in `setup.json`.
+    To manually set a config, run `echo {config name} > RobotConfig`
+    on the robot. Default is listed in `setup.json`.
 
     :param robot: Robot to set dicionary attributes to.
     """
@@ -40,16 +41,21 @@ class ConfigurationManager(FileHandler):
 
         self.compatibility = loadedConfig['compatibility']
 
-        # Generate objects from factories
+        # Generate objects from factories and set them to `robot`
         subsystems = loadedConfig['subsystems']
         factory_data = self.load('factories.json')
         log.info(f"Creating {len(subsystems)} subsystem(s)")
+        total_items = 0
         for subsystem_name, subsystem_data in subsystems.items():
             for group_name, group_info in subsystem_data.items():
-                _file = import_module(factory_data[group_name]['file'])
-                _func = factory_data[group_name]['func']
-                factory = getattr(_file, _func)
-                items = {key:factory(descp) for key, descp in group_info.items()}
+                file = import_module(factory_data[group_name]['file'])
+                func = factory_data[group_name]['func']
+                factory = getattr(file, func)
+                items = {key: factory(descp) for key, descp in group_info.items()}
                 groupName_subsystemName = '_'.join([group_name, subsystem_name])
                 setattr(robot, groupName_subsystemName, items)
-                log.info(f"Created {len(items)} item(s) into '{groupName_subsystemName}'")
+                log.info(
+                    f"Created {len(items)} item(s) into '{groupName_subsystemName}'"
+                )
+                total_items += len(items)
+        log.info(f"Created {total_items} total item(s).")
