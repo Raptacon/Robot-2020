@@ -5,6 +5,7 @@ from components.feederMap import FeederMap, Type
 from magicbot import StateMachine, state, timed_state, tunable, feedback
 import logging
 
+
 class LoaderLogic(StateMachine):
     """StateMachine-based loader. Has both automatic and manual modes."""
 
@@ -58,7 +59,7 @@ class LoaderLogic(StateMachine):
         """Trigger-based manual loader."""
         self.feeder.run(Type.kLoader)
 
-    @state(first = True)
+    @state(first=True)
     def checkForBall(self):
         """Checks for ball to enter the loader, runs the loader if entry sensor is broken."""
         self.shooterMotors.stopLoader()
@@ -77,7 +78,7 @@ class LoaderLogic(StateMachine):
         if self.sensors.loadingSensor(State.kNotTripped):
             self.next_state('stopBall')
 
-    @timed_state(duration = loaderStoppingDelay, next_state = 'checkForBall')
+    @timed_state(duration=loaderStoppingDelay, next_state='checkForBall')
     def stopBall(self):
         """Stops ball after a short delay."""
         pass

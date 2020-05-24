@@ -1,12 +1,15 @@
 from enum import IntEnum
 
+
 class SensorKey(IntEnum):
     kLoadingSensor = 0
     kShootingSensor = 4
 
+
 class State:
     kTripped = False
     kNotTripped = True
+
 
 class Sensors:
 

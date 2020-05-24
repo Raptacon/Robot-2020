@@ -6,6 +6,7 @@ from enum import Flag, auto
 import inspect
 import traceback
 
+
 class ButtonEvent(Flag):
     """
     Supported button actions
@@ -15,6 +16,7 @@ class ButtonEvent(Flag):
     kWhilePressed = auto()
     kWhileReleased = auto()
     kNone = 0
+
 
 class ButtonManager(object):
     """
@@ -28,32 +30,32 @@ class ButtonManager(object):
         """
         Sets up Button manager.
         """
-        #update to change logging level
-        #self.logger.setLevel(logging.DEBUG)
-        
+        # update to change logging level
+        # self.logger.setLevel(logging.DEBUG)
+
         self.entrys = {}
         self.enabledTypes = {}
 
-    def registerButtonEvent(self, hidDevice: wpilib.interfaces.GenericHID, buttonId: int, eventTypes: ButtonEvent, callback : callable):
+    def registerButtonEvent(self, hidDevice: wpilib.interfaces.GenericHID, buttonId: int, eventTypes: ButtonEvent, callback: callable):
         """
         Registered a button on a HID for eventType. When even type is triggered, callback is invoked.
         Callback must take form of callable(**kwargs). See exampleCallback. It may be of type self.callable
         where self is a class instance
         """
         assert isinstance(hidDevice, wpilib.interfaces.GenericHID), f"{str(hidDevice)} is not a HID"
-        #assert buttonId > 0 and buttonId < 16, f"Invalid button ID {str(buttonId)}"
+        # assert buttonId > 0 and buttonId < 16, f"Invalid button ID {str(buttonId)}"
         assert isinstance(eventTypes, ButtonEvent), f"{eventTypes} is not an eventTypes"
         assert callable(callback), f"{str(callback)} must be callable"
-        
+
         entry = self.__createCallbackEntry(hidDevice, buttonId, eventTypes, callback)
         self.logger.info(f"Registering event [{self.__entryStr(entry)}]")
 
-    def getregisteredEvent(self, hidDevice: wpilib.interfaces.GenericHID , buttonId: int, callback: callable):
+    def getregisteredEvent(self, hidDevice: wpilib.interfaces.GenericHID, buttonId: int, callback: callable):
         """
         Finds matching callback for a given hidDevice, buttonId, and callback
         Can be used to get call counts
         """
-        #TODO test and cleanup
+        # TODO test and cleanup
         try:
             entrys = self.entrys[hidDevice][buttonId]
             for entry in entrys:
@@ -63,7 +65,7 @@ class ButtonManager(object):
             print(e)
         return None
 
-    #### Everything below this is private
+    # Everything below this is private
 
     def __createCallbackEntry(self, hidDevice, buttonId, eventTypes, callback):
         """
@@ -75,7 +77,6 @@ class ButtonManager(object):
         if buttonId not in self.entrys[hidDevice]:
             self.entrys[hidDevice][buttonId] = []
             self.enabledTypes[hidDevice][buttonId] = ButtonEvent.kNone
-        
 
         entry = {}
         entry["hidDevice"] = hidDevice
@@ -83,7 +84,7 @@ class ButtonManager(object):
         entry["eventTypes"] = eventTypes
         entry["callback"] = callback
         entry["triggerCount"] = {}
-        #TODO validate entry does not exist
+        # TODO validate entry does not exist
         self.entrys[hidDevice][buttonId].append(entry)
         self.enabledTypes[hidDevice][buttonId] |= eventTypes
         return entry
@@ -93,7 +94,7 @@ class ButtonManager(object):
         Private: Returns string rep for entry
         """
         retVal = f'{entry["hidDevice"].getName()}:{str(entry["buttonId"])} for {str(entry["eventTypes"])}'
-        for key,value in entry["triggerCount"]:
+        for key, value in entry["triggerCount"]:
             retVal = retVal + f"\n[{str(key)}: {str(value)}]"
 
         return retVal
@@ -103,30 +104,30 @@ class ButtonManager(object):
         Private: Process all entrys when action occurs
         """
         for entry in entrys:
-            #Check if entry is valid for action
+            # Check if entry is valid for action
             if not (action & entry["eventTypes"]):
-                #if not enabled for this action, do not process
+                # if not enabled for this action, do not process
                 continue
-            
-            #track metrics
-            if not action in entry["triggerCount"]:
+
+            # track metrics
+            if action not in entry["triggerCount"]:
                 entry["triggerCount"][action] = 0
-            entry["triggerCount"][action] +=1
+            entry["triggerCount"][action] += 1
             callback = entry["callback"]
             args, varargs, varkw, defaults = inspect.getargspec(callback)
             try:
-                #Create a complete dictonary of possible values
+                # Create a complete dictonary of possible values
                 updatedEntry = entry.copy()
                 updatedEntry["action"] = action
-                #Output args list
+                # Output args list
                 outputArgs = {}
                 for item in updatedEntry:
                     if item in args:
                         outputArgs[item] = updatedEntry[item]
-                #if varkw args is used, pass in all values
+                # if varkw args is used, pass in all values
                 if varkw:
                     outputArgs.update(updatedEntry)
-                #outputArgs is now filtered to only be the args given
+                # outputArgs is now filtered to only be the args given
                 callback(**outputArgs)
             except Exception as e:
                 self.logger.error(f"{str(callback)} crashed. E is {str(e)}")
@@ -138,7 +139,7 @@ class ButtonManager(object):
         """
         if not enabledActions & ButtonEvent.kOnPress:
             return
-        #note that when getRawButtonPressed is called it resets the value
+        # note that when getRawButtonPressed is called it resets the value
         wasButtonPressed = hidDevice.getRawButtonPressed(button)
         if wasButtonPressed:
             self.logger.debug("__runOnPressed: %s:%s", hidDevice.getName, str(button))
@@ -154,7 +155,7 @@ class ButtonManager(object):
         if wasButtonReleased:
             self.logger.debug("__runOnReleased: %s:%s", hidDevice.getName, str(button))
             self.__processEvent(entrys, ButtonEvent.kOnRelease)
-        
+
     def __runWhilePressed(self, hidDevice: wpilib.interfaces.GenericHID, button, enabledActions, entrys):
         """
         Private Processes event type
@@ -165,6 +166,7 @@ class ButtonManager(object):
         if isButtonPressed:
             self.logger.debug("__runWhilePressed: %s:%s", hidDevice.getName, str(button))
             self.__processEvent(entrys, ButtonEvent.kWhilePressed)
+
     def __runWhileReleased(self, hidDevice: wpilib.interfaces.GenericHID, button, enabledActions, entrys):
         """
         Private Processes event type
@@ -185,8 +187,8 @@ class ButtonManager(object):
                 entrys = self.entrys[hidDevice][button]
 
                 enabledActions = self.enabledTypes[hidDevice][button]
-                
-                #check each event type
+
+                # check each event type
                 self.__runOnPressed(hidDevice, button, enabledActions, entrys)
                 self.__runOnReleased(hidDevice, button, enabledActions, entrys)
                 self.__runWhilePressed(hidDevice, button, enabledActions, entrys)

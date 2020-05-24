@@ -11,7 +11,8 @@ def exampleCallback(**kwargs):
     eventCount = Number of times even occured
     TODO: Add timers
     """
-    print(kwargs["action"],":",kwargs["hidDevice"].getName(), ":Sample callback", kwargs)
+    print(kwargs["action"] + ":", kwargs["hidDevice"].getName(), ":Sample callback", kwargs)
+
 
 def exampleCallback1(action, **kwargs):
     """
@@ -23,7 +24,7 @@ def exampleCallback1(action, **kwargs):
     eventCount = Number of times even occured
     TODO: Add timers
     """
-    print(action,":",kwargs["hidDevice"].getName(), ":Sample callback", kwargs)
+    print(action + ":", kwargs["hidDevice"].getName(), ":Sample callback", kwargs)
 
 
 def simpleCallback():
@@ -31,6 +32,7 @@ def simpleCallback():
     Simple callback that ignored kwargs.
     """
     print("Simple")
+
 
 def crashCallback():
     """

@@ -5,6 +5,7 @@ from components.feederMap import FeederMap, Type
 from magicbot import StateMachine, state, timed_state, tunable, feedback
 import logging
 
+
 class ShooterLogic(StateMachine):
     """StateMachine-based shooter. Has both manual and automatic modes."""
 
@@ -62,7 +63,7 @@ class ShooterLogic(StateMachine):
         if not self.isSetup:
             return False
         atSpeed = bool(self.shooterMotors.shooterMotor.getEncoder().getVelocity() >= shootSpeed)
-        rumble  = 0
+        rumble = 0
         if atSpeed and not self.isAutonomous:
             rumble = .3
         self.xboxMap.mech.setRumble(self.xboxMap.mech.RumbleType.kLeftRumble, rumble)
@@ -83,7 +84,7 @@ class ShooterLogic(StateMachine):
     def alignToTarget(self):
         """Aligns turret and/or drive train to the goal."""
         self.next_state('runShooter')
-        #NOTE: This is a temporary placeholder until we can get limelight alignment successfully implemented.
+        # NOTE: This is a temporary placeholder until we can get limelight alignment successfully implemented.
         #      Useful logic would include: determining if the limelight can see the target before attempting
         #      alignment, especially for autonomous.
 
@@ -102,7 +103,7 @@ class ShooterLogic(StateMachine):
             if self.isShooterUpToSpeed():
                 self.next_state('autonomousShoot')
 
-    @timed_state(duration = shooterStoppingDelay, next_state = 'finishShooting')
+    @timed_state(duration=shooterStoppingDelay, next_state='finishShooting')
     def autonomousShoot(self):
         """Shoot balls when shooter is up to speed. Strictly for autonomous use."""
         self.shooterMotors.runLoader(self.shootingLoaderSpeed, Direction.kForwards)
@@ -114,7 +115,7 @@ class ShooterLogic(StateMachine):
         self.shooterMotors.stopShooter()
         self.next_state('idling')
 
-    @state(first = True)
+    @state(first=True)
     def idling(self):
         """First state. Does nothing here. StateMachine returns to this state when not shooting."""
         pass

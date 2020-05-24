@@ -25,6 +25,7 @@ from utils.componentUtils import createComponents
 from utils.reworkedConfig import ConfigurationManager
 import utils.math
 
+
 class MyRobot(MagicRobot):
     """
     Base robot class of Magic Bot Type
@@ -104,6 +105,7 @@ class MyRobot(MagicRobot):
         Called during test mode alot
         """
         pass
+
 
 if __name__ == '__main__':
     wpilib.run(MyRobot)

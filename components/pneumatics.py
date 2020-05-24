@@ -1,15 +1,16 @@
 from wpilib import DoubleSolenoid
-dsPos = DoubleSolenoid.Value
 import logging
+
+dsPos = DoubleSolenoid.Value
+
 
 class Pneumatics:
 
     compatString = ["doof"]
-    
+
     compressors_pneumatics: dict
     solenoids_pneumatics: dict
     logger: logging
-    
 
     def setup(self):
         """
@@ -18,7 +19,7 @@ class Pneumatics:
         """
         self.loaderSolenoid = self.solenoids_pneumatics["loader"]
         self.newLoaderValue = None
-        #turn on all compressors
+        # turn on all compressors
         self.logger.info("Starting compressor %s", self.compressors_pneumatics["compressor"])
         self.compressors_pneumatics["compressor"].start()
 
@@ -27,20 +28,20 @@ class Pneumatics:
         returns the "value" of the solenoid. Boolean, is it on or off?
         """
         return True if self.loaderSolenoid.get() == dsPos.kForward else False
-        
+
     def deployLoader(self):
         """
         Turn the loader to the deployed position
         """
         self.newLoaderValue = dsPos.kForward
-        #self.solenoid.set(wpilib.DoubleSolenoid.Value.kForward) #currently, this is only set to handle one solenoid. I believe that both bots only have one.
+        # self.solenoid.set(wpilib.DoubleSolenoid.Value.kForward) #currently, this is only set to handle one solenoid. I believe that both bots only have one.
 
     def retractLoader(self):
         """
         Turn loader to the retracted position
         """
         self.newLoaderValue = dsPos.kReverse
-        #self.solenoid.set(wpilib.DoubleSolenoid.Value.kReverse) #currently, this is only set to handle one solenoid. I believe that both bots only have one.
+        # self.solenoid.set(wpilib.DoubleSolenoid.Value.kReverse) #currently, this is only set to handle one solenoid. I believe that both bots only have one.
 
     def toggleLoader(self):
         """

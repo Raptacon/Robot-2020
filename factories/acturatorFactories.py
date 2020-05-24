@@ -32,11 +32,10 @@ def solenoidFactory(descp):
         if descp["type"] == "doubleSolenoid":
             solenoid = wpilib.DoubleSolenoid(pcm, descp["channel"]["forward"], descp["channel"]["reverse"])
             if "default" in descp:
-                value = {"kOff":0, "kForward":1, "kReverse":2}[descp["default"]]
+                value = {"kOff": 0, "kForward": 1, "kReverse": 2}[descp["default"]]
                 solenoid.set(wpilib.DoubleSolenoid.Value(value))
             return solenoid
     except Exception as e:
         logging.error("Failed to create solenoid %s. Err %s", descp, e)
-    
+
     return None
-        

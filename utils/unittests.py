@@ -32,6 +32,8 @@ class TestCodeFormat:
         result = style.check_files(self.all_py_files)
         tot = result.total_errors
         msg = "Urgent attention needed." if tot > 25 else "Should be observed and fixed if possible."
+        if tot == 0:
+            msg = "Workspace clean."
         print(f"Total errors/warnings: {tot}. {msg}")
 
 

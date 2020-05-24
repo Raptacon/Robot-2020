@@ -6,6 +6,7 @@ from wpilib import DigitalInput as di
 import logging
 import navx
 
+
 def gyroFactory(descp):
     """
     Creates gyros from a gyro descp
@@ -20,12 +21,13 @@ def gyroFactory(descp):
                 return navx.AHRS.create_spi()
             if method == "i2c":
                 return navx.AHRS.create_i2c()
-            #invalid method, thorw a fit
+            # invalid method, thorw a fit
             raise ValueError(f"{method} method is invalid")
 
     except Exception as e:
-        logging.error("Failed to create gyro for %s. Error %s",descp, e)
+        logging.error("Failed to create gyro for %s. Error %s" % (descp, e))
     return None
+
 
 def breaksensorFactory(descp):
     """

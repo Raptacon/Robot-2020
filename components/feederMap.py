@@ -4,10 +4,12 @@ from enum import Enum, auto
 from magicbot import tunable
 import logging
 
+
 class Type(Enum):
     """Enumeration for the two types within the feeder."""
     kIntake = auto()
     kLoader = auto()
+
 
 class FeederMap:
     """Simple map that holds the logic for running elements of the feeder."""

@@ -1,5 +1,6 @@
 from magicbot import tunable
 
+
 class Elevator:
 
     compatString = ["doof"]
@@ -21,6 +22,6 @@ class Elevator:
 
     def stop(self):
         self.speed = 0
-    
+
     def execute(self):
         self.elevatorMotor.set(self.speed)

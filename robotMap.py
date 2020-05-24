@@ -1,5 +1,6 @@
 from wpilib import XboxController
 
+
 class XboxMap():
     """
     Holds the mappings to TWO Xbox controllers, one for driving, one for mechanisms
@@ -8,14 +9,13 @@ class XboxMap():
         self.drive = Xbox1
         self.mech = Xbox2
         self.controllerInput()
-        #Button mappings
 
     def controllerInput(self):
         """
         Collects all controller values and puts them in an easily readable format
         (Should only be used for axes while buttonManager has no equal for axes)
         """
-        #Drive Controller inputs
+        # Drive Controller inputs
         self.driveLeft = self.drive.getRawAxis(XboxController.Axis.kLeftY)
         self.driveRight = self.drive.getRawAxis(XboxController.Axis.kRightY)
         self.driveLeftHoriz = self.drive.getRawAxis(XboxController.Axis.kLeftX)
@@ -23,7 +23,7 @@ class XboxMap():
         self.driveRightTrig = self.drive.getRawAxis(XboxController.Axis.kRightTrigger)
         self.driveLeftTrig = self.drive.getRawAxis(XboxController.Axis.kLeftTrigger)
         self.driveDPad = self.drive.getPOV()
-        #Mechanism controller inputs
+        # Mechanism controller inputs
         self.mechLeft = self.mech.getRawAxis(XboxController.Axis.kLeftY)
         self.mechRight = self.mech.getRawAxis(XboxController.Axis.kRightY)
         self.mechLeftHoriz = self.mech.getRawAxis(XboxController.Axis.kLeftX)

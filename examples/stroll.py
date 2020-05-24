@@ -2,9 +2,10 @@ from utils.magicbotStrict import StrictStateMachine, state
 import utils.magicbotStrict
 print(dir(utils.magicbotStrict))
 
+
 class Stroll(StrictStateMachine):
     flowerStates = ["smelling"]
-    
+
     @state(first=True, state_transitions=["walking"])
     def smellingFlowers(self, state_tm):
         """This happens first"""
@@ -15,7 +16,7 @@ class Stroll(StrictStateMachine):
             if state_tm < .05:
                 print("Sad day I can't goto Invalid")
                 self.next_state("invalid", force=True)
-        
+
         if state_tm > 2:
             self.next_state("walking")
 
@@ -24,13 +25,11 @@ class Stroll(StrictStateMachine):
         print("Walking...")
         self.next_state("picking")
 
-
     @state
     def picking(self):
         print("Picked a flower")
         self.next_state("smellingFlowers")
         self.next_state("smellingFlowers")
-
 
     @state
     def invalid(self):

@@ -13,7 +13,7 @@ class Winch:
         self.winchMotor = self.motors_winch["winchMotor"]
 
         self.logger.info("Lifter Component Created")
-    
+
     def setRaise(self):
         """
         Sets the motor speed to .5 in order to reel in the winch

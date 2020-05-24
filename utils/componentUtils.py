@@ -6,6 +6,7 @@ import components
 import typing
 from inspect import ismodule, isclass
 
+
 def testComponentCompatibility(robot, component_name, component_type):
     """
     Checks the compatibility of a component.
@@ -43,17 +44,18 @@ def testComponentCompatibility(robot, component_name, component_type):
                 "Component %s has a non-type annotation on %s (%r); lone non-injection variable annotations are disallowed, did you want to assign a static variable?"
                 % (inject_type, n, inject_type)
             )
-        
+
         if not hasattr(robot, n):
-            #Create any injectables we need
+            # Create any injectables we need
             robot.logger.info("Creating variable %s for robot", n)
             setattr(robot, n, inject_type())
 
-    #First pass this will not always work can expand to make better
-    #This will let the component not use the real ones.
+    # First pass this will not always work can expand to make better
+    # This will let the component not use the real ones.
     component_type.execute = components.dummyFunc
     component_type.on_enable = components.dummyFunc
     component_type.setup = components.dummyFunc
+
 
 def createComponents(robot):
     """

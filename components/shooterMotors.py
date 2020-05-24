@@ -1,11 +1,13 @@
 import logging
 from enum import Enum, auto
 
+
 class Direction(Enum):
     """Enum for intake direction."""
     kForwards = auto()
     kBackwards = auto()
     kDisabled = auto()
+
 
 class ShooterMotorCreation:
     """
@@ -41,7 +43,7 @@ class ShooterMotorCreation:
         """
         if direction == Direction.kForwards:  # Forwards
             self.intakeSpeed = iSpeed
-        elif direction == Direction.kBackwards: # Backwards
+        elif direction == Direction.kBackwards:  # Backwards
             self.intakeSpeed = -iSpeed
 
         self.intake = True
@@ -50,9 +52,9 @@ class ShooterMotorCreation:
         """
         Sets the intake to speed lSpeed
         """
-        if direction == Direction.kForwards: # Forwards
+        if direction == Direction.kForwards:  # Forwards
             self.loaderSpeed = lSpeed
-        elif direction == Direction.kBackwards: # Backwards
+        elif direction == Direction.kBackwards:  # Backwards
             self.loaderSpeed = -lSpeed
 
         self.loader = True
@@ -97,15 +99,15 @@ class ShooterMotorCreation:
         """
         if self.intake:
             self.intakeMotor.set(self.intakeSpeed)
-        elif self.intake == False:
+        elif not self.intake:
             self.intakeMotor.set(0)
 
         if self.loader:
             self.loaderMotor.set(self.loaderSpeed)
-        elif self.loader == False:
+        elif not self.loader:
             self.loaderMotor.set(0)
 
         if self.shooter:
             self.shooterMotor.set(self.shooterSpeed)
-        elif self.shooter == False:
+        elif not self.shooter:
             self.shooterMotor.set(0)
