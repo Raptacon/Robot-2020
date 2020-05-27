@@ -1,5 +1,8 @@
-import os
+# Universal utilities
 import logging as log
+
+# Utilities for config files
+import os
 from pathlib import Path
 from chardet import detect
 from importlib import import_module
@@ -15,48 +18,30 @@ from typing import get_type_hints
 from inspect import ismodule, isclass
 
 
-# NOTE: The way controllers are being done here is VERY rudamentry and should
-#       be fixed whenever possible. It isn't urgent, but should be addressed.
+class _Controller:
+    """
+    Create a new controller. This class automatically starts a new thread to
+    update the controller that is being created.
+    """
 
-# TODO: Create a single universal controller class.
-
-class _DriveController:
-
-    def __init__(self, controller):
-
-        self.controller = controller
-
-        def update():
-
-            self.leftY = self.controller.getRawAxis(XboxController.Axis.kLeftY)
-            self.rightY = self.controller.getRawAxis(XboxController.Axis.kRightY)
-            self.leftX = self.controller.getRawAxis(XboxController.Axis.kLeftX)
-            self.rightX = self.controller.getRawAxis(XboxController.Axis.kRightX)
-            self.rightTrigger = self.controller.getRawAxis(XboxController.Axis.kRightTrigger)
-            self.leftTrigger = self.controller.getRawAxis(XboxController.Axis.kLeftTrigger)
-
-        updater = Thread(target=update)
-        updater.start()
-        log.info("Started thread for _DriveController")
-
-class _MechController:
-
-    def __init__(self, controller):
+    def __init__(self, controller: XboxController):
 
         self.controller = controller
 
         def update():
 
-            self.leftY = self.controller.getRawAxis(XboxController.Axis.kLeftY)
-            self.rightY = self.controller.getRawAxis(XboxController.Axis.kRightY)
-            self.leftX = self.controller.getRawAxis(XboxController.Axis.kLeftX)
-            self.rightX = self.controller.getRawAxis(XboxController.Axis.kRightX)
-            self.rightTrigger = self.controller.getRawAxis(XboxController.Axis.kRightTrigger)
-            self.leftTrigger = self.controller.getRawAxis(XboxController.Axis.kLeftTrigger)
+            while True:
+
+                self.leftY = self.controller.getRawAxis(XboxController.Axis.kLeftY)
+                self.rightY = self.controller.getRawAxis(XboxController.Axis.kRightY)
+                self.leftX = self.controller.getRawAxis(XboxController.Axis.kLeftX)
+                self.rightX = self.controller.getRawAxis(XboxController.Axis.kRightX)
+                self.rightTrigger = self.controller.getRawAxis(XboxController.Axis.kRightTrigger)
+                self.leftTrigger = self.controller.getRawAxis(XboxController.Axis.kLeftTrigger)
 
         updater = Thread(target=update)
         updater.start()
-        log.info(f"Started thread for _MechController (controller {self.controller})")
+        log.debug(f"Started thread for controller {self.controller}")
 
 
 class ConfigurationManager(FileHandler):
@@ -132,12 +117,8 @@ class ConfigurationManager(FileHandler):
         controllers = {}
         
         for name, port in controller_info.items():
-
-            if name == 'drive':
-                controllers[name] = _MechController(XboxController(port))
-
-            elif name == 'mech':
-                controllers[name] = _MechController(XboxController(port))
+            controllers[name] = _Controller(XboxController(port))
+            log.info(f"Created '{name}' controller for port {port}")
 
         setattr(robot, 'controllers', controllers)
         log.info("Created controller attribute for robot.")
