@@ -15,6 +15,50 @@ from typing import get_type_hints
 from inspect import ismodule, isclass
 
 
+# NOTE: The way controllers are being done here is VERY rudamentry and should
+#       be fixed whenever possible. It isn't urgent, but should be addressed.
+
+# TODO: Create a single universal controller class.
+
+class _DriveController:
+
+    def __init__(self, controller):
+
+        self.controller = controller
+
+        def update():
+
+            self.leftY = self.controller.getRawAxis(XboxController.Axis.kLeftY)
+            self.rightY = self.controller.getRawAxis(XboxController.Axis.kRightY)
+            self.leftX = self.controller.getRawAxis(XboxController.Axis.kLeftX)
+            self.rightX = self.controller.getRawAxis(XboxController.Axis.kRightX)
+            self.rightTrigger = self.controller.getRawAxis(XboxController.Axis.kRightTrigger)
+            self.leftTrigger = self.controller.getRawAxis(XboxController.Axis.kLeftTrigger)
+
+        updater = Thread(target=update)
+        updater.start()
+        log.info("Started thread for _DriveController")
+
+class _MechController:
+
+    def __init__(self, controller):
+
+        self.controller = controller
+
+        def update():
+
+            self.leftY = self.controller.getRawAxis(XboxController.Axis.kLeftY)
+            self.rightY = self.controller.getRawAxis(XboxController.Axis.kRightY)
+            self.leftX = self.controller.getRawAxis(XboxController.Axis.kLeftX)
+            self.rightX = self.controller.getRawAxis(XboxController.Axis.kRightX)
+            self.rightTrigger = self.controller.getRawAxis(XboxController.Axis.kRightTrigger)
+            self.leftTrigger = self.controller.getRawAxis(XboxController.Axis.kLeftTrigger)
+
+        updater = Thread(target=update)
+        updater.start()
+        log.info(f"Started thread for _MechController (controller {self.controller})")
+
+
 class ConfigurationManager(FileHandler):
     """
     Read a config file and generate robot objects from factories,
@@ -84,16 +128,19 @@ class ConfigurationManager(FileHandler):
         log.info(f"Created {total_items} total item(s).")
 
     def __initializeControllers(self, robot, controller_info):
-        # log.error("Controllers cannot yet be created within the ConfigurationManager.")
-        # return NotImplemented
 
-        # for controller_name, port in controller_info.items():
-        #     pass
+        controllers = {}
+        
+        for name, port in controller_info.items():
 
-        # def update():
-        #     pass
+            if name == 'drive':
+                controllers[name] = _MechController(XboxController(port))
 
-        pass
+            elif name == 'mech':
+                controllers[name] = _MechController(XboxController(port))
+
+        setattr(robot, 'controllers', controllers)
+        log.info("Created controller attribute for robot.")
 
     def __createComponents(self, robot):
         """
