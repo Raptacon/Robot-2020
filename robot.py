@@ -77,6 +77,7 @@ class MyRobot(MagicRobot):
         """
         Must include. Called running teleop.
         """
+
         self.xboxMap.controllerInput()
 
         driveLeft = utils.math.expScale(self.xboxMap.getDriveLeft(), self.sensitivityExponent) * self.driveTrain.driveMotorsMultiplier

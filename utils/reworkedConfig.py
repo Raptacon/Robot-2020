@@ -11,11 +11,14 @@ from utils.filehandler import FileHandler
 # Utilities for creating/updating controllers
 from wpilib import XboxController
 from threading import Thread
+from networktables import NetworkTables
 
 # Utilities for creating components
 import components
 from typing import get_type_hints
 from inspect import ismodule, isclass
+
+NetworkTables.getTable("/robot").getEntry("mode")
 
 
 class _Controller:
@@ -31,13 +34,14 @@ class _Controller:
         def update():
 
             while True:
-
-                self.leftY = self.controller.getRawAxis(XboxController.Axis.kLeftY)
-                self.rightY = self.controller.getRawAxis(XboxController.Axis.kRightY)
-                self.leftX = self.controller.getRawAxis(XboxController.Axis.kLeftX)
-                self.rightX = self.controller.getRawAxis(XboxController.Axis.kRightX)
-                self.rightTrigger = self.controller.getRawAxis(XboxController.Axis.kRightTrigger)
-                self.leftTrigger = self.controller.getRawAxis(XboxController.Axis.kLeftTrigger)
+                # Assert we are in teleop before collecting controller values
+                if NetworkTables.getTable("/robot").getString("mode", "default") == 'teleop':
+                    self.leftY = self.controller.getRawAxis(XboxController.Axis.kLeftY)
+                    self.rightY = self.controller.getRawAxis(XboxController.Axis.kRightY)
+                    self.leftX = self.controller.getRawAxis(XboxController.Axis.kLeftX)
+                    self.rightX = self.controller.getRawAxis(XboxController.Axis.kRightX)
+                    self.rightTrigger = self.controller.getRawAxis(XboxController.Axis.kRightTrigger)
+                    self.leftTrigger = self.controller.getRawAxis(XboxController.Axis.kLeftTrigger)
 
         updater = Thread(target=update)
         updater.start()
