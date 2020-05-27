@@ -20,8 +20,7 @@ from typing import get_type_hints
 from inspect import ismodule, isclass
 
 
-# TODO: Add this delay when updating controllers
-# CONTROLLER_UPDATE_DELAY = 0.020
+CONTROLLER_UPDATE_DELAY = 0.020
 
 
 class _Controller:
@@ -48,15 +47,13 @@ class _Controller:
             """
 
             while True:
-                # sleep(CONTROLLER_UPDATE_DELAY)
-                # Assert we are in teleop before collecting controller values
-                if NetworkTables.getTable("/robot").getString("mode", "default") == 'teleop':
-                    self.leftY = self.controller.getRawAxis(XboxController.Axis.kLeftY)
-                    self.rightY = self.controller.getRawAxis(XboxController.Axis.kRightY)
-                    self.leftX = self.controller.getRawAxis(XboxController.Axis.kLeftX)
-                    self.rightX = self.controller.getRawAxis(XboxController.Axis.kRightX)
-                    self.rightTrigger = self.controller.getRawAxis(XboxController.Axis.kRightTrigger)
-                    self.leftTrigger = self.controller.getRawAxis(XboxController.Axis.kLeftTrigger)
+                sleep(CONTROLLER_UPDATE_DELAY)
+                self.leftY = self.controller.getRawAxis(XboxController.Axis.kLeftY)
+                self.rightY = self.controller.getRawAxis(XboxController.Axis.kRightY)
+                self.leftX = self.controller.getRawAxis(XboxController.Axis.kLeftX)
+                self.rightX = self.controller.getRawAxis(XboxController.Axis.kRightX)
+                self.rightTrigger = self.controller.getRawAxis(XboxController.Axis.kRightTrigger)
+                self.leftTrigger = self.controller.getRawAxis(XboxController.Axis.kLeftTrigger)
 
         updater = Thread(target=update)
         updater.start()
