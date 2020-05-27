@@ -1,3 +1,7 @@
 {
-    "default": "doof.json"
+    "default": "doof.json",
+    "controllers": {
+        "mech": 0,
+        "drive": 1
+    }
 }

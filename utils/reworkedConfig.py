@@ -5,6 +5,10 @@ from chardet import detect
 from importlib import import_module
 from utils.filehandler import FileHandler
 
+# Utilities for creating/updating controllers
+from wpilib import XboxController
+from threading import Thread
+
 # Utilities for creating components
 import components
 from typing import get_type_hints
@@ -13,7 +17,8 @@ from inspect import ismodule, isclass
 
 class ConfigurationManager(FileHandler):
     """
-    Read a config file and generate robot objects from factories.
+    Read a config file and generate robot objects from factories,
+    create controllers, and create magic components.
     To manually set a config, run `echo {config name} > RobotConfig`
     on the robot. Default is listed in `setup.json`.
 
@@ -22,9 +27,12 @@ class ConfigurationManager(FileHandler):
 
     def __init__(self, robot):
 
+        setup = self.load('setup.json')
+        default_config = setup['default']
+        controllers = setup['controllers']
+
         def findConfig():
 
-            default_config = (self.load('setup.json'))['default']
             configDir = str(Path.home()) + os.path.sep + 'RobotConfig'
 
             try:
@@ -44,11 +52,21 @@ class ConfigurationManager(FileHandler):
         log.info(f"Using config '{config}'")
         loadedConfig = self.load(config)
 
+        subsystems = loadedConfig['subsystems']
         self.compatibility = loadedConfig['compatibility']
+        factory_data = self.load('factories.json')
+
+        self.__createFactoryObjects(robot, subsystems, factory_data)
+        self.__initializeControllers(robot, controllers)
+        self.__createComponents(robot)
+
+    def __createFactoryObjects(self, robot, subsystems, factory_data):
+        """
+        Creates dictionary attributes to set to a robot.
+        These are used for variable injection.
+        """
 
         # Generate objects from factories and set them to `robot`
-        subsystems = loadedConfig['subsystems']
-        factory_data = self.load('factories.json')
         log.info(f"Creating {len(subsystems)} subsystem(s)")
         total_items = 0
         for subsystem_name, subsystem_data in subsystems.items():
@@ -65,7 +83,17 @@ class ConfigurationManager(FileHandler):
                 total_items += len(items)
         log.info(f"Created {total_items} total item(s).")
 
-        self.__createComponents(robot)
+    def __initializeControllers(self, robot, controller_info):
+        # log.error("Controllers cannot yet be created within the ConfigurationManager.")
+        # return NotImplemented
+
+        # for controller_name, port in controller_info.items():
+        #     pass
+
+        # def update():
+        #     pass
+
+        pass
 
     def __createComponents(self, robot):
         """
@@ -100,7 +128,7 @@ class ConfigurationManager(FileHandler):
         robot.logger.warn(f"'{component_name}' is not compatible. Disabling")
 
         # NOTE: Because of we are overriding the default settings in MagicBot's
-        #       variable injection by passing components into this method, 
+        #       variable injection by passing components into this method,
         #       we need to manually inject the variables here.
 
         # Iterate over variables with type annotations

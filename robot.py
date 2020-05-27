@@ -21,7 +21,6 @@ from components.feederMap import FeederMap
 
 # Other imports:
 from robotMap import XboxMap
-from utils.componentUtils import createComponents
 from utils.reworkedConfig import ConfigurationManager
 import utils.math
 
