@@ -9,6 +9,7 @@ from importlib import import_module
 from utils.filehandler import FileHandler
 
 # Utilities for creating/updating controllers
+from time import sleep
 from wpilib import XboxController
 from threading import Thread
 from networktables import NetworkTables
@@ -18,7 +19,9 @@ import components
 from typing import get_type_hints
 from inspect import ismodule, isclass
 
-NetworkTables.getTable("/robot").getEntry("mode")
+
+# TODO: Add this delay when updating controllers
+# CONTROLLER_UPDATE_DELAY = 0.020
 
 
 class _Controller:
@@ -31,9 +34,21 @@ class _Controller:
 
         self.controller = controller
 
+        # Instantiate values to prevent crash in `setup` methods
+        self.leftY = 0
+        self.leftX = 0
+        self.rightY = 0
+        self.rightX = 0
+        self.leftTrigger = 0
+        self.rightTrigger = 0
+
         def update():
+            """
+            Update controller values.
+            """
 
             while True:
+                # sleep(CONTROLLER_UPDATE_DELAY)
                 # Assert we are in teleop before collecting controller values
                 if NetworkTables.getTable("/robot").getString("mode", "default") == 'teleop':
                     self.leftY = self.controller.getRawAxis(XboxController.Axis.kLeftY)
