@@ -1,7 +1,6 @@
 import wpilib.drive
 from enum import Enum, auto
 from magicbot import tunable
-from utils.math import expScale as exp
 
 
 class ControlMode(Enum):
@@ -35,7 +34,21 @@ class DriveTrain():
         self.drive = self.controllers['drive']
         self.driveTrain = wpilib.drive.DifferentialDrive(self.leftMotor, self.rightMotor)
         self.logger.info("DriveTrain setup completed")
-        
+
+    def expScale(self, initVal):
+        """
+        Applies an exponent exp to a value initVal and returns value.
+        Will work whether initVal is positive or negative or zero.
+        """
+
+        val = initVal
+        if val > 0:
+            val = val ** exp
+        if val < 0:
+            val *= -1
+            val = val ** exp
+            val *= -1
+        return val
 
     def getLeft(self):
         return self.leftMotor.get()
@@ -79,8 +92,8 @@ class DriveTrain():
 
     def execute(self):
 
-        driveLeft = exp(self.drive.leftY, self.sensitivityExponent) * self.driveMotorsMultiplier
-        driveRight = exp(self.drive.rightY, self.sensitivityExponent) * self.driveMotorsMultiplier
+        driveLeft = self.expScale(self.drive.leftY, self.sensitivityExponent) * self.driveMotorsMultiplier
+        driveRight = self.expScale(self.drive.rightY, self.sensitivityExponent) * self.driveMotorsMultiplier
 
         self.setTank(driveLeft, driveRight)
 
