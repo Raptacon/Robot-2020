@@ -1,7 +1,4 @@
-# Universal utilities
-import logging as log
-
-# Utilities for config files
+# Utilities for loading/using robot configs
 import os
 from pathlib import Path
 from chardet import detect
@@ -48,15 +45,15 @@ class InitializeRobot(FileHandler):
                 encoding_type = ((detect(raw_data))['encoding']).lower()
                 with open(configDir, 'r', encoding=encoding_type) as file:
                     configString = file.readline().strip()
-                log.info(f"Config found in {configDir}")
+                robot.logger.info(f"Config found in {configDir}")
             except FileNotFoundError:
-                log.error(f"{configDir} could not be found.")
+                robot.logger.error(f"{configDir} could not be found.")
                 configString = default_config
             return configString
 
         config = findConfig()
 
-        log.info(f"Using config '{config}'")
+        robot.logger.info(f"Using config '{config}'")
         loadedConfig = self.load(config)
 
         subsystems = loadedConfig['subsystems']
@@ -74,7 +71,7 @@ class InitializeRobot(FileHandler):
         """
 
         # Generate objects from factories and set them to `robot`
-        log.info(f"Creating {len(subsystems)} subsystem(s)")
+        robot.logger.info(f"Creating {len(subsystems)} subsystem(s)")
         total_items = 0
         for subsystem_name, subsystem_data in subsystems.items():
             for group_name, group_info in subsystem_data.items():
@@ -84,11 +81,11 @@ class InitializeRobot(FileHandler):
                 items = {key: factory(descp) for key, descp in group_info.items()}
                 groupName_subsystemName = '_'.join([group_name, subsystem_name])
                 setattr(robot, groupName_subsystemName, items)
-                log.info(
+                robot.logger.info(
                     f"Created {len(items)} item(s) into '{groupName_subsystemName}'"
                 )
                 total_items += len(items)
-        log.info(f"Created {total_items} total item(s).")
+        robot.logger.info(f"Created {total_items} total item(s).")
 
     def __initializeControllers(self, robot, controller_info):
         """
@@ -130,14 +127,14 @@ class InitializeRobot(FileHandler):
 
                 updater = Thread(target=update)
                 updater.start()
-                log.debug(f"Started thread for controller {self.controller}")
+                robot.logger.debug(f"Started thread for controller {self.controller}")
 
         for name, port in controller_info.items():
             controllers[name] = _Controller(XboxController(port))
-            log.info(f"Created '{name}' controller for port {port}")
+            robot.logger.info(f"Created '{name}' controller for port {port}")
 
         setattr(robot, 'controllers', controllers)
-        log.info("Created controller attribute for robot.")
+        robot.logger.info("Created controller attribute for robot.")
 
     def __createComponents(self, robot):
         """
@@ -145,19 +142,25 @@ class InitializeRobot(FileHandler):
         according to the compatibility in the selected configuration.
         """
 
+        # Assert components aren't acutally injectable types
+        _builtin_types = ('str', 'int', 'float', 'complex', 'list',
+                          'tuple', 'range', 'dict', 'set', 'frozenset',
+                          'bool', 'bytes', 'bytearray', 'memoryview',)
+
         components = get_type_hints(robot).items()
         for component_name, component in components:
-            if isclass(component):
-                self.__testComponentCompatibility(robot, component_name, component)
+            if component.__name__ not in _builtin_types:
+                self.__createComponent(robot, component_name, component)
 
-    def __testComponentCompatibility(self, robot, component_name, component_type):
+    def __createComponent(self, robot, component_name, component_type):
         """
-        Checks the compatibility of a component.
+        Checks the compatibility of a component and creates
+        it appropriately.
         """
 
         if not hasattr(component_type, "compatString"):
             robot.logger.warn(
-                f"'{component_name}' has no compatString set. Assuming compatible."
+                f"Component '{component_name}' has no compatString set. Assuming compatible."
             )
             return
 
@@ -169,7 +172,9 @@ class InitializeRobot(FileHandler):
            or 'all' in compatibility:
             return
 
-        robot.logger.warn(f"'{component_name}' is not compatible. Disabling")
+        robot.logger.warn(
+            f"Component '{component_name}' is not compatible. Disabling."
+        )
 
         # NOTE: Because of we are overriding the default settings in MagicBot's
         #       variable injection by passing components into this method,
