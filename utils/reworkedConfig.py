@@ -39,12 +39,18 @@ class _Controller:
 
             while True:
                 sleep(CONTROLLER_UPDATE_DELAY)
-                self.leftY = self.controller.getRawAxis(XboxController.Axis.kLeftY)
-                self.rightY = self.controller.getRawAxis(XboxController.Axis.kRightY)
-                self.leftX = self.controller.getRawAxis(XboxController.Axis.kLeftX)
-                self.rightX = self.controller.getRawAxis(XboxController.Axis.kRightX)
-                self.rightTrigger = self.controller.getRawAxis(XboxController.Axis.kRightTrigger)
-                self.leftTrigger = self.controller.getRawAxis(XboxController.Axis.kLeftTrigger)
+                self.leftY = self.controller.getRawAxis(
+                    XboxController.Axis.kLeftY)
+                self.leftX = self.controller.getRawAxis(
+                    XboxController.Axis.kLeftX)
+                self.rightY = self.controller.getRawAxis(
+                    XboxController.Axis.kRightY)
+                self.rightX = self.controller.getRawAxis(
+                    XboxController.Axis.kRightX)
+                self.leftTrigger = self.controller.getRawAxis(
+                    XboxController.Axis.kLeftTrigger)
+                self.rightTrigger = self.controller.getRawAxis(
+                    XboxController.Axis.kRightTrigger)
                 self.POV = self.controller.getPOV()
 
         updater = Thread(target=update)
