@@ -1,7 +1,9 @@
 import wpilib.drive
 from enum import Enum, auto
-
 from magicbot import tunable
+from utils.math import expScale as exp
+
+
 class ControlMode(Enum):
     """
     Drive Train Control Modes
@@ -14,7 +16,9 @@ class ControlMode(Enum):
 class DriveTrain():
     # Note - The way we will want to do this will be to give this component motor description dictionaries from robotmap and then creating the motors with motorhelper. After that, we simply call wpilib' differential drive
     motors_driveTrain: dict
+    controllers: dict
     driveMotorsMultiplier = tunable(.5)
+    sensitivityExponent = tunable(1.8)
     #gyros_system: dict
 
     compatString = ["all"]
@@ -28,6 +32,7 @@ class DriveTrain():
         self.controlMode = ControlMode.kDisabled
         self.leftMotor = self.motors_driveTrain["leftMotor"]
         self.rightMotor = self.motors_driveTrain["rightMotor"]
+        self.drive = self.controllers['drive']
         self.driveTrain = wpilib.drive.DifferentialDrive(self.leftMotor, self.rightMotor)
         self.logger.info("DriveTrain setup completed")
         
@@ -73,9 +78,14 @@ class DriveTrain():
         pass
 
     def execute(self):
+
+        driveLeft = exp(self.drive.leftY, self.sensitivityExponent) * self.driveMotorsMultiplier
+        driveRight = exp(self.drive.rightY, self.sensitivityExponent) * self.driveMotorsMultiplier
+
+        self.setTank(driveLeft, driveRight)
+
         if self.controlMode == ControlMode.kTankDrive:
             self.driveTrain.tankDrive(self.tankLeftSpeed, self.tankRightSpeed, False)
 
         elif self.controlMode == ControlMode.kArcadeDrive:
             self.driveTrain.arcadeDrive(self.arcadeSpeed, self.arcadeRotation, False)
-        

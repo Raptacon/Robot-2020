@@ -1,4 +1,3 @@
-from robotMap import XboxMap
 from components.shooterMotors import ShooterMotorCreation, Direction
 from components.breakSensors import Sensors, State
 from components.feederMap import FeederMap, Type
@@ -15,8 +14,9 @@ class ShooterLogic(StateMachine):
     feeder: FeederMap
     logger: logging
     sensors: Sensors
-    xboxMap: XboxMap
     speedTolerance = tunable(50)
+
+    controllers: dict
 
     # Tunables
     shootingLoaderSpeed = tunable(.4)
@@ -32,6 +32,8 @@ class ShooterLogic(StateMachine):
         """Called when bot is enabled."""
         self.isAutonomous = False
         self.isSetup = True
+
+        self.mech = self.controllers['mech'].controller
 
     def autonomousEnabled(self):
         """Indicates if the robot is in autonomous mode."""
@@ -65,8 +67,8 @@ class ShooterLogic(StateMachine):
         rumble  = 0
         if atSpeed and not self.isAutonomous:
             rumble = .3
-        self.xboxMap.mech.setRumble(self.xboxMap.mech.RumbleType.kLeftRumble, rumble)
-        self.xboxMap.mech.setRumble(self.xboxMap.mech.RumbleType.kRightRumble, rumble)
+        self.mech.setRumble(self.mech.RumbleType.kLeftRumble, rumble)
+        self.mech.setRumble(self.mech.RumbleType.kRightRumble, rumble)
         return atSpeed
 
     @state

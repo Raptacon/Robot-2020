@@ -4,7 +4,7 @@ Team 3200 Robot base class
 # Module imports:
 import wpilib
 from wpilib import XboxController
-from magicbot import MagicRobot, tunable
+from magicbot import MagicRobot
 
 # Component imports:
 from components.driveTrain import DriveTrain
@@ -20,10 +20,10 @@ from components.scorpionLoader import ScorpionLoader
 from components.feederMap import FeederMap
 
 # Other imports:
-from robotMap import XboxMap
 from utils.reworkedConfig import ConfigurationManager
 import utils.math
 
+import threading
 class MyRobot(MagicRobot):
     """
     Base robot class of Magic Bot Type
@@ -40,14 +40,13 @@ class MyRobot(MagicRobot):
     elevator: Elevator
     scorpionLoader: ScorpionLoader
 
-    sensitivityExponent = tunable(1.8)
+    controllers: dict
 
     def createObjects(self):
         """
         Robot-wide initialization code should go here. Replaces robotInit
         """
 
-        self.xboxMap = XboxMap(XboxController(1), XboxController(0))
         ConfigurationManager(self)
 
     def autonomousInit(self):
@@ -57,19 +56,19 @@ class MyRobot(MagicRobot):
 
     def teleopInit(self):
         # Register button events for doof
-        self.buttonManager.registerButtonEvent(self.xboxMap.mech, XboxController.Button.kX, ButtonEvent.kOnPress, self.pneumatics.toggleLoader)
-        self.buttonManager.registerButtonEvent(self.xboxMap.mech, XboxController.Button.kY, ButtonEvent.kOnPress, self.loader.setAutoLoading)
-        self.buttonManager.registerButtonEvent(self.xboxMap.mech, XboxController.Button.kB, ButtonEvent.kOnPress, self.loader.setManualLoading)
-        self.buttonManager.registerButtonEvent(self.xboxMap.mech, XboxController.Button.kA, ButtonEvent.kOnPress, self.shooter.shootBalls)
-        self.buttonManager.registerButtonEvent(self.xboxMap.mech, XboxController.Button.kA, ButtonEvent.kOnPress, self.loader.stopLoading)
-        self.buttonManager.registerButtonEvent(self.xboxMap.mech, XboxController.Button.kA, ButtonEvent.kOnRelease, self.shooter.doneShooting)
-        self.buttonManager.registerButtonEvent(self.xboxMap.mech, XboxController.Button.kA, ButtonEvent.kOnRelease, self.loader.determineNextAction)
-        self.buttonManager.registerButtonEvent(self.xboxMap.mech, XboxController.Button.kBumperRight, ButtonEvent.kOnPress, self.elevator.setRaise)
-        self.buttonManager.registerButtonEvent(self.xboxMap.mech, XboxController.Button.kBumperRight, ButtonEvent.kOnRelease, self.elevator.stop)
-        self.buttonManager.registerButtonEvent(self.xboxMap.mech, XboxController.Button.kBumperLeft, ButtonEvent.kOnPress, self.elevator.setLower)
-        self.buttonManager.registerButtonEvent(self.xboxMap.mech, XboxController.Button.kBumperLeft, ButtonEvent.kOnRelease, self.elevator.stop)
-        self.buttonManager.registerButtonEvent(self.xboxMap.drive, XboxController.Button.kBumperLeft, ButtonEvent.kOnPress, self.driveTrain.enableCreeperMode)
-        self.buttonManager.registerButtonEvent(self.xboxMap.drive, XboxController.Button.kBumperLeft, ButtonEvent.kOnRelease, self.driveTrain.disableCreeperMode)
+        self.buttonManager.registerButtonEvent(self.controllers['mech'].controller, XboxController.Button.kX, ButtonEvent.kOnPress, self.pneumatics.toggleLoader)
+        self.buttonManager.registerButtonEvent(self.controllers['mech'].controller, XboxController.Button.kY, ButtonEvent.kOnPress, self.loader.setAutoLoading)
+        self.buttonManager.registerButtonEvent(self.controllers['mech'].controller, XboxController.Button.kB, ButtonEvent.kOnPress, self.loader.setManualLoading)
+        self.buttonManager.registerButtonEvent(self.controllers['mech'].controller, XboxController.Button.kA, ButtonEvent.kOnPress, self.shooter.shootBalls)
+        self.buttonManager.registerButtonEvent(self.controllers['mech'].controller, XboxController.Button.kA, ButtonEvent.kOnPress, self.loader.stopLoading)
+        self.buttonManager.registerButtonEvent(self.controllers['mech'].controller, XboxController.Button.kA, ButtonEvent.kOnRelease, self.shooter.doneShooting)
+        self.buttonManager.registerButtonEvent(self.controllers['mech'].controller, XboxController.Button.kA, ButtonEvent.kOnRelease, self.loader.determineNextAction)
+        self.buttonManager.registerButtonEvent(self.controllers['mech'].controller, XboxController.Button.kBumperRight, ButtonEvent.kOnPress, self.elevator.setRaise)
+        self.buttonManager.registerButtonEvent(self.controllers['mech'].controller, XboxController.Button.kBumperRight, ButtonEvent.kOnRelease, self.elevator.stop)
+        self.buttonManager.registerButtonEvent(self.controllers['mech'].controller, XboxController.Button.kBumperLeft, ButtonEvent.kOnPress, self.elevator.setLower)
+        self.buttonManager.registerButtonEvent(self.controllers['mech'].controller, XboxController.Button.kBumperLeft, ButtonEvent.kOnRelease, self.elevator.stop)
+        self.buttonManager.registerButtonEvent(self.controllers['drive'].controller, XboxController.Button.kBumperLeft, ButtonEvent.kOnPress, self.driveTrain.enableCreeperMode)
+        self.buttonManager.registerButtonEvent(self.controllers['drive'].controller, XboxController.Button.kBumperLeft, ButtonEvent.kOnRelease, self.driveTrain.disableCreeperMode)
 
         self.shooter.autonomousDisabled()
 
@@ -78,19 +77,14 @@ class MyRobot(MagicRobot):
         Must include. Called running teleop.
         """
 
-        self.xboxMap.controllerInput()
+        print(f"total threads: {threading.active_count()}")
 
-        driveLeft = utils.math.expScale(self.xboxMap.getDriveLeft(), self.sensitivityExponent) * self.driveTrain.driveMotorsMultiplier
-        driveRight = utils.math.expScale(self.xboxMap.getDriveRight(), self.sensitivityExponent) * self.driveTrain.driveMotorsMultiplier
+        # if self.xboxMap.getMechDPad() == 0:
+        #     self.winch.setRaise()
+        # else:
+        #     self.winch.stop()
 
-        self.driveTrain.setTank(driveLeft, driveRight)
-
-        if self.xboxMap.getMechDPad() == 0:
-            self.winch.setRaise()
-        else:
-            self.winch.stop()
-
-        self.scorpionLoader.checkController()
+        # self.scorpionLoader.checkController()
 
     def testInit(self):
         """

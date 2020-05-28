@@ -54,6 +54,7 @@ class _Controller:
                 self.rightX = self.controller.getRawAxis(XboxController.Axis.kRightX)
                 self.rightTrigger = self.controller.getRawAxis(XboxController.Axis.kRightTrigger)
                 self.leftTrigger = self.controller.getRawAxis(XboxController.Axis.kLeftTrigger)
+                self.POV = self.controller.getPOV()
 
         updater = Thread(target=update)
         updater.start()

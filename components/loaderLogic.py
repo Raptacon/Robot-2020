@@ -1,4 +1,3 @@
-from robotMap import XboxMap
 from components.shooterMotors import ShooterMotorCreation, Direction
 from components.breakSensors import Sensors, State
 from components.feederMap import FeederMap, Type
@@ -15,7 +14,6 @@ class LoaderLogic(StateMachine):
     feeder: FeederMap
     logger: logging
     sensors: Sensors
-    xboxMap: XboxMap
 
     # Tunable
     automaticLoaderSpeed = tunable(.4)
