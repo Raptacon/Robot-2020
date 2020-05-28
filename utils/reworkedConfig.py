@@ -12,7 +12,6 @@ from utils.filehandler import FileHandler
 from time import sleep
 from wpilib import XboxController
 from threading import Thread
-from networktables import NetworkTables
 
 # Utilities for creating components
 import components
@@ -32,14 +31,6 @@ class _Controller:
     def __init__(self, controller: XboxController):
 
         self.controller = controller
-
-        # Instantiate values to prevent crash in `setup` methods
-        self.leftY = 0
-        self.leftX = 0
-        self.rightY = 0
-        self.rightX = 0
-        self.leftTrigger = 0
-        self.rightTrigger = 0
 
         def update():
             """
@@ -130,9 +121,12 @@ class ConfigurationManager(FileHandler):
         log.info(f"Created {total_items} total item(s).")
 
     def __initializeControllers(self, robot, controller_info):
+        """
+        Create controller objects from the setup config.
+        """
 
         controllers = {}
-        
+
         for name, port in controller_info.items():
             controllers[name] = _Controller(XboxController(port))
             log.info(f"Created '{name}' controller for port {port}")
