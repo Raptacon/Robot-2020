@@ -23,7 +23,7 @@ from components.feederMap import FeederMap
 from utils.reworkedConfig import ConfigurationManager
 import utils.math
 
-import threading
+
 class MyRobot(MagicRobot):
     """
     Base robot class of Magic Bot Type
@@ -76,15 +76,7 @@ class MyRobot(MagicRobot):
         """
         Must include. Called running teleop.
         """
-
-        print(f"total threads: {threading.active_count()}")
-
-        # if self.xboxMap.getMechDPad() == 0:
-        #     self.winch.setRaise()
-        # else:
-        #     self.winch.stop()
-
-        # self.scorpionLoader.checkController()
+        pass
 
     def testInit(self):
         """
