@@ -20,8 +20,7 @@ from components.scorpionLoader import ScorpionLoader
 from components.feederMap import FeederMap
 
 # Other imports:
-from utils.reworkedConfig import InitializeRobot
-
+from utils.robotInitializer import InitializeRobot
 
 class MyRobot(MagicRobot):
     """
