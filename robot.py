@@ -20,7 +20,7 @@ from components.scorpionLoader import ScorpionLoader
 from components.feederMap import FeederMap
 
 # Other imports:
-from utils.reworkedConfig import ConfigurationManager
+from utils.reworkedConfig import InitializeRobot
 
 
 class MyRobot(MagicRobot):
@@ -46,7 +46,7 @@ class MyRobot(MagicRobot):
         Robot-wide initialization code should go here. Replaces robotInit
         """
 
-        ConfigurationManager(self)
+        InitializeRobot(self)
 
     def autonomousInit(self):
         """Run when autonomous is enabled."""

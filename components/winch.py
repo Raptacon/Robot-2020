@@ -31,7 +31,7 @@ class Winch:
 
     def execute(self):
 
-        if self.mech.POV == 0:
+        if self.mech.pov == 0:
             self.setRaise()
         else:
             self.stop()

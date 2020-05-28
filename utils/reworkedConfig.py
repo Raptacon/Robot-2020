@@ -22,43 +22,7 @@ from inspect import ismodule, isclass
 CONTROLLER_UPDATE_DELAY = 0.020
 
 
-class _Controller:
-    """
-    Create a new controller. This class automatically starts a new thread to
-    update the controller that is being created.
-    """
-
-    def __init__(self, controller: XboxController):
-
-        self.controller = controller
-
-        def update():
-            """
-            Update controller values.
-            """
-
-            while True:
-                sleep(CONTROLLER_UPDATE_DELAY)
-                self.leftY = self.controller.getRawAxis(
-                    XboxController.Axis.kLeftY)
-                self.leftX = self.controller.getRawAxis(
-                    XboxController.Axis.kLeftX)
-                self.rightY = self.controller.getRawAxis(
-                    XboxController.Axis.kRightY)
-                self.rightX = self.controller.getRawAxis(
-                    XboxController.Axis.kRightX)
-                self.leftTrigger = self.controller.getRawAxis(
-                    XboxController.Axis.kLeftTrigger)
-                self.rightTrigger = self.controller.getRawAxis(
-                    XboxController.Axis.kRightTrigger)
-                self.POV = self.controller.getPOV()
-
-        updater = Thread(target=update)
-        updater.start()
-        log.debug(f"Started thread for controller {self.controller}")
-
-
-class ConfigurationManager(FileHandler):
+class InitializeRobot(FileHandler):
     """
     Read a config file and generate robot objects from factories,
     create controllers, and create magic components.
@@ -128,10 +92,45 @@ class ConfigurationManager(FileHandler):
 
     def __initializeControllers(self, robot, controller_info):
         """
-        Create controller objects from the setup config.
+        Creates controller attributes to set to a robot
         """
 
         controllers = {}
+
+        class _Controller:
+            """
+            Create a new controller. This class automatically starts a new
+            thread to update the controller that is being created.
+            """
+
+            def __init__(self, controller: XboxController):
+
+                self.controller = controller
+
+                def update():
+                    """
+                    Update controller values.
+                    """
+
+                    while True:
+                        sleep(CONTROLLER_UPDATE_DELAY)
+                        self.leftY = self.controller.getRawAxis(
+                            XboxController.Axis.kLeftY)
+                        self.leftX = self.controller.getRawAxis(
+                            XboxController.Axis.kLeftX)
+                        self.rightY = self.controller.getRawAxis(
+                            XboxController.Axis.kRightY)
+                        self.rightX = self.controller.getRawAxis(
+                            XboxController.Axis.kRightX)
+                        self.leftTrigger = self.controller.getRawAxis(
+                            XboxController.Axis.kLeftTrigger)
+                        self.rightTrigger = self.controller.getRawAxis(
+                            XboxController.Axis.kRightTrigger)
+                        self.pov = self.controller.getPOV()
+
+                updater = Thread(target=update)
+                updater.start()
+                log.debug(f"Started thread for controller {self.controller}")
 
         for name, port in controller_info.items():
             controllers[name] = _Controller(XboxController(port))
