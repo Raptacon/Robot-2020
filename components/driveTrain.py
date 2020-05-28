@@ -35,7 +35,7 @@ class DriveTrain():
         self.driveTrain = wpilib.drive.DifferentialDrive(self.leftMotor, self.rightMotor)
         self.logger.info("DriveTrain setup completed")
 
-    def expScale(self, initVal):
+    def expScale(self, initVal, exp):
         """
         Applies an exponent exp to a value initVal and returns value.
         Will work whether initVal is positive or negative or zero.
