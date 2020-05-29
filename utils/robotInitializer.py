@@ -176,9 +176,11 @@ class InitializeRobot(FileHandler):
             f"Component '{component_name}' is not compatible. Disabling."
         )
 
+        #
         # NOTE: Because of we are overriding the default settings in MagicBot's
         #       variable injection by passing components into this method,
         #       we need to manually inject the variables here.
+        #
 
         # Iterate over variables with type annotations
         for n, inject_type in get_type_hints(component_type).items():
