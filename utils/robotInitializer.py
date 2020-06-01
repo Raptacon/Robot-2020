@@ -13,9 +13,10 @@ from threading import Thread
 # Utilities for creating components
 import components
 from typing import get_type_hints
-from inspect import ismodule, isclass
+from inspect import ismodule
 
 
+CONFIG_DIRECTORY = str(Path.home()) + os.path.sep + 'RobotConfig'
 CONTROLLER_UPDATE_DELAY = 0.020
 
 
@@ -37,17 +38,15 @@ class InitializeRobot(FileHandler):
 
         def findConfig():
 
-            configDir = str(Path.home()) + os.path.sep + 'RobotConfig'
-
             try:
-                with open(configDir, 'rb') as rf:
+                with open(CONFIG_DIRECTORY, 'rb') as rf:
                     raw_data = rf.readline().strip()
                 encoding_type = ((detect(raw_data))['encoding']).lower()
-                with open(configDir, 'r', encoding=encoding_type) as file:
+                with open(CONFIG_DIRECTORY, 'r', encoding=encoding_type) as file:
                     configString = file.readline().strip()
-                robot.logger.info(f"Config found in {configDir}")
+                robot.logger.info(f"Config found in {CONFIG_DIRECTORY}")
             except FileNotFoundError:
-                robot.logger.error(f"{configDir} could not be found.")
+                robot.logger.error(f"{CONFIG_DIRECTORY} could not be found.")
                 configString = default_config
             return configString
 
