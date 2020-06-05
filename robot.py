@@ -1,9 +1,5 @@
-"""
-Team 3200 Robot base class
-"""
 # Module imports:
-import wpilib
-from wpilib import XboxController
+from wpilib import XboxController, run
 from magicbot import MagicRobot
 
 # Component imports:
@@ -45,7 +41,7 @@ class MyRobot(MagicRobot):
         Robot-wide initialization code should go here. Replaces robotInit
         """
 
-        InitializeRobot(self)
+        self.initializer = InitializeRobot(self)
 
     def autonomousInit(self):
         """Run when autonomous is enabled."""
@@ -53,20 +49,45 @@ class MyRobot(MagicRobot):
         self.loader.stopLoading()
 
     def teleopInit(self):
+
+        # Controller definitions
+        mech = self.controllers['mech'].controller
+        drive = self.controllers['drive'].controller
+
+        # Other definitions
+        compatibility = self.initializer.compatibility
+        Button = XboxController.Button
+        event = self.buttonManager.registerButtonEvent
+
         # Register button events for doof
-        self.buttonManager.registerButtonEvent(self.controllers['mech'].controller, XboxController.Button.kX, ButtonEvent.kOnPress, self.pneumatics.toggleLoader)
-        self.buttonManager.registerButtonEvent(self.controllers['mech'].controller, XboxController.Button.kY, ButtonEvent.kOnPress, self.loader.setAutoLoading)
-        self.buttonManager.registerButtonEvent(self.controllers['mech'].controller, XboxController.Button.kB, ButtonEvent.kOnPress, self.loader.setManualLoading)
-        self.buttonManager.registerButtonEvent(self.controllers['mech'].controller, XboxController.Button.kA, ButtonEvent.kOnPress, self.shooter.shootBalls)
-        self.buttonManager.registerButtonEvent(self.controllers['mech'].controller, XboxController.Button.kA, ButtonEvent.kOnPress, self.loader.stopLoading)
-        self.buttonManager.registerButtonEvent(self.controllers['mech'].controller, XboxController.Button.kA, ButtonEvent.kOnRelease, self.shooter.doneShooting)
-        self.buttonManager.registerButtonEvent(self.controllers['mech'].controller, XboxController.Button.kA, ButtonEvent.kOnRelease, self.loader.determineNextAction)
-        self.buttonManager.registerButtonEvent(self.controllers['mech'].controller, XboxController.Button.kBumperRight, ButtonEvent.kOnPress, self.elevator.setRaise)
-        self.buttonManager.registerButtonEvent(self.controllers['mech'].controller, XboxController.Button.kBumperRight, ButtonEvent.kOnRelease, self.elevator.stop)
-        self.buttonManager.registerButtonEvent(self.controllers['mech'].controller, XboxController.Button.kBumperLeft, ButtonEvent.kOnPress, self.elevator.setLower)
-        self.buttonManager.registerButtonEvent(self.controllers['mech'].controller, XboxController.Button.kBumperLeft, ButtonEvent.kOnRelease, self.elevator.stop)
-        self.buttonManager.registerButtonEvent(self.controllers['drive'].controller, XboxController.Button.kBumperLeft, ButtonEvent.kOnPress, self.driveTrain.enableCreeperMode)
-        self.buttonManager.registerButtonEvent(self.controllers['drive'].controller, XboxController.Button.kBumperLeft, ButtonEvent.kOnRelease, self.driveTrain.disableCreeperMode)
+        if compatibility == 'doof':
+            event(mech, Button.kX, ButtonEvent.kOnPress, self.pneumatics.toggleLoader)
+            event(mech, Button.kY, ButtonEvent.kOnPress, self.loader.setAutoLoading)
+            event(mech, Button.kB, ButtonEvent.kOnPress, self.loader.setManualLoading)
+            event(mech, Button.kA, ButtonEvent.kOnPress, self.shooter.shootBalls)
+            event(mech, Button.kA, ButtonEvent.kOnPress, self.loader.stopLoading)
+            event(mech, Button.kA, ButtonEvent.kOnRelease, self.shooter.doneShooting)
+            event(mech, Button.kA, ButtonEvent.kOnRelease, self.loader.determineNextAction)
+            event(mech, Button.kBumperRight, ButtonEvent.kOnPress, self.elevator.setRaise)
+            event(mech, Button.kBumperRight, ButtonEvent.kOnRelease, self.elevator.stop)
+            event(mech, Button.kBumperLeft, ButtonEvent.kOnPress, self.elevator.setLower)
+            event(mech, Button.kBumperLeft, ButtonEvent.kOnRelease, self.elevator.stop)
+            event(drive, Button.kBumperLeft, ButtonEvent.kOnPress, self.driveTrain.enableCreeperMode)
+            event(drive, Button.kBumperLeft, ButtonEvent.kOnRelease, self.driveTrain.disableCreeperMode)
+
+        # Register button events for scorpion
+        elif compatibility == 'scorpion':
+            self.logger.warning("Robot 'scorpion' has no button events.")
+
+        # Register button events for minibot
+        elif compatibility == 'minibot':
+            self.logger.warning("Robot 'minibot' has no button events.")
+
+        else:
+            self.logger.error(
+                f"Robot '{compatibility}' is not a recognized"
+                "robot for button events."
+            )
 
         self.shooter.autonomousDisabled()
 
@@ -76,17 +97,5 @@ class MyRobot(MagicRobot):
         """
         pass
 
-    def testInit(self):
-        """
-        Function called when testInit is called.
-        """
-        print("testInit was Successful")
-
-    def testPeriodic(self):
-        """
-        Called during test mode alot
-        """
-        pass
-
 if __name__ == '__main__':
-    wpilib.run(MyRobot)
+    run(MyRobot)
