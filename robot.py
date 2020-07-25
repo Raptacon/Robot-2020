@@ -98,12 +98,11 @@
 #         pass
 
 from sys import argv
-from wpilib import run
 from os import system as cmd
+from utils.filehandler import FileHandler
 
 
 if __name__ == '__main__':
-    # run stuff to find config here...
-    dummy_config = 'doof'
-    #run(MyRobot)
-    print(argv)
+    robot_file = FileHandler.file_directory('doof.py')
+    cmd('py ' + robot_file + ' ' + argv[1])
+
