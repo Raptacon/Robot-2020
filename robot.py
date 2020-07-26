@@ -100,9 +100,36 @@
 from sys import argv
 from os import system as cmd
 from utils.filehandler import FileHandler
+from pathlib import Path
+from chardet import detect
+import logging as logger
+import os
+import wpilib
 
 
 if __name__ == '__main__':
-    robot_file = FileHandler.file_directory('doof.py')
-    cmd('py ' + robot_file + ' ' + argv[1])
 
+    default_config = "doof"
+
+    def findConfig():
+
+        config_dir = str(Path.home()) + os.path.sep + 'RobotConfig'
+
+        try:
+            with open(config_dir, 'rb') as rf:
+                raw_data = rf.readline().strip()
+            encoding_type = ((detect(raw_data))['encoding']).lower()
+            with open(config_dir, 'r', encoding=encoding_type) as file:
+                configString = file.readline().strip()
+            logger.info(f"Config found in {config_dir}")
+        except FileNotFoundError:
+            logger.error(f"{config_dir} could not be found.")
+            configString = default_config
+        return configString
+
+    config = findConfig()
+    logger.info(f"Using config {config}")
+    robot_file = FileHandler.file_directory(config + '.py')
+    argv.remove('robot.py')
+    command = 'py ' + robot_file + ' ' + ' '.join(argv)
+    cmd(command)
