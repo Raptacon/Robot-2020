@@ -107,6 +107,10 @@ import os
 import wpilib
 
 
+log = logger.getLogger()
+log.setLevel(logger.INFO)
+
+
 if __name__ == '__main__':
 
     default_config = "doof"
@@ -131,5 +135,7 @@ if __name__ == '__main__':
     logger.info(f"Using config {config}")
     robot_file = FileHandler.file_directory(config + '.py')
     argv.remove('robot.py')
-    command = 'py ' + robot_file + ' ' + ' '.join(argv)
+    base_cmd = 'py ' + robot_file + ' ' + ' '.join(argv)
+    is_sim = wpilib.RobotBase.isSimulation()
+    command = base_cmd if is_sim else base_cmd + ' --nonstandard'
     cmd(command)
