@@ -109,4 +109,4 @@ class InitializeRobot(FileHandler):
             robot.logger.info(f"Created '{name}' controller for port {port}")
 
         setattr(robot, 'controllers', controllers)
-        robot.logger.info("Created controller attribute for robot.")
+        robot.logger.info(f"Created controller attribute for {robot.__name__}.")
