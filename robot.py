@@ -98,44 +98,58 @@
 #         pass
 
 from sys import argv
-from os import system as cmd
+from os import system
 from utils.filehandler import FileHandler
 from pathlib import Path
 from chardet import detect
-import logging as logger
 import os
 import wpilib
 
+from magicbot import MagicRobot
+import magicbot.magicrobot as mb
+from importlib import import_module
+from inspect import isclass, getmembers
+from robotpy_ext.autonomous import AutonomousModeSelector
 
-log = logger.getLogger()
-log.setLevel(logger.INFO)
+from networktables import NetworkTables
+from robotpy_ext.misc.simple_watchdog import SimpleWatchdog
+
+
+# log = logger.getLogger()
+# log.setLevel(logger.INFO)
+
+# NOTE: Print statements should be avoided in general, but
+#       logging is tricky with the robots.
+
+def findConfig():
+
+    default_config = 'doof'
+
+    config_dir = str(Path.home()) + os.path.sep + 'RobotConfig'
+
+    try:
+        with open(config_dir, 'rb') as rf:
+            raw_data = rf.readline().strip()
+        encoding_type = ((detect(raw_data))['encoding']).lower()
+        with open(config_dir, 'r', encoding=encoding_type) as file:
+            configString = file.readline().strip()
+        print(f"Config found in {config_dir}")
+    except FileNotFoundError:
+        print(f"{config_dir} could not be found.")
+        configString = default_config
+    return configString
 
 
 if __name__ == '__main__':
 
-    default_config = "doof"
-
-    def findConfig():
-
-        config_dir = str(Path.home()) + os.path.sep + 'RobotConfig'
-
-        try:
-            with open(config_dir, 'rb') as rf:
-                raw_data = rf.readline().strip()
-            encoding_type = ((detect(raw_data))['encoding']).lower()
-            with open(config_dir, 'r', encoding=encoding_type) as file:
-                configString = file.readline().strip()
-            logger.info(f"Config found in {config_dir}")
-        except FileNotFoundError:
-            logger.error(f"{config_dir} could not be found.")
-            configString = default_config
-        return configString
-
     config = findConfig()
-    logger.info(f"Using config {config}")
-    robot_file = FileHandler.file_directory(config + '.py')
+    print(f"Using config {config}")
+    robot_file = FileHandler.file_directory(
+                    config if '.py' in config else (config + '.py')
+                )
+    
     argv.remove('robot.py')
-    base_cmd = 'py ' + robot_file + ' ' + ' '.join(argv)
-    is_sim = wpilib.RobotBase.isSimulation()
-    command = base_cmd if is_sim else base_cmd + ' --nonstandard'
-    cmd(command)
+    command = 'py ' + robot_file + ' ' + ' '.join(argv)
+    system(command)
+
+

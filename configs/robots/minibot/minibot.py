@@ -11,7 +11,7 @@ class RobotMinibot(MagicRobot):
         pass
 
     def teleopPeriodic(self):
-        print('teleop periodic')
+        print('teleop periodic for minibot')
 
 if __name__ == '__main__':
     run(RobotMinibot)

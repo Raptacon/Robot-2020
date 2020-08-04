@@ -1,9 +1,6 @@
 from wpilib import run
 from magicbot import MagicRobot
 
-import importlib
-import os
-
 
 class RobotDoof(MagicRobot):
 
@@ -14,7 +11,7 @@ class RobotDoof(MagicRobot):
         pass
 
     def teleopPeriodic(self):
-        print('teleop periodic')
+        print('teleop periodic for doof')
 
 if __name__ == '__main__':
     run(RobotDoof)
