@@ -114,6 +114,8 @@ from robotpy_ext.autonomous import AutonomousModeSelector
 from networktables import NetworkTables
 from robotpy_ext.misc.simple_watchdog import SimpleWatchdog
 
+from inspect import getfullargspec
+
 
 # log = logger.getLogger()
 # log.setLevel(logger.INFO)
@@ -121,35 +123,145 @@ from robotpy_ext.misc.simple_watchdog import SimpleWatchdog
 # NOTE: Print statements should be avoided in general, but
 #       logging is tricky with the robots.
 
-def findConfig():
 
-    default_config = 'doof'
+class MyRobot(MagicRobot):
 
-    config_dir = str(Path.home()) + os.path.sep + 'RobotConfig'
+    def __new__(cls, *args, **kwargs):
 
-    try:
-        with open(config_dir, 'rb') as rf:
-            raw_data = rf.readline().strip()
-        encoding_type = ((detect(raw_data))['encoding']).lower()
-        with open(config_dir, 'r', encoding=encoding_type) as file:
-            configString = file.readline().strip()
-        print(f"Config found in {config_dir}")
-    except FileNotFoundError:
-        print(f"{config_dir} could not be found.")
-        configString = default_config
-    return configString
+        def findConfig():
+
+            default_config = 'doof'
+
+            config_dir = str(Path.home()) + os.path.sep + 'RobotConfig'
+
+            try:
+                with open(config_dir, 'rb') as rf:
+                    raw_data = rf.readline().strip()
+                encoding_type = ((detect(raw_data))['encoding']).lower()
+                with open(config_dir, 'r', encoding=encoding_type) as file:
+                    configString = file.readline().strip()
+                print(f"Config found in {config_dir}")
+            except FileNotFoundError:
+                print(f"{config_dir} could not be found.")
+                configString = default_config
+            return configString
+
+        config = findConfig()
+
+        robot_mod = import_module('configs.robots.' + config + '.' + config)
+
+        for _, obj in getmembers(robot_mod):
+            if isclass(obj) and 'MagicRobot' in str(obj.__base__):
+                robot_class = obj
+
+        return robot_class(*args, **kwargs)
 
 
 if __name__ == '__main__':
 
-    config = findConfig()
-    print(f"Using config {config}")
-    robot_file = FileHandler.file_directory(
-                    config if '.py' in config else (config + '.py')
-                )
+    # def findConfig():
+
+    #     default_config = 'doof'
+
+    #     config_dir = str(Path.home()) + os.path.sep + 'RobotConfig'
+
+    #     try:
+    #         with open(config_dir, 'rb') as rf:
+    #             raw_data = rf.readline().strip()
+    #         encoding_type = ((detect(raw_data))['encoding']).lower()
+    #         with open(config_dir, 'r', encoding=encoding_type) as file:
+    #             configString = file.readline().strip()
+    #         print(f"Config found in {config_dir}")
+    #     except FileNotFoundError:
+    #         print(f"{config_dir} could not be found.")
+    #         configString = default_config
+    #     return configString
+
+    # config = findConfig()
+
+    # robot_mod = import_module('configs.robots.' + config + '.' + config)
+
+    # for _, obj in getmembers(robot_mod):
+    #     if isclass(obj) and 'MagicRobot' in str(obj.__base__):
+    #         robot_class = obj
+
+    # class dummy(MagicRobot):
+    #     def createObjects(self):
+    #         print('hello')
+    #     def robotInit(self):
+    #         """
+    #             .. warning:: Internal API, don't override; use :meth:`createObjects` instead
+    #         """
+
+    #         robot_mod = 'configs.robots.' + 'doof' + '.' + 'autonomous'
+
+    #         # Create the user's objects and stuff here
+    #         self.createObjects()
+
+    #         # Load autonomous modes
+    #         self._automodes = AutonomousModeSelector(robot_mod)
+
+    #         # Next, create the robot components and wire them together
+    #         self._create_components()
+
+    #         self.__nt = NetworkTables.getTable("/robot")
+
+    #         self.__nt_put_is_ds_attached = self.__nt.getEntry("is_ds_attached").setBoolean
+    #         self.__nt_put_mode = self.__nt.getEntry("mode").setString
+
+    #         self.__nt.putBoolean("is_simulation", self.isSimulation())
+    #         self.__nt_put_is_ds_attached(self.ds.isDSAttached())
+
+    #         # cache these
+    #         self.__sd_update = wpilib.SmartDashboard.updateValues
+    #         self.__lv_update = wpilib.LiveWindow.getInstance().updateValues
+    #         # self.__sf_update = Shuffleboard.update
+
+    #         self.watchdog = SimpleWatchdog(self.control_loop_wait_time)
+
+    #         self.__periodics = [(self.robotPeriodic, "robotPeriodic()")]
+
+    #         if self.isSimulation():
+    #             self._simulationInit()
+    #             self.__periodics.append((self._simulationPeriodic, "simulationPeriodic()"))
     
-    argv.remove('robot.py')
-    command = 'py ' + robot_file + ' ' + ' '.join(argv)
-    system(command)
+    # setattr(robot_class, 'robotInit', dummy().robotInit)
+
+    wpilib.run(MyRobot)
+
+    
+
+#--------------------------------------------------------------------------------------
+
+# def findConfig():
+
+#     default_config = 'doof'
+
+#     config_dir = str(Path.home()) + os.path.sep + 'RobotConfig'
+
+#     try:
+#         with open(config_dir, 'rb') as rf:
+#             raw_data = rf.readline().strip()
+#         encoding_type = ((detect(raw_data))['encoding']).lower()
+#         with open(config_dir, 'r', encoding=encoding_type) as file:
+#             configString = file.readline().strip()
+#         print(f"Config found in {config_dir}")
+#     except FileNotFoundError:
+#         print(f"{config_dir} could not be found.")
+#         configString = default_config
+#     return configString
+
+
+# if __name__ == '__main__':
+
+#     config = findConfig()
+#     print(f"Using config {config}")
+#     robot_file = FileHandler.file_directory(
+#                     config if '.py' in config else (config + '.py')
+#                 )
+    
+#     argv.remove('robot.py')
+#     command = 'py ' + robot_file + ' ' + ' '.join(argv)
+#     system(command)
 
 

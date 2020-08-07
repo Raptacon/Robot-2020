@@ -1,6 +1,8 @@
 from wpilib import run
 from magicbot import MagicRobot
 
+from .components.component1 import Component1
+
 
 class RobotDoof(MagicRobot):
 
