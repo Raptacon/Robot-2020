@@ -1,8 +1,7 @@
 {
     "compatibility": "minibot",
     "controllers": {
-        "drive": 0,
-        "mech": 1
+        "drive": 0
     },
     "subsystems": {
         "driveTrain": {
