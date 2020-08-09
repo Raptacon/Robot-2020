@@ -15,10 +15,10 @@ def solenoidFactory(descp):
     pass
 
 group_mappings = {
-    'motors': motorFactory,
-    'gyros': gyroFactory,
+    'motors':       motorFactory,
+    'gyros':        gyroFactory,
     'digitalInput': breaksensorFactory,
-    'compressors': compressorFactory,
-    'solenoids': solenoidFactory
+    'compressors':  compressorFactory,
+    'solenoids':    solenoidFactory
 }
 
