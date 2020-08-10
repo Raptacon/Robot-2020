@@ -10,6 +10,7 @@ from time import sleep
 from wpilib import XboxController
 from threading import Thread
 
+from factories.actuator import GenerateObjects
 
 CONTROLLER_UPDATE_DELAY = 0.020
 

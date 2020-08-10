@@ -1,5 +1,4 @@
 {
-    "compatibility": "doof",
     "controllers": {
         "drive": 0,
         "mech": 1

@@ -3,11 +3,15 @@ from magicbot import MagicRobot
 
 from .components.component1 import Component1
 
+from factories.actuator import GenerateObjects
+
 
 class RobotDoof(MagicRobot):
 
+    #component1: Component1
+
     def createObjects(self):
-        pass
+        GenerateObjects(self, config_name='doof_config.json')
 
     def teleopInit(self):
         pass
