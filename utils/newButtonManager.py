@@ -6,6 +6,7 @@ from time import sleep
 import traceback
 from utils.filehandler import FileHandler
 from inspect import getargspec
+from typing import get_type_hints
 
 
 BUTTON_UPDATE_DELAY = 0.020
@@ -26,7 +27,9 @@ class ButtonSetup(FileHandler):
 
     def __init__(self, robot, button_config=None):
         
-        assert button_config is not None, "Must specify a button config file."
+        assert button_config is not None, (
+            "Must specify a button config file."
+        )
 
         button_data = self.load(button_config)
 
@@ -47,24 +50,24 @@ class ButtonSetup(FileHandler):
                 for event in button_data:
 
                     try:
-                        controller = getattr(robot, 'controllers')[event['controller']].controller
+                        _controllers = getattr(robot, 'controllers')
+                        _controller_name = event['controller']
+                        controller = _controllers[_controller_name].controller
                         button = eval(event['button'])
                         condition = eval('ButtonEvent.' + event['condition'])
-                        module = import_module(event['action']['module'])
-                        comp = getattr(module, event['action']['component'])
-                        action = getattr(comp, event['action']['func'])
+                        _component = event['action']['component']
+                        _func = event['action']['func']
+                        _components = get_type_hints(robot)
+                        component = _components[_component]
+                        func = getattr(component, _func)
                     except:
                         print(f"A button event crashed.\nEvent: {event}")
                         traceback.print_exc()
 
-                    event_mappings[condition](controller, button, action)
+                    event_mappings[condition](controller, button, func)
 
         updater = Thread(target=update)
         updater.start()
-
-    def __process_event(self, action):
-        args, _, _, _ = getargspec(action)
-        action()
 
     def __run_OnPress(self, controller, button, action):
         """
@@ -73,7 +76,7 @@ class ButtonSetup(FileHandler):
 
         wasButtonPressed = controller.getRawButtonPressed(button)
         if wasButtonPressed:
-            self.__process_event(action)
+            action()
 
     def __run_OnRelease(self, controller, button, action):
         """
@@ -82,7 +85,7 @@ class ButtonSetup(FileHandler):
 
         wasButtonReleased = controller.getRawButtonReleased(button)
         if wasButtonReleased:
-            self.__process_event(action)
+            action()
 
     def __run_WhilePressed(self, controller, button, action):
         """
@@ -91,7 +94,7 @@ class ButtonSetup(FileHandler):
 
         isButtonPressed = controller.getRawButton(button)
         if isButtonPressed:
-            self.__process_event(action)
+            action()
 
     def __run_WhileReleased(self, controller, button, action):
         """
@@ -100,4 +103,4 @@ class ButtonSetup(FileHandler):
 
         isButtonReleased = not controller.getRawButton(button)
         if isButtonReleased:
-            self.__process_event(action)
+            action()
