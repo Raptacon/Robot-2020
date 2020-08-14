@@ -1,11 +1,9 @@
 from threading import Thread
 from wpilib import XboxController
 from enum import Flag, auto
-from importlib import import_module
 from time import sleep
 import traceback
 from utils.filehandler import FileHandler
-from inspect import getargspec
 from typing import get_type_hints
 
 
@@ -20,18 +18,22 @@ class ButtonEvent(Flag):
     kOnRelease = auto()
     kWhilePressed = auto()
     kWhileReleased = auto()
-    kNone = 0
 
 
 class ButtonSetup(FileHandler):
 
     def __init__(self, robot, button_config=None):
-        
-        assert button_config is not None, (
-            "Must specify a button config file."
-        )
 
-        button_data = self.load(button_config)
+        log = robot.logger
+        
+        if button_config is None:
+            log.warning("No button config specified.")
+            default_btn_file = robot.setup['CONFIG']['DEFAULTS']['buttons']
+            log.info(f"Attempting to load {default_btn_file}")
+            button_data = self.load(default_btn_file)
+            log.info(f"{default_btn_file} found")
+        else:
+            button_data = self.load(button_config)
 
         event_mappings = {
             ButtonEvent.kOnPress: self.__run_OnPress,
@@ -52,13 +54,13 @@ class ButtonSetup(FileHandler):
                     try:
                         _controllers = getattr(robot, 'controllers')
                         _controller_name = event['controller']
-                        controller = _controllers[_controller_name].controller
-                        button = eval(event['button'])
-                        condition = eval('ButtonEvent.' + event['condition'])
                         _component = event['action']['component']
                         _func = event['action']['func']
-                        _components = get_type_hints(robot)
-                        component = _components[_component]
+                        component = getattr(robot, _component)
+
+                        condition = eval('ButtonEvent.' + event['condition'])
+                        controller = _controllers[_controller_name].controller
+                        button = eval(event['button'])
                         func = getattr(component, _func)
                     except:
                         print(f"A button event crashed.\nEvent: {event}")

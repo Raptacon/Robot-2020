@@ -1,0 +1,80 @@
+[
+    {
+        "controller": "mech",
+        "button": "XboxController.Button.kX",
+        "condition": "kOnPress",
+        "action": {"component": "pneumatics", "func": "toggleLoader"}
+    },
+    {
+        "controller": "mech",
+        "button": "XboxController.Button.kY",
+        "condition": "kOnPress",
+        "action": {"component": "loader", "func": "setAutoLoading"}
+    },
+    {
+        "controller": "mech",
+        "button": "XboxController.Button.kB",
+        "condition": "kOnPress",
+        "action": {"component": "loader", "func": "setManualLoading"}
+    },
+    {
+        "controller": "mech",
+        "button": "XboxController.Button.kA",
+        "condition": "kOnPress",
+        "action": {"component": "shooter", "func": "shootBalls"}
+    },
+    {
+        "controller": "mech",
+        "button": "XboxController.Button.kA",
+        "condition": "kOnPress",
+        "action": {"component": "loader", "func": "stopLoading"}
+    },
+    {
+        "controller": "mech",
+        "button": "XboxController.Button.kA",
+        "condition": "kOnRelease",
+        "action": {"component": "shooter", "func": "doneShooting"}
+    },
+    {
+        "controller": "mech",
+        "button": "XboxController.Button.kA",
+        "condition": "kOnRelease",
+        "action": {"component": "loader", "func": "determineNextAction"}
+    },
+    {
+        "controller": "mech",
+        "button": "XboxController.Button.kBumperRight",
+        "condition": "kOnPress",
+        "action": {"component": "elevator", "func": "setRaise"}
+    },
+    {
+        "controller": "mech",
+        "button": "XboxController.Button.kBumperRight",
+        "condition": "kOnRelease",
+        "action": {"component": "elevator", "func": "stop"}
+    },
+    {
+        "controller": "mech",
+        "button": "XboxController.Button.kBumperLeft",
+        "condition": "kOnPress",
+        "action": {"component": "elevator", "func": "setLower"}
+    },
+    {
+        "controller": "mech",
+        "button": "XboxController.Button.kBumperLeft",
+        "condition": "kOnRelease",
+        "action": {"component": "elevator", "func": "stop"}
+    },
+    {
+        "controller": "drive",
+        "button": "XboxController.Button.kBumperLeft",
+        "condition": "kOnPress",
+        "action": {"component": "driveTrain", "func": "enableCreeperMode"}
+    },
+    {
+        "controller": "drive",
+        "button": "XboxController.Button.kBumperLeft",
+        "condition": "kOnRelease",
+        "action": {"component": "driveTrain", "func": "disableCreeperMode"}
+    }
+]

@@ -1,0 +1,3 @@
+[CONFIG.DEFAULTS]
+hardware = "doof.json"
+buttons = "config.doof.buttons.json"
