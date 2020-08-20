@@ -1,4 +1,4 @@
-from components.shooterMotors import ShooterMotorCreation, Direction
+from .components.shooterMotors import ShooterMotorCreation, Direction
 from components.breakSensors import Sensors, State
 from components.feederMap import FeederMap, Type
 from magicbot import StateMachine, state, timed_state, tunable, feedback

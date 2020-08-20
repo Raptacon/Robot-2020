@@ -55,7 +55,7 @@ class FileHandler:
         raise NotADirectoryError(f"Folder '{name}' doesn't exist in {path}")
 
     @staticmethod
-    def get_all_files(foldername, extentions = False) -> list:
+    def get_all_files(foldername, extentions=False) -> list:
         """
         Lists the names of all the files living within a folder.
         NOTE this function automatically removes `__init__.py`
