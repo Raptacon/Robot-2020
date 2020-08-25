@@ -27,12 +27,15 @@ class FileHandler:
         return loadedFile
 
     @staticmethod
-    def file_directory(name) -> str:
+    def file_directory(name, default_path=None) -> str:
         """
         Attempt to get the directory of a requested file.
         """
 
-        path = os.getcwd()
+        if not default_path:
+            path = os.getcwd()
+        else:
+            path = default_path
 
         for root, _, files in os.walk(path):
             if name in files:
@@ -41,12 +44,15 @@ class FileHandler:
         raise NotADirectoryError(f"File '{name}' doesn't exist in {path}")
 
     @staticmethod
-    def folder_directory(name) -> str:
+    def folder_directory(name, default_path=None) -> str:
         """
         Attempt to get the directory of a requested folder.
         """
 
-        path = os.getcwd()
+        if not default_path:
+            path = os.getcwd()
+        else:
+            path = default_path
 
         for root, dirs, _ in os.walk(path):
             if name in dirs:

@@ -97,10 +97,12 @@
 #         """
 #         pass
 
+from utils.robotinstantiater import MyRobot
+from sys import argv
+
 if __name__ == '__main__':
-    # run(MyRobot)
-
-    print(__package__)
-
-    from .utils.filehandler import FileHandler
-    print(FileHandler.folder_directory('doof'))
+    MyRobot(
+        robot_file=MyRobot.get_robot(),
+        cmd_args=argv.remove('robot.py'),
+        generate_objects=True
+    )
