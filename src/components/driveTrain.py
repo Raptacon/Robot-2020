@@ -2,6 +2,7 @@ import wpilib.drive
 from enum import Enum, auto
 from magicbot import tunable
 
+import logging
 
 class ControlMode(Enum):
     """

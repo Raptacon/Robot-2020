@@ -3,6 +3,27 @@
 import rev
 import ctre
 
+
+class _Generator:
+    """
+
+    """
+
+    @staticmethod
+    def start():
+        raise NotImplementedError(
+            "start() method not overridden"
+        )
+
+class MotorGenerator:
+
+    def __init__(self):
+        pass
+
+    @classmethod
+    def _create_TalonSRX(cls, feedback_object):
+        
+
 def createMotor(motorDescp, motors = {}):
     '''This is where all motors are set up.
     Motors include CAN Talons, CAN Talon Followers, CAN Talon FX, CAN Talon FX Followers, and SparkMax and its follower.

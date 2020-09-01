@@ -100,6 +100,8 @@
 from utils.robotinstantiater import MyRobot
 from sys import argv
 
+import os
+
 if __name__ == '__main__':
     MyRobot(
         robot_file=MyRobot.get_robot(),
