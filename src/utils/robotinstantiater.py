@@ -282,8 +282,6 @@ class SparkMaxFeedback(rev.CANSparkMax):
                                     self.ControlType,
                                     self.pid['feedbackDevice'])
 
-class 
-
 class Hardware:
 
     def __new__(cls, *args, **kwargs):
@@ -341,8 +339,6 @@ class Hardware:
         #     CurrentLimits.setREVCurrentLimits(motor, motor_descp)
 
 
-<<<<<<< HEAD
-=======
 
 def create_hardware_objects(robot, hardware_config: dict):
 
@@ -351,4 +347,3 @@ def create_hardware_objects(robot, hardware_config: dict):
     for subsystem_name, subsystem_data in subsystems.items():
         for group_name, group_info in subsystem_data.items():
             items = {o: Hardware(od) for o, od in group_info.items()}
->>>>>>> feb4bea861644ad5834c5f4a6b4de383f13c8710

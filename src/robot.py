@@ -97,14 +97,10 @@
 #         """
 #         pass
 
-from utils.robotinstantiater import MyRobot
+from utils.testsutil import parse_robot_params
 from sys import argv
 
 import os
 
 if __name__ == '__main__':
-    MyRobot(
-        robot_file=MyRobot.get_robot(),
-        cmd_args=argv.remove('robot.py'),
-        generate_objects=True
-    )
+    robot, args = parse_robot_params(argv)
