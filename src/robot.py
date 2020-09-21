@@ -100,7 +100,10 @@
 from utils.testsutil import parse_robot_params
 from sys import argv
 
+from components.shooterLogic import ShooterLogic
+
 import os
 
 if __name__ == '__main__':
-    robot, args = parse_robot_params(argv)
+    # robot, args = parse_robot_params(argv)
+    print(argv)
