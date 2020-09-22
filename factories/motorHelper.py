@@ -3,6 +3,75 @@
 import rev
 import ctre
 
+# DELETE -------------------------------------------------------
+
+import json
+import yaml
+import os
+
+class FileHandler:
+    """
+    Various helper methods for finding and loading files/folders.
+    """
+
+    @staticmethod
+    def load(name):
+        """
+        Load a .json or .yml file.
+        """
+
+        directory = FileHandler.file_directory(name)
+        _, file_type = os.path.splitext(name)
+
+        with open(directory) as file:
+            if file_type == '.json':
+                loadedFile = json.load(file)
+            elif file_type == '.yml':
+                loadedFile = yaml.load(file, yaml.FullLoader)
+            else:
+                raise NotImplementedError(f"File type '{file_type}' is unsupported.")
+
+        return loadedFile
+
+    @staticmethod
+    def file_directory(name) -> str:
+        """
+        Attempt to get the directory of a requested file.
+        """
+
+        path = os.getcwd()
+
+        for root, _, files in os.walk(path):
+            if name in files:
+                return os.path.join(root, name)
+
+        raise NotADirectoryError(f"File '{name}' doesn't exist in {path}")
+
+# DELETE -------------------------------------------------------
+
+from collections import namedtuple
+
+def create_hardware_objects():
+
+    loaded_data = FileHandler.load("new_doof.json")
+
+    obj_names = []
+
+    for hardware_type, hardware_data in loaded_data.items():
+        for subsystem, subsystem_data in hardware_data.items():
+            print("sub", subsystem_data)
+            for obj_name, obj_data in subsystem_data.items():
+                new_object = NewObject(type=hardware_type, data=obj_data)
+                obj_names.append(obj_name)
+
+class NewObject:
+
+    def __new__(cls, *args, **kwargs):
+        print(kwargs['type'])
+        return cls
+
+create_hardware_objects()
+
 def createMotor(motorDescp, motors = {}):
     '''This is where all motors are set up.
     Motors include CAN Talons, CAN Talon Followers, CAN Talon FX, CAN Talon FX Followers, and SparkMax and its follower.
