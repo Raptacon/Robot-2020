@@ -1,397 +1,508 @@
-# -*- coding: utf-8 -*-
-
-import rev
 import ctre
+import rev
+import wpilib
+import navx
 
-# DELETE -------------------------------------------------------
+import time
+import threading
 
-import json
-import yaml
-import os
+from utils.filehandler import FileHandler
 
-class FileHandler:
+
+# TODO assert no empty/null keys in config (simplify if-statements)
+# XXX why to we return on `set()` methods?
+class WPI_TalonSRXMotor(ctre.WPI_TalonSRX):
     """
-    Various helper methods for finding and loading files/folders.
+    Create a TalonSRX motor.
+
+    NOTE: This object overrides the default `set()` method
+    built into ctre objects. To call the default set, use
+    `super().set()`.
     """
-
-    @staticmethod
-    def load(name):
-        """
-        Load a .json or .yml file.
-        """
-
-        directory = FileHandler.file_directory(name)
-        _, file_type = os.path.splitext(name)
-
-        with open(directory) as file:
-            if file_type == '.json':
-                loadedFile = json.load(file)
-            elif file_type == '.yml':
-                loadedFile = yaml.load(file, yaml.FullLoader)
-            else:
-                raise NotImplementedError(f"File type '{file_type}' is unsupported.")
-
-        return loadedFile
-
-    @staticmethod
-    def file_directory(name) -> str:
-        """
-        Attempt to get the directory of a requested file.
-        """
-
-        path = os.getcwd()
-
-        for root, _, files in os.walk(path):
-            if name in files:
-                return os.path.join(root, name)
-
-        raise NotADirectoryError(f"File '{name}' doesn't exist in {path}")
-
-# DELETE -------------------------------------------------------
-
-from collections import namedtuple
-
-def create_hardware_objects():
-
-    loaded_data = FileHandler.load("new_doof.json")
-
-    obj_names = []
-
-    for hardware_type, hardware_data in loaded_data.items():
-        for subsystem, subsystem_data in hardware_data.items():
-            print("sub", subsystem_data)
-            for obj_name, obj_data in subsystem_data.items():
-                new_object = NewObject(type=hardware_type, data=obj_data)
-                obj_names.append(obj_name)
-
-class NewObject:
-
-    def __new__(cls, *args, **kwargs):
-        print(kwargs['type'])
-        return cls
-
-create_hardware_objects()
-
-def createMotor(motorDescp, motors = {}):
-    '''This is where all motors are set up.
-    Motors include CAN Talons, CAN Talon Followers, CAN Talon FX, CAN Talon FX Followers, and SparkMax and its follower.
-    Not all are functional, it's up to you to find out. Good luck!'''
-    if motorDescp['type'] == 'CANTalonSRX':
-        #if we want to use the built in encoder set it here
-        if('pid' in motorDescp) and motorDescp['pid'] != None:
-            motor = WPI_TalonSRXFeedback(motorDescp)
-            motor.setupPid()
-        else:
-            motor = ctre.WPI_TalonSRX(motorDescp['channel'])
-        setTalonSRXCurrentLimits(motor, motorDescp)
-        motors[str(motorDescp['channel'])] = motor
-
-    elif motorDescp['type'] == 'CANTalonSRXFollower':
-        '''This is where we set up Talon SRXs over CAN'''
-        motor =ctre.WPI_TalonSRX(motorDescp['channel'])
-        motor.set(mode = ctre.ControlMode.Follower, value = motorDescp['masterChannel'])
-        setTalonSRXCurrentLimits(motor, motorDescp)
-        motors[str(motorDescp['channel'])] = motor
-
-    elif motorDescp['type'] == 'CANTalonFX':
-        '''This is where CANTalon FXs are set up'''
-        if('pid' in motorDescp) and motorDescp['pid'] != None:
-            motor = WPI_TalonFXFeedback(motorDescp)
-            motor.setupPid()
-        else:
-            motor = ctre.WPI_TalonFX(motorDescp['channel'])
-        setTalonFXCurrentLimits(motor, motorDescp)
     
-    elif motorDescp['type'] == 'CANTalonFXFollower':
-        '''This is where CANTalon FX Followers are set up'''
-        motor =ctre.WPI_TalonFX(motorDescp['channel'])
-        motor.set(mode = ctre.TalonFXControlMode.Follower, value = motorDescp['masterChannel'])
-        motors[str(motorDescp['channel'])] = motor
-        setTalonFXCurrentLimits(motor, motorDescp)
+    def __init__(self, desc):
 
-    elif motorDescp['type'] == 'SparkMax':
-        '''This is where SparkMax motor controllers are set up'''
-        motorDescp['motorType'] = getattr(rev.MotorType, motorDescp['motorType'])
+        # Setup conditional variables
+        self.has_pid = False
 
-        if 'pid' in motorDescp and motorDescp['pid'] != None:
-            motor = SparkMaxFeedback(motorDescp, motors)
-            motor.setupPid()
-        else:
-            motor = rev.CANSparkMax(motorDescp['channel'], motorDescp['motorType'])
+        # Define constructor variables
+        channel = desc["channel"]
 
-        motors[str(motorDescp['channel'])] = motor
-        setREVCurrentLimits(motor, motorDescp)
+        # Initialize parent class
+        super().__init__(channel)
 
-    elif motorDescp['type'] == 'SparkMaxFollower':
-        '''This is where SparkMax followers are set up
-        For masterChannel, use a motor object. MASTER MUST BE A "CANSparkMax" because blame rev'''
-        motorDescp['motorType'] = getattr(rev.MotorType, motorDescp['motorType'])
-        motor = SparkMaxFeedback(motorDescp, motors)
-        motor.follow(motors.get(str(motorDescp['masterChannel'])), motorDescp['inverted'])
-        setREVCurrentLimits(motor, motorDescp)
+        # Check motor parameters and setup motor accordingly
+        if "follower" in desc:
+            super().set(
+                mode=ctre.ControlMode.Follower,
+                value=desc["masterChannel"]
+            )
+        if "pid" in desc:
+            self.has_pid = True
+            self.__setupPID(desc["pid"])
+        if "currentLimits" in desc:
+            self.__setCurrentLimits(desc["currentLimits"])
+        if "inverted" in desc:
+            self.setInverted(desc["inverted"])
 
-    else:
-        print("Unknown Motor")
+    def __setupPID(self, pid_desc):
+        """
+        Setup PID for a TalonSRX motor
+        """
 
-    if 'inverted' in motorDescp:
-        motor.setInverted(motorDescp['inverted'])
+        control_type = pid_desc["controlType"]
+        self.control_type = getattr(ctre.ControlMode, control_type)
 
+        self.configSelectedFeedbackSensor(
+            ctre.FeedbackDevice(
+                pid_desc['feedbackDevice']), 0, 10)
+        self.setSensorPhase(pid_desc['sensorPhase'])
+        self.kPreScale = pid_desc['kPreScale']
 
-
-    return motor
-
-def setTalonFXCurrentLimits(motor, motorDescp):
-    """
-    Sets current limits based off of "currentLimits"
-    in your motor and config of choice. Must be a Talon FX motor controller
-    In currentLimits, you need currentLimit, triggerThresholdCurrent, and triggerThresholdTime.
-    """
-    if 'currentLimits' in motorDescp:
-        currentLimits = motorDescp['currentLimits']
-        currentLimit = currentLimits['currentLimit']
-        triggerThresholdCurrent = currentLimits['triggerThresholdCurrent']
-        triggerThresholdTime = currentLimits['triggerThresholdTime']
-        statorCurrentConfig = ctre.StatorCurrentLimitConfiguration(True, currentLimit, triggerThresholdCurrent, triggerThresholdTime)
-        supplyCurrentConfig = ctre.SupplyCurrentLimitConfiguration(True, currentLimit, triggerThresholdCurrent, triggerThresholdTime)
-        motor.configStatorCurrentLimit(statorCurrentConfig)
-        motor.configSupplyCurrentLimit(supplyCurrentConfig)
-
-def setTalonSRXCurrentLimits(motor, motorDescp):
-    """
-    Sets current limits based off of "currentLimits"
-    in your motor and config of choice. Must be a Talon SRX motor controller
-    In currentLimits, you need absMax, absMaxTimeMs, maxNominal.
-    """
-    if 'currentLimits' in motorDescp:
-        currentLimits = motorDescp['currentLimits']
-        absMax = currentLimits['absMax']
-        absMaxTimeMs = currentLimits['absMaxTimeMs']
-        nominalMaxCurrent = currentLimits['maxNominal']
-        motor.configPeakCurrentLimit(absMax, 10)
-        motor.configPeakCurrentDuration(absMaxTimeMs, 10)
-        motor.configContinuousCurrentLimit(nominalMaxCurrent, 10)
-        motor.enableCurrentLimit(True)
-
-def setREVCurrentLimits(motor, motorDescp):
-    """
-    Sets current limits based off of "currentLimits"
-    in your motor and config of choice. Must be a REV motor controller
-    In currentLimits, you need freeLimit, stallLimit, stallLimitRPM and secondaryLimit
-    """
-    if 'currentLimits' in motorDescp:
-        currentLimits = motorDescp['currentLimits']
-        freeLimit = currentLimits['freeLimit']
-        stallLimit = currentLimits['stallLimit']
-        limitRPM = currentLimits['stallLimitRPM']
-        secondaryLimit = currentLimits['secondaryLimit']
-        motor.setSecondaryCurrentLimit(secondaryLimit)
-        motor.setSmartCurrentLimit(stallLimit, freeLimit, limitRPM)
-
-class WPI_TalonSRXFeedback(ctre.WPI_TalonSRX):#ctre.wpi_talonsrx.WPI_TalonSRX
-    """
-    Class used to setup TalonSRX motors if there are PID setting for it
-    """
-    def __init__(self, motorDescription):
-        ctre.WPI_TalonSRX.__init__(self,motorDescription['channel'])
-        self.motorDescription = motorDescription
-        self.pid = None
-
-    def setupPid(self,motorDescription = None):
-        '''Sets up PID based on dictionary motorDescription['pid'].
-        This dictionary must contain controlType, feedbackDevice, sensorPhase, kPreScale, and P, I, D and F.'''
-        if not motorDescription:
-            motorDescription = self.motorDescription
-        if not 'pid' in self.motorDescription:
-            print("Motor channel %d has no PID"%(self.motorDescription['channel']))
-            return
-        self.pid = self.motorDescription['pid']
-        
-        #Takes a str and converts it to a ctre enum
-        self.controlType = self.pid['controlType']
-        if self.controlType == "Position":
-            self.controlType = ctre.ControlMode.Position
-        elif self.controlType == "Velocity":
-            self.controlType = ctre.ControlMode.Velocity
-        
-        
-        self.configSelectedFeedbackSensor(ctre.FeedbackDevice(self.pid['feedbackDevice']), 0, 10)
-        self.setSensorPhase(self.pid['sensorPhase'])
-        self.ControlType = self.pid['controlType']
-        self.kPreScale = self.pid['kPreScale']
-
-        #/* set the peak, nominal outputs, and deadband */
+        # Set the peak outputs, nominal outputs, and deadband
         self.configNominalOutputForward(0, 10)
         self.configNominalOutputReverse(0, 10)
         self.configPeakOutputForward(1, 10)
         self.configPeakOutputReverse(-1, 10)
+        self.configVelocityMeasurementPeriod(
+            ctre.VelocityMeasPeriod(1), 10)
 
-        self.configVelocityMeasurementPeriod(ctre.VelocityMeasPeriod(1), 10)
-        #/* set closed loop gains in slot0 */
-        self.config_kF(0, self.pid['kF'], 10)
-        self.config_kP(0, self.pid['kP'], 10)
-        self.config_kI(0, self.pid['kI'], 10)
-        self.config_kD(0, self.pid['kD'], 10)
+        # Configure PID(F) values
+        self.config_kP(0, pid_desc['kP'], 10)
+        self.config_kI(0, pid_desc['kI'], 10)
+        self.config_kD(0, pid_desc['kD'], 10)
+        self.config_kF(0, pid_desc['kF'], 10)
+
+    def __setCurrentLimits(self, cl_desc):
+        """
+        Setup current limits for a TalonSRX motor.
+        """
+
+        absMax = cl_desc['absMax']
+        absMaxTimeMs = cl_desc['absMaxTimeMs']
+        nominalMaxCurrent = cl_desc['maxNominal']
+        self.configPeakCurrentLimit(absMax, 10)
+        self.configPeakCurrentDuration(absMaxTimeMs, 10)
+        self.configContinuousCurrentLimit(nominalMaxCurrent, 10)
+        self.enableCurrentLimit(True)
 
     def set(self, speed):
-        if self.pid != None:
-            return ctre.WPI_TalonSRX.set(self, self.controlType, speed * self.kPreScale)
-        else:
-            return self.set(speed)
+        """
+        Sets the motor to a value appropriately.
+        """
 
-class WPI_TalonFXFeedback(ctre.WPI_TalonFX):
-    def __init__(self, motorDescription):
-        '''Sets up the basic Talon FX with channel of motorDescription['channel']. Doesn't set up pid.'''
-        ctre.WPI_TalonFX.__init__(self, motorDescription['channel'])
-        self.motorDescription = motorDescription
-        self.pid = None
-        if self.motorDescription['type'] == "CANTalonFXFollower":
-            self.controlType = ctre.TalonFXControlMode.Follower
-        else:
-            self.controlType = ctre.TalonFXControlMode.PercentOutput
+        return super().set(self, self.control_type,
+                           speed*self.kPreScale) \
+            if self.pid else self.set(speed)
 
-    def setupPid(self,motorDescription = None):
-        '''Sets up pid based on the dictionary motorDescription['pid']
-        (Must contain channel, P, I, D, F, control type, sensorPhase (boolean), kPreScale, feedbackDevice)'''
-        if not motorDescription:
-            motorDescription = self.motorDescription
-        if not 'pid' in self.motorDescription:
-            print("Motor channel %d has no PID"%(self.motorDescription['channel']))
-            return
-        self.pid = self.motorDescription['pid']
+
+class WPI_TalonFXMotor(ctre.WPI_TalonFX):
+    """
+    Create a TalonFX motor.
+
+    NOTE: This object overrides the default `set()` method
+    built into ctre objects. To call the default set, use
+    `super().set()`.
+    """
+
+    def __init__(self, desc):
+
+        # Setup conditional variables
+        self.has_pid = False
+
+        # Define constructor variables
+        channel = desc["channel"]
+
+        # Initialize parent class
+        super().__init__(channel)
+
+        # Check motor parameters and setup motor accordingly
+        if "follower" in desc:
+            self.is_follower = True
+            super().set(
+                mode=ctre.TalonFXControlMode.Follower,
+                value=desc["masterChannel"]
+            )
+
+        # Instantiate other pieces of the motor
+        if "pid" in desc:
+            self.has_pid = True
+            self.__setupPID(desc["pid"])
+        if "currentLimits" in desc:
+            self.__setCurrentLimits(desc["currentLimits"])
+        if "inverted" in desc:
+            self.setInverted(desc["inverted"])
+
+    def __setupPID(self, pid_desc):
+        """
+        Setup PID for a TalonFX motor.
+        """
+
+        control_type = pid_desc["controlType"]
+        self.control_type = getattr(ctre.TalonFXControlMode, control_type)
         
-        #Takes a str and converts it to a ctre enum for controltype.
-        self.controlType = self.pid['controlType']
-        if self.controlType == "Position":
-            self.controlType = ctre.TalonFXControlMode.Position
-        elif self.controlType == "Velocity":
-            self.controlType = ctre.TalonFXControlMode.Velocity
-        else:
-            print("Unrecognized control type: ",self.ControlType)
-        
-        self.configSelectedFeedbackSensor(ctre.FeedbackDevice(self.pid['feedbackDevice']), 0, 10)
-        self.setSensorPhase(self.pid['sensorPhase'])
-        self.kPreScale = self.pid['kPreScale']
+        self.configSelectedFeedbackSensor(
+            ctre.FeedbackDevice(
+                pid_desc['feedbackDevice']), 0, 10)
+        self.setSensorPhase(pid_desc['sensorPhase'])
+        self.kPreScale = pid_desc['kPreScale']
 
-        #/* set the peak, nominal outputs, and deadband */
+        # Set the peak outputs, nominal outputs, and deadband
         self.configNominalOutputForward(0, 10)
         self.configNominalOutputReverse(0, 10)
         self.configPeakOutputForward(1, 10)
         self.configPeakOutputReverse(-1, 10)
-        self.configVelocityMeasurementPeriod(ctre.VelocityMeasPeriod(1), 10)
-        #/* set closed loop gains in slot0 */
-        self.config_kF(0, self.pid['kF'], 10)
-        self.config_kP(0, self.pid['kP'], 10)
-        self.config_kI(0, self.pid['kI'], 10)
-        self.config_kD(0, self.pid['kD'], 10)
+        self.configVelocityMeasurementPeriod(
+            ctre.VelocityMeasPeriod(1), 10)
+
+        # Configure PID(F) values
+        self.config_kP(0, pid_desc['kP'], 10)
+        self.config_kI(0, pid_desc['kI'], 10)
+        self.config_kD(0, pid_desc['kD'], 10)
+        self.config_kF(0, pid_desc['kF'], 10)
+
+    def __setCurrentLimits(self, cl_desc):
+        """
+        Setup current limits for a TalonFX motor.
+        """
+
+        currentLimit = cl_desc['currentLimit']
+        triggerThresholdCurrent = cl_desc['triggerThresholdCurrent']
+        triggerThresholdTime = cl_desc['triggerThresholdTime']
+        args = [True, currentLimit,
+                triggerThresholdCurrent,
+                triggerThresholdTime]
+        statorCurrentConfig = ctre.StatorCurrentLimitConfiguration(*args)
+        supplyCurrentConfig = ctre.SupplyCurrentLimitConfiguration(*args)
+        self.configStatorCurrentLimit(statorCurrentConfig)
+        self.configSupplyCurrentLimit(supplyCurrentConfig)
 
     def set(self, speed):
         """
-        Overrides the default set() to allow for controll using the pid loop
+        Sets the motor to a value appropriately.
         """
-        if self.pid != None:
-            return ctre.WPI_TalonFX.set(self, self.controlType, speed * self.kPreScale)
-        else:
-            return ctre.WPI_TalonFX.set(self, speed)
 
-class SparkMaxFeedback(rev.CANSparkMax):
-    """
-    Class used to setup SparkMax motor if there are PID settings for it - MUST CALL setupPID
-    if you don't want it to crash. Great design decision on my part.
-    """
-    def __init__(self, motorDescription, motors):
-        self.motorDescription = motorDescription
-        self.motorType = self.motorDescription['motorType']
+        return super().set(self, self.controlType,
+                           speed*self.kPreScale) \
+            if self.has_pid else super().set(self, speed)
 
-        rev.CANSparkMax.__init__(self, self.motorDescription['channel'], self.motorType)
-        self.setInverted(self.motorDescription['inverted'])
-        self.motors = motors
+
+class REV_SparkMaxMotor(rev.SparkMax):
+    """
+    Create a SparkMax motor.
+
+    NOTE: This object overrides the default `set()` method
+    built into ctre objects. To call the default set, use
+    `super().set()`.
+    """
+
+    # Followers require objects, not channels
+    # All SparkMax motors MUST be registered to be used
+    # as a follower
+    motors = {}
+    
+    def __init__(self, desc):
+
+        # Setup conditional variables
         self.coasting = False
+        self.has_pid = False
 
-    def setupPid(self):
-        '''Sets up the PIDF values and a pidcontroller to use to control the motor using pid.'''
-        if not 'pid' in self.motorDescription:
-            print("Motor channel %f has no PID", (self.motorDescription['channel']))
-            return
-        self.pid = self.motorDescription['pid']
-        pid = self.pid
-        self.ControlType = pid['controlType']
-        
-        #Turns strings from pid dictionary in config into enums from rev library for control type
-        if self.ControlType == "Position":
-            self.ControlType = rev.ControlType.kPosition
-        elif self.ControlType == "Velocity":
-            self.ControlType = rev.ControlType.kVelocity
-        else:
-            print("Unrecognized control type: ",self.ControlType)
+        # Setup constructor variables
+        channel = desc["channel"]
+        motor_type = getattr(rev.ControlType, desc["motorType"])
 
-        #If coastOnZero is true, when set() is called with a speed of 0, we will use DutyCycle
-        #And let the motor spin down by itself. (demonstrated in coast and stopcoast methods and within set())
-        if 'coastOnZero' in self.pid and self.pid['coastOnZero'] == True:
-            self.coastOnZero = True
-        else:
-            self.coastOnZero = False
+        # Initialize parent class
+        super().__init__(channel, motor_type)
 
-        self.prevControlType = self.ControlType
+        # Check motor parameters and setup motor accordingly
+        if "follower" in desc:
+            # For consistancy with the CTRE motors,
+            # use `super()` here
+            super().follow(
+                self.motors.get(str(desc['masterChannel'])),
+                desc['inverted']
+            )
+        if "pid" in desc:
+            self.has_pid = True
+            self.__setupPID(desc["pid"])
+        if "currentLimits" in desc:
+            self.__setCurrentLimits(desc["currentLimits"])
+        if "inverted" in desc:
+            self.setInverted(desc["inverted"])
+
+        self.motors[channel] = self
+
+    def __setupPID(self, pid_desc):
+        """
+        Setup PID for a SparkMax motor.
+        """
+
+        self.control_type = pid_desc["controlType"]
+        self.__set_control_type(self.control_type)
 
         self.encoder = self.getEncoder()
-        self.kPreScale = pid['kPreScale'] #Multiplier for the speed - lets you stay withing -1 to 1 for input but different outputs to pidController
-        self.PIDController = self.getPIDController() #creates pid controller
+        #Multiplier for the speed - lets you stay withing -1 to 1 for input
+        self.kPreScale = pid_desc['kPreScale']
+        self.feedbackDevice = pid_desc["feedbackDevice"]
+        self.PIDController = self.getPIDController()
 
-        #Sets PID(F) values
-        self.PIDController.setP(pid['kP'], pid['feedbackDevice']) #pid['feedbackDevice'] is a slot for PID(F) configs. They range from 0-3.
-        self.PIDController.setI(pid['kI'], pid['feedbackDevice'])
-        self.PIDController.setD(pid['kD'], pid['feedbackDevice'])
-        self.PIDController.setFF(pid['kF'], pid['feedbackDevice'])
-        
-        #Generally just a way to overwrite previous settings on any motor controller - We don't brake often.
-        if 'IdleBrake' in self.motorDescription.keys() and self.motorDescription['IdleBrake'] == True:
+        # Configure PID(F) values
+        self.PIDController.setP(pid_desc['kP'], self.feedbackDevice)
+        self.PIDController.setI(pid_desc['kI'], self.feedbackDevice)
+        self.PIDController.setD(pid_desc['kD'], self.feedbackDevice)
+        self.PIDController.setF(pid_desc['kF'], self.feedbackDevice)  # setFF
+
+        if 'IdleBrake' in pid_desc:
             self.setIdleMode(rev.IdleMode.kBrake)
         else:
             self.setIdleMode(rev.IdleMode.kCoast)
         
         #Configures output range - that's what Spark Maxes accept
-        self.PIDController.setOutputRange(-1, 1, pid['feedbackDevice'])
-        self.PIDController.setReference(0 , self.ControlType, pid['feedbackDevice'])
+        self.PIDController.setOutputRange(-1, 1, self.feedbackDevice)
+        self.PIDController.setReference(
+            0, self.control_type, self.feedbackDevice)
 
-    def setControlType(self, type: str):
+    def __setCurrentLimits(self, cl_desc):
         """
-        Takes str type as argument, currently accepts Position, Velocity and Duty Cycle.
-        More can be added as necessary, following previous syntax in this method.
+        Setup current limits for a SparkMax motor.
         """
-        if type == "Position":
-            self.ControlType = rev.ControlType.kPosition
-        elif type == "Velocity":
-            self.ControlType = rev.ControlType.kVelocity
-        elif type == "Duty Cycle":
-            self.ControlType = rev.ControlType.kDutyCycle
-        else:
-            print("Unrecognized control type: ",self.ControlType)
 
-    def coast(self):
+        freeLimit = cl_desc['freeLimit']
+        stallLimit = cl_desc['stallLimit']
+        limitRPM = cl_desc['stallLimitRPM']
+        secondaryLimit = cl_desc['secondaryLimit']
+        self.setSecondaryCurrentLimit(secondaryLimit)
+        self.setSmartCurrentLimit(
+            stallLimit, freeLimit, limitRPM)
+
+    # Coasting hacks necessary because the REV API doesn't
+    # provide the appropriate means to coast the way we need to
+    def __set_control_type(self, control_type: str):
         """
-        Stores the current control type, moves to Duty Cycle, sets to 0.
+        Dynamically change the control type.
+        This is needed here to allow for coasting
+        on SparkMax motors.
         """
+        getattr(rev.ControlType, self.control_type)
+
+    def __coast(self):
+        """
+        Changes the control type to "Duty Cycle" and
+        sets the speed to 0.
+        """
+
         if self.coasting:
             return
         self.coasting = True
-        self.prevControlType = self.ControlType
-        self.setControlType("Duty Cycle")
-        self.PIDController.setReference(0, self.ControlType, self.pid['feedbackDevice'])
+        self.init_control_type = self.control_type
+        self.__set_control_type("Duty Cycle")
+        self.PIDController.setReference(
+            0, self.ControlType, self.pid['feedbackDevice'])
 
-    def stopCoast(self):
+    def __stop_coast(self):
         """
-        Restores previous control type. Whatever it was.
+        Restores the previous control type and
+        stops the motor from coasting.
         """
+
         if self.coasting:
-            self.ControlType = self.prevControlType
+            self.control_type = self.init_control_type
         self.coasting = False
 
-    def set(self, speed):
+    def set(self, speed, coast=True):
         """
-        Overrides the default set() to allow for control using the pid loop
+        Sets the motor to a value appropriately.
         """
-        if self.coastOnZero and speed == 0:
-            self.coast()
+
+        if self.has_pid:
+            self.__coast() if coast and speed == 0 else self.__stop_coast()
+            return self.PIDController.setReference(speed*self.kPreScale,
+                                                   self.control_type,
+                                                   self.feedbackDevice)
+        return super().set(speed)
+
+
+class WPI_Compressor(wpilib.Compressor):
+    """
+    Creates a compressor object.
+    """
+
+
+class WPI_Solenoid(wpilib.Solenoid):
+    """
+    Creates a solenoid object.
+    """
+
+    def __init__(self, desc):
+        pcm = 0
+        if "pcm" in desc:
+            pcm = desc["pcm"]
+        super().__init__(pcm, desc["channel"])
+
+
+class WPI_DoubleSolenoid(wpilib.DoubleSolenoid):
+    """
+    Creates a double solenoid object.
+    """
+
+    def __init__(self, desc):
+        pcm = 0
+        if "pcm" in desc:
+            pcm = desc["pcm"]
+        super().__init__(pcm, 
+                         desc["channel"]["forward"],
+                         desc["channel"]["reverse"])
+        if "default" in desc:
+            default_pos = {
+                "kOff": 0, "kForward": 1, "kReverse": 2
+            }[desc["default"]]
+            self.set(wpilib.DoubleSolenoid.Value(default_pos))
+
+
+class NAVX_navX(navx.AHRS):
+    """
+    Creates a navX object.
+    """
+
+    def __init__(self, desc):
+        navx = super()
+        method = desc["method"]
+        if method == "spi":
+            navx.create_spi()
+        elif method == "i2c":
+            navx.create_i2c()
         else:
-            self.stopCoast()
-        return self.PIDController.setReference(speed*self.pid['kPreScale'], self.ControlType, self.pid['feedbackDevice'])
+            raise ValueError(
+                f"{method} method is not supported."
+            )
+
+
+class WPI_DigitalInput(wpilib.DigitalInput):
+    """
+    Creates a digital input object
+    """
+
+    def __init__(self, desc):
+        channel = desc["channel"]
+        super().__init__(channel)
+
+
+class WPI_XboxController(wpilib.XboxController):
+    """
+    Creates an Xbox controller object
+    """
+
+    def __init__(self, desc):
+        
+        super().__init__(desc["channel"])
+        self.controller = self
+
+        def update():
+            delay = 0.020
+            while True:
+                time.sleep(delay)
+                self.leftY = self.getRawAxis(
+                    self.Axis.kLeftY)
+                self.leftX = self.getRawAxis(
+                    self.Axis.kLeftX)
+                self.rightY = self.getRawAxis(
+                    self.Axis.kRightY)
+                self.rightX = self.getRawAxis(
+                    self.Axis.kRightX)
+                self.leftTrigger = self.getRawAxis(
+                    self.Axis.kLeftTrigger)
+                self.rightTrigger = self.getRawAxis(
+                    self.Axis.kRightTrigger)
+                self.pov = self.getPOV()
+        
+        updater = threading.Thread(target=update)
+        updater.start()
+
+
+class _Mapping:
+    """
+    Simple object to map items, with additional 
+    `add` and `get` functions for readability.
+    """
+
+    def add(self, name, item):
+        self.__dict__[name] = item
+
+    def get(self, name):
+        return self.__dict__[name]
+
+    def __getattr__(self, attr):
+        return self.__dict__[attr]
+
+    def __setattr__(self, name, val):
+        self.__dict__[name] = val
+
+
+class _HardwareComponents(_Mapping):
+    """
+    Container for mapping hardware components
+    to their appropriate constructor object.
+    """
+
+# Construct _HardwareComponents object
+HardwareComponents = _HardwareComponents()
+
+# Register components
+HardwareComponents.add("CANTalonSRX",       WPI_TalonSRXMotor   )
+HardwareComponents.add("CANTalonFX",        WPI_TalonFXMotor    )
+HardwareComponents.add("SparkMax",          REV_SparkMaxMotor   )
+HardwareComponents.add("compressor",        WPI_Compressor      )
+HardwareComponents.add("solenoid",          WPI_Solenoid        )
+HardwareComponents.add("doubleSolenoid",    WPI_DoubleSolenoid  )
+HardwareComponents.add("navx",              NAVX_navX           )
+HardwareComponents.add("breaksensor",       WPI_DigitalInput    )
+HardwareComponents.add("XboxController",    WPI_XboxController  )
+
+
+class GenerateHardwareObjects(FileHandler):
+    """
+    Generate hardware objects from json data.
+    """
+
+    def __init__(self, robot, json_file=None):
+        loaded_file = self.load(json_file) \
+            if json_file.__class__ == str else json_file
+        self._generate_objects(robot, loaded_file)
+
+    def _new_hardware_object(self, desc=None, mapping=None):
+        """
+        Create a new hardware object.
+        This method is a factory, capable of creating Python
+        hardware objects from a hardware mapping.
+
+        :param desc: Valid description of the hardware object, usually
+        found in a JSON configuration file.
+        """
+
+        # Assert mapping is actually a formatted mapping
+        if "_Mapper" not in mapping.__bases__ or mapping.__bases__ is None:
+            raise ValueError(
+                f"invalid mapping: expected _Mapping, found {mapping.__bases__}"
+            )
+        obj_type = desc.pop("type")
+        try:
+            constructor = mapping.get(obj_type)
+        except:
+            raise KeyError(
+                f"{obj_type} isn't mapped into {mapping}. No object can be created."
+            )
+        if not bool(desc):
+            # This allows for empty objects with default parent objects
+            # (i.e. WPI_Compressor)
+            return constructor()
+        return constructor(desc)
+
+    def _generate_objects(self, robot, loaded_data):
+        for general_type, all_objects in loaded_data.items():
+            for subsystem_name, subsystem_items in all_objects.items():
+                group_subsystem = "_".join([general_type, subsystem_name])
+                for item_name, item_desc in subsystem_items.items():
+                    subsystem_items[item_name] = self._new_hardware_object(
+                                                    desc=item_desc,
+                                                    mapping=HardwareComponents)
+                setattr(robot, group_subsystem, subsystem_items)

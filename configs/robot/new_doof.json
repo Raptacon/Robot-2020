@@ -1,4 +1,16 @@
 {
+    "inputs": {
+        "XboxControllers": {
+            "drive": {
+                "type": "XboxController",
+                "channel": 0
+            },
+            "mech": {
+                "type": "XboxController",
+                "channel": 1
+            }
+        }
+    },
     "motors": {
         "driveTrain": {
             "rightMotor": {
