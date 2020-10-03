@@ -8,15 +8,18 @@ import threading
 
 from utils.filehandler import FileHandler
 
+import pathlib
+import inspect
+
 
 # TODO assert no empty/null keys in config (simplify if-statements)
-# XXX why to we return on `set()` methods?
+# XXX why do we return on `set()` methods?
 class WPI_TalonSRXMotor(ctre.WPI_TalonSRX):
     """
     Create a TalonSRX motor.
 
     NOTE: This object overrides the default `set()` method
-    built into ctre objects. To call the default set, use
+    built into CTRE objects. To call the default set, use
     `super().set()`.
     """
     
@@ -101,7 +104,7 @@ class WPI_TalonFXMotor(ctre.WPI_TalonFX):
     Create a TalonFX motor.
 
     NOTE: This object overrides the default `set()` method
-    built into ctre objects. To call the default set, use
+    built into CTRE objects. To call the default set, use
     `super().set()`.
     """
 
@@ -192,7 +195,7 @@ class REV_SparkMaxMotor(rev.SparkMax):
     Create a SparkMax motor.
 
     NOTE: This object overrides the default `set()` method
-    built into ctre objects. To call the default set, use
+    built into REV objects. To call the default set, use
     `super().set()`.
     """
 
@@ -241,7 +244,8 @@ class REV_SparkMaxMotor(rev.SparkMax):
         self.__set_control_type(self.control_type)
 
         self.encoder = self.getEncoder()
-        #Multiplier for the speed - lets you stay withing -1 to 1 for input
+        # Multiplier for the speed, allowing motor 
+        # to stay within -1 to 1 for input
         self.kPreScale = pid_desc['kPreScale']
         self.feedbackDevice = pid_desc["feedbackDevice"]
         self.PIDController = self.getPIDController()
@@ -257,7 +261,7 @@ class REV_SparkMaxMotor(rev.SparkMax):
         else:
             self.setIdleMode(rev.IdleMode.kCoast)
         
-        #Configures output range - that's what Spark Maxes accept
+        # Configures output range - that's what SparkMax motors accept
         self.PIDController.setOutputRange(-1, 1, self.feedbackDevice)
         self.PIDController.setReference(
             0, self.control_type, self.feedbackDevice)
@@ -280,9 +284,8 @@ class REV_SparkMaxMotor(rev.SparkMax):
     def __set_control_type(self, control_type: str):
         """
         Dynamically change the control type.
-        This is needed here to allow for coasting
-        on SparkMax motors.
         """
+
         getattr(rev.ControlType, self.control_type)
 
     def __coast(self):
@@ -297,7 +300,7 @@ class REV_SparkMaxMotor(rev.SparkMax):
         self.init_control_type = self.control_type
         self.__set_control_type("Duty Cycle")
         self.PIDController.setReference(
-            0, self.ControlType, self.pid['feedbackDevice'])
+            0, self.ControlType, self.feedbackDevice)
 
     def __stop_coast(self):
         """
@@ -418,6 +421,9 @@ class WPI_XboxController(wpilib.XboxController):
         updater = threading.Thread(target=update)
         updater.start()
 
+    def __str__(self):
+        return f"Controller object <{self}> on channel {self.getPort}"
+
 
 class _Mapping:
     """
@@ -491,11 +497,9 @@ class GenerateHardwareObjects(FileHandler):
             raise KeyError(
                 f"{obj_type} isn't mapped into {mapping}. No object can be created."
             )
-        if not bool(desc):
-            # This allows for empty objects with default parent objects
-            # (i.e. WPI_Compressor)
-            return constructor()
-        return constructor(desc)
+        # This allows for empty objects with default parent objects
+        # (i.e. WPI_Compressor)
+        return constructor() if not bool(desc) else constructor(desc)
 
     def _generate_objects(self, robot, loaded_data):
         for general_type, all_objects in loaded_data.items():
