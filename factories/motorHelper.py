@@ -96,7 +96,7 @@ class WPI_TalonSRXMotor(ctre.WPI_TalonSRX):
 
         return super().set(self, self.control_type,
                            speed*self.kPreScale) \
-            if self.pid else self.set(speed)
+            if self.has_pid else self.set(speed)
 
 
 class WPI_TalonFXMotor(ctre.WPI_TalonFX):
@@ -190,7 +190,7 @@ class WPI_TalonFXMotor(ctre.WPI_TalonFX):
             if self.has_pid else super().set(self, speed)
 
 
-class REV_SparkMaxMotor(rev.SparkMax):
+class REV_SparkMaxMotor(rev.CANSparkMax):
     """
     Create a SparkMax motor.
 
@@ -243,10 +243,9 @@ class REV_SparkMaxMotor(rev.SparkMax):
         self.control_type = pid_desc["controlType"]
         self.__set_control_type(self.control_type)
 
+        # XXX Why are we defining this? It's never used.
         self.encoder = self.getEncoder()
-        # Multiplier for the speed, allowing motor 
-        # to stay within -1 to 1 for input
-        self.kPreScale = pid_desc['kPreScale']
+        self.kPreScale = pid_desc['kPreScale']  # Multiplier for speed
         self.feedbackDevice = pid_desc["feedbackDevice"]
         self.PIDController = self.getPIDController()
 
@@ -254,8 +253,9 @@ class REV_SparkMaxMotor(rev.SparkMax):
         self.PIDController.setP(pid_desc['kP'], self.feedbackDevice)
         self.PIDController.setI(pid_desc['kI'], self.feedbackDevice)
         self.PIDController.setD(pid_desc['kD'], self.feedbackDevice)
-        self.PIDController.setF(pid_desc['kF'], self.feedbackDevice)  # setFF
+        self.PIDController.setFF(pid_desc['kF'], self.feedbackDevice)
 
+        # XXX If this doesn't work why is it still here?
         if 'IdleBrake' in pid_desc:
             self.setIdleMode(rev.IdleMode.kBrake)
         else:
@@ -368,16 +368,11 @@ class NAVX_navX(navx.AHRS):
     """
 
     def __init__(self, desc):
-        navx = super()
         method = desc["method"]
         if method == "spi":
-            navx.create_spi()
+            super().create_spi()
         elif method == "i2c":
-            navx.create_i2c()
-        else:
-            raise ValueError(
-                f"{method} method is not supported."
-            )
+            super().create_i2c()
 
 
 class WPI_DigitalInput(wpilib.DigitalInput):
