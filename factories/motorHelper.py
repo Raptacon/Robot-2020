@@ -1,3 +1,14 @@
+"""Create Python objects for hardware components on the robot.
+
+To add a new hardware object, create a class that inherits from
+a base object from an API (such as CTRE, REV, WPILib, navX, etc.)
+and manipulate it appropriately (add custom methods, instantiate
+it with `super().__init__(), etc.). Once ready to be used, add it
+to the `HardwareComponents` list near the bottom of this module,
+giving an appropriate key to search for in a configuration file
+and the Python object that should be used to create the component.
+"""
+
 import ctre
 import rev
 import wpilib
@@ -7,9 +18,6 @@ import time
 import threading
 
 from utils.filehandler import FileHandler
-
-import pathlib
-import inspect
 
 
 # TODO assert no empty/null keys in config (simplify if-statements)
@@ -22,7 +30,7 @@ class WPI_TalonSRXMotor(ctre.WPI_TalonSRX):
     built into CTRE objects. To call the default set, use
     `super().set()`.
     """
-    
+
     def __init__(self, desc):
 
         # Setup conditional variables
@@ -95,7 +103,7 @@ class WPI_TalonSRXMotor(ctre.WPI_TalonSRX):
         """
 
         return super().set(self, self.control_type,
-                           speed*self.kPreScale) \
+                           speed * self.kPreScale) \
             if self.has_pid else self.set(speed)
 
 
@@ -143,7 +151,7 @@ class WPI_TalonFXMotor(ctre.WPI_TalonFX):
 
         control_type = pid_desc["controlType"]
         self.control_type = getattr(ctre.TalonFXControlMode, control_type)
-        
+
         self.configSelectedFeedbackSensor(
             ctre.FeedbackDevice(
                 pid_desc['feedbackDevice']), 0, 10)
@@ -186,7 +194,7 @@ class WPI_TalonFXMotor(ctre.WPI_TalonFX):
         """
 
         return super().set(self, self.controlType,
-                           speed*self.kPreScale) \
+                           speed * self.kPreScale) \
             if self.has_pid else super().set(self, speed)
 
 
@@ -203,7 +211,7 @@ class REV_SparkMaxMotor(rev.CANSparkMax):
     # All SparkMax motors MUST be registered to be used
     # as a follower
     motors = {}
-    
+
     def __init__(self, desc):
 
         # Setup conditional variables
@@ -240,8 +248,9 @@ class REV_SparkMaxMotor(rev.CANSparkMax):
         Setup PID for a SparkMax motor.
         """
 
-        self.control_type = pid_desc["controlType"]
-        self.__set_control_type(self.control_type)
+        self.control_type = None
+        self.init_control_type = pid_desc["controlType"]
+        self.__set_control_type(self.init_control_type)
 
         # XXX Why are we defining this? It's never used.
         self.encoder = self.getEncoder()
@@ -260,7 +269,7 @@ class REV_SparkMaxMotor(rev.CANSparkMax):
             self.setIdleMode(rev.IdleMode.kBrake)
         else:
             self.setIdleMode(rev.IdleMode.kCoast)
-        
+
         # Configures output range - that's what SparkMax motors accept
         self.PIDController.setOutputRange(-1, 1, self.feedbackDevice)
         self.PIDController.setReference(
@@ -286,7 +295,7 @@ class REV_SparkMaxMotor(rev.CANSparkMax):
         Dynamically change the control type.
         """
 
-        getattr(rev.ControlType, self.control_type)
+        self.control_type = getattr(rev.ControlType, control_type)
 
     def __coast(self):
         """
@@ -297,7 +306,6 @@ class REV_SparkMaxMotor(rev.CANSparkMax):
         if self.coasting:
             return
         self.coasting = True
-        self.init_control_type = self.control_type
         self.__set_control_type("Duty Cycle")
         self.PIDController.setReference(
             0, self.ControlType, self.feedbackDevice)
@@ -319,9 +327,10 @@ class REV_SparkMaxMotor(rev.CANSparkMax):
 
         if self.has_pid:
             self.__coast() if coast and speed == 0 else self.__stop_coast()
-            return self.PIDController.setReference(speed*self.kPreScale,
-                                                   self.control_type,
-                                                   self.feedbackDevice)
+            args = [speed * self.kPreScale,
+                    self.control_type,
+                    self.feedbackDevice]
+            return self.PIDController.setReference(*args)
         return super().set(speed)
 
 
@@ -352,7 +361,7 @@ class WPI_DoubleSolenoid(wpilib.DoubleSolenoid):
         pcm = 0
         if "pcm" in desc:
             pcm = desc["pcm"]
-        super().__init__(pcm, 
+        super().__init__(pcm,
                          desc["channel"]["forward"],
                          desc["channel"]["reverse"])
         if "default" in desc:
@@ -391,7 +400,7 @@ class WPI_XboxController(wpilib.XboxController):
     """
 
     def __init__(self, desc):
-        
+
         super().__init__(desc["channel"])
         self.controller = self
 
@@ -412,17 +421,18 @@ class WPI_XboxController(wpilib.XboxController):
                 self.rightTrigger = self.getRawAxis(
                     self.Axis.kRightTrigger)
                 self.pov = self.getPOV()
-        
+
         updater = threading.Thread(target=update)
         updater.start()
 
-    def __str__(self):
-        return f"Controller object <{self}> on channel {self.getPort}"
+    # TODO add __str__ methods like this to other classes
+    # def __str__(self):
+    #     return f"Controller object <{self}> on channel {self.getPort}"
 
 
 class _Mapping:
     """
-    Simple object to map items, with additional 
+    Simple object to map items, with additional
     `add` and `get` functions for readability.
     """
 
@@ -445,19 +455,20 @@ class _HardwareComponents(_Mapping):
     to their appropriate constructor object.
     """
 
+
 # Construct _HardwareComponents object
 HardwareComponents = _HardwareComponents()
 
 # Register components
-HardwareComponents.add("CANTalonSRX",       WPI_TalonSRXMotor   )
-HardwareComponents.add("CANTalonFX",        WPI_TalonFXMotor    )
-HardwareComponents.add("SparkMax",          REV_SparkMaxMotor   )
-HardwareComponents.add("compressor",        WPI_Compressor      )
-HardwareComponents.add("solenoid",          WPI_Solenoid        )
-HardwareComponents.add("doubleSolenoid",    WPI_DoubleSolenoid  )
-HardwareComponents.add("navx",              NAVX_navX           )
-HardwareComponents.add("breaksensor",       WPI_DigitalInput    )
-HardwareComponents.add("XboxController",    WPI_XboxController  )
+HardwareComponents.add("CANTalonSRX", WPI_TalonSRXMotor)
+HardwareComponents.add("CANTalonFX", WPI_TalonFXMotor)
+HardwareComponents.add("SparkMax", REV_SparkMaxMotor)
+HardwareComponents.add("compressor", WPI_Compressor)
+HardwareComponents.add("solenoid", WPI_Solenoid)
+HardwareComponents.add("doubleSolenoid", WPI_DoubleSolenoid)
+HardwareComponents.add("navx", NAVX_navX)
+HardwareComponents.add("breaksensor", WPI_DigitalInput)
+HardwareComponents.add("XboxController", WPI_XboxController)
 
 
 class GenerateHardwareObjects(FileHandler):
@@ -478,6 +489,9 @@ class GenerateHardwareObjects(FileHandler):
 
         :param desc: Valid description of the hardware object, usually
         found in a JSON configuration file.
+
+        :param mapping: Valid mapping object that inherits from the
+        `_Mapping` class.
         """
 
         # Assert mapping is actually a formatted mapping
@@ -486,12 +500,8 @@ class GenerateHardwareObjects(FileHandler):
                 f"invalid mapping: expected _Mapping, found {mapping.__bases__}"
             )
         obj_type = desc.pop("type")
-        try:
-            constructor = mapping.get(obj_type)
-        except:
-            raise KeyError(
-                f"{obj_type} isn't mapped into {mapping}. No object can be created."
-            )
+        constructor = mapping.get(obj_type)
+
         # This allows for empty objects with default parent objects
         # (i.e. WPI_Compressor)
         return constructor() if not bool(desc) else constructor(desc)
@@ -501,7 +511,8 @@ class GenerateHardwareObjects(FileHandler):
             for subsystem_name, subsystem_items in all_objects.items():
                 group_subsystem = "_".join([general_type, subsystem_name])
                 for item_name, item_desc in subsystem_items.items():
-                    subsystem_items[item_name] = self._new_hardware_object(
-                                                    desc=item_desc,
-                                                    mapping=HardwareComponents)
+                    subsystem_items[item_name] = \
+                        self._new_hardware_object(
+                            desc=item_desc,
+                            mapping=HardwareComponents)
                 setattr(robot, group_subsystem, subsystem_items)
