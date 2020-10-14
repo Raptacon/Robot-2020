@@ -1,0 +1,11 @@
+{
+    "CANTalonSRX": "WPI_TalonSRXMotor",
+    "CANTalonFX": "WPI_TalonFXMotor",
+    "CANSparkMax": "REV_SparkMaxMotor",
+    "compressor": "WPI_Compressor",
+    "solenoid": "WPI_Solenoid",
+    "doubleSolenoid": "WPI_DoubleSolenoid",
+    "navx": "NAVX_navX",
+    "breaksensor": "WPI_DigitalInput",
+    "XboxController": "WPI_XboxController"
+}

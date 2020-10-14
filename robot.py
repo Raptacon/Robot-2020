@@ -16,7 +16,7 @@ from components.scorpionLoader import ScorpionLoader
 from components.feederMap import FeederMap
 
 # Other imports:
-from utils.robotInitializer import InitializeRobot
+from utils.hardware.hardware_manager import generate_hardware_objects
 
 class MyRobot(MagicRobot):
     """
@@ -41,7 +41,7 @@ class MyRobot(MagicRobot):
         Robot-wide initialization code should go here. Replaces robotInit
         """
 
-        self.initializer = InitializeRobot(self)
+        generate_hardware_objects(self)
 
     def autonomousInit(self):
         """Run when autonomous is enabled."""

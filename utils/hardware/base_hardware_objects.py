@@ -3,10 +3,7 @@
 To add a new hardware object, create a class that inherits from
 a base object from an API (such as CTRE, REV, WPILib, navX, etc.)
 and manipulate it appropriately (add custom methods, instantiate
-it with `super().__init__(), etc.). Once ready to be used, add it
-to the `HardwareComponents` list near the bottom of this module,
-giving an appropriate key to search for in a configuration file
-and the Python object that should be used to create the component.
+it with `super().__init__(), etc.).
 """
 
 import ctre
@@ -14,10 +11,9 @@ import rev
 import wpilib
 import navx
 
+# Only used to create controller threads
 import time
 import threading
-
-from utils.filehandler import FileHandler
 
 
 # TODO assert no empty/null keys in config (simplify if-statements)
@@ -393,9 +389,6 @@ class WPI_DigitalInput(wpilib.DigitalInput):
         channel = desc["channel"]
         super().__init__(channel)
 
-    def __str__(self):
-        return f"Controller object <{self}> on channel {self.getChannel}"
-
 
 class WPI_XboxController(wpilib.XboxController):
     """
@@ -427,159 +420,3 @@ class WPI_XboxController(wpilib.XboxController):
 
         updater = threading.Thread(target=update)
         updater.start()
-
-    # TODO add __str__ methods like this to other classes
-    def __str__(self):
-        return f"Controller object <{self}> on channel {self.getPort}"
-
-
-class _Mapping:
-    """
-    Simple object to map items, with additional
-    `add` and `get` functions for readability.
-    """
-
-    def add(self, name, item):
-        self.__dict__[name] = item
-
-    def get(self, name):
-        return self.__dict__[name]
-
-    def __getattr__(self, attr):
-        return self.__dict__[attr]
-
-    def __setattr__(self, name, val):
-        self.__dict__[name] = val
-
-
-class _HardwareComponents(_Mapping):
-    """
-    Container for mapping hardware components
-    to their appropriate constructor object.
-    """
-
-
-# Construct _HardwareComponents object
-HardwareComponents = _HardwareComponents()
-
-# Register components
-HardwareComponents.add("CANTalonSRX", WPI_TalonSRXMotor)
-HardwareComponents.add("CANTalonFX", WPI_TalonFXMotor)
-HardwareComponents.add("SparkMax", REV_SparkMaxMotor)
-HardwareComponents.add("compressor", WPI_Compressor)
-HardwareComponents.add("solenoid", WPI_Solenoid)
-HardwareComponents.add("doubleSolenoid", WPI_DoubleSolenoid)
-HardwareComponents.add("navx", NAVX_navX)
-HardwareComponents.add("breaksensor", WPI_DigitalInput)
-HardwareComponents.add("XboxController", WPI_XboxController)
-
-
-# class GenerateHardwareObjects(FileHandler):
-#     """
-#     Generate hardware objects from json data.
-#     """
-
-#     def __init__(self, robot, json_file=None):
-#         loaded_file = self.load(json_file) \
-#             if json_file.__class__ == str else json_file
-#         self._generate_objects(robot, loaded_file)
-
-#     def _new_hardware_object(self, desc=None, mapping=None):
-#         """
-#         Create a new hardware object.
-#         This method is a factory, capable of creating Python
-#         hardware objects from a hardware mapping.
-
-#         :param desc: Valid description of the hardware object, usually
-#         found in a JSON configuration file.
-
-#         :param mapping: Valid mapping object that inherits from the
-#         `_Mapping` class.
-#         """
-
-#         # Assert mapping is actually a formatted mapping
-#         if "_Mapper" not in mapping.__bases__ or mapping.__bases__ is None:
-#             raise ValueError(
-#                 f"invalid mapping: expected _Mapping, found {mapping.__bases__}"
-#             )
-#         obj_type = desc.pop("type")
-#         constructor = mapping.get(obj_type)
-
-#         # This allows for empty objects with default parent objects
-#         # (i.e. WPI_Compressor)
-#         return constructor() if not bool(desc) else constructor(desc)
-
-#     def _generate_objects(self, robot, loaded_data):
-#         for general_type, all_objects in loaded_data.items():
-#             for subsystem_name, subsystem_items in all_objects.items():
-#                 group_subsystem = "_".join([general_type, subsystem_name])
-#                 for item_name, item_desc in subsystem_items.items():
-#                     subsystem_items[item_name] = \
-#                         self._new_hardware_object(
-#                             desc=item_desc,
-#                             mapping=HardwareComponents)
-#                 setattr(robot, group_subsystem, subsystem_items)
-
-loaded_data = FileHandler.load("new_doof.json")
-
-class HardwareMeta(type):
-
-    @classmethod
-    def __prepare__(metacls, cls, bases):
-
-        class _Map(dict):
-
-            def __init__(self):
-                super().__init__()
-
-            def _add(self, name, item):
-                self.__dict__[name] = item
-            
-            def __getattr__(self, attr):
-                return self.__dict__[attr]
-
-        return _Map()
-
-    def __new__(metacls, cls, bases, namespace):
-        for general_type, all_objects in loaded_data.items():
-            g = super().__new__(metacls, general_type, (), {})
-            for subsystem_name, subsystem_items in all_objects.items():
-                s = super().__new__(metacls, subsystem_name, (), {})
-                for item_name, item_desc in subsystem_items.items():
-                    # TODO fix line length (PEP8)
-                    s._add(item_name, metacls._new_hardware_object(item_desc, HardwareComponents))
-                g._add(subsystem_name, s)
-            namespace.update({general_type: g})
-
-        return super().__new__(metacls, cls, bases, namespace)
-
-    @staticmethod
-    def _new_hardware_object(desc=None, mapping=None):
-        """
-        Create a new hardware object.
-        This method is a factory, capable of creating Python
-        hardware objects from a hardware mapping.
-
-        :param desc: Valid description of the hardware object, usually
-        found in a JSON configuration file.
-
-        :param mapping: Valid mapping object that inherits from the
-        `_Mapping` class.
-        """
-
-        # Assert mapping is actually a formatted mapping
-        if "_Mapper" not in mapping.__bases__ or mapping.__bases__ is None:
-            raise ValueError(
-                f"invalid mapping: expected _Mapping, found {mapping.__bases__}"
-            )
-        obj_type = desc.pop("type")
-        constructor = mapping.get(obj_type)
-
-        # This allows for empty objects with default parent objects
-        # (i.e. WPI_Compressor)
-        return constructor() if not bool(desc) else constructor(desc)
-
-class Hardware(metaclass=HardwareMeta):
-    pass
-
-# Hardware.motors.driveTrain.leftMotor

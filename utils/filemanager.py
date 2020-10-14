@@ -2,7 +2,7 @@ import json
 import yaml
 import os
 
-class FileHandler:
+class FileManager:
     """
     Various helper methods for finding and loading files/folders.
     """
@@ -13,7 +13,7 @@ class FileHandler:
         Load a .json or .yml file.
         """
 
-        directory = FileHandler.file_directory(name)
+        directory = FileManager.file_directory(name)
         _, file_type = os.path.splitext(name)
 
         with open(directory) as file:
@@ -62,7 +62,7 @@ class FileHandler:
         from the list.
         """
 
-        path = FileHandler.folder_directory(foldername)
+        path = FileManager.folder_directory(foldername)
         files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
         filtered_files = []
 
