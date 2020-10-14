@@ -99,9 +99,9 @@
 
 from sys import argv
 
-from src.utils.filehandler import FileHandler
+from .utils.filehandler import FileHandler
 
-from components.shooterLogic import ShooterLogic
+from .components.shooterLogic import ShooterLogic
 
 import os
 
