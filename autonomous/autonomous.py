@@ -1,8 +1,9 @@
 from magicbot import AutonomousStateMachine, tunable, timed_state, state
-from components.driveTrain import DriveTrain
-from components.shooterLogic import ShooterLogic
-from components.shooterMotors import ShooterMotorCreation
-from components.pneumatics import Pneumatics
+from configs.components.driveTrain import DriveTrain
+from configs.components.shooterLogic import ShooterLogic
+from configs.components.shooterMotors import ShooterMotorCreation
+from configs.components.pneumatics import Pneumatics
+from configs.components.autoAim import AutoAim
 
 class Autonomous(AutonomousStateMachine):
     """Creates the autonomous code"""
@@ -13,9 +14,18 @@ class Autonomous(AutonomousStateMachine):
     shooter: ShooterLogic
     shooterMotors: ShooterMotorCreation
     pneumatics: Pneumatics
+    autoAim: AutoAim
     drive_speed = tunable(.25)
 
+    """call aas here as new state"""
+
     @state(first = True)
+    def shoot(self):
+        """Aims the turret and fires"""
+        self.autoAim.aimAndShoot()
+        self.next_state('shooter_wait')
+
+    @state
     def engage_shooter(self):
         """Starts shooter and fires"""
         self.pneumatics.deployLoader()
