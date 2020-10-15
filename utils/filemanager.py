@@ -13,7 +13,8 @@ class FileManager:
         Load a .json or .yml file.
         """
 
-        directory = FileManager.file_directory(name)
+        # directory = FileManager.file_directory(name)
+        directory = name
         _, file_type = os.path.splitext(name)
 
         with open(directory) as file:

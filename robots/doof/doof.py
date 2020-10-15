@@ -1,6 +1,6 @@
 from magicbot import MagicRobot
 
-from .components.component1 import Component1
+from components.component1 import Component1
 
 from utils.hardware.hardware_manager import generate_hardware_objects
 

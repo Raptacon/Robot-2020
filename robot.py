@@ -116,8 +116,8 @@ def _process_args(args: list):
     else:
         robot = FileManager.load("robot.startup.json")["default"]
     _robot_py = os.getcwd() + sep + robot + sep + ".startup.json"
-    robot_py = FileManager.load(_robot_py)["main"]
-    cmds = args
+    robot_py = os.getcwd() + sep + FileManager.load(_robot_py)["main"]
+    cmds = " ".join(args)
     return robot_py, cmds
 
 if __name__ == "__main__":
