@@ -3,7 +3,11 @@
 To add a new hardware object, create a class that inherits from
 a base object from an API (such as CTRE, REV, WPILib, navX, etc.)
 and manipulate it appropriately (add custom methods, instantiate
-it with `super().__init__(), etc.).
+it with `super().__init__(), etc.). To add a new object to the
+mapping, create a new enum value in the HardwareConfig class
+(the name representing the value that would be found in a config
+file, and the appropriate class to be used to create the object
+as the value of the enum).
 """
 
 import ctre
@@ -15,10 +19,13 @@ import navx
 import time
 import threading
 
+# For hardware mapping
+from enum import Enum, unique
+
 
 # TODO assert no empty/null keys in config (simplify if-statements)
 # XXX why do we return on `set()` methods?
-class WPI_TalonSRXMotor(ctre.WPI_TalonSRX):
+class CTRE_TalonSRXMotor(ctre.WPI_TalonSRX):
     """
     Create a TalonSRX motor.
 
@@ -60,9 +67,8 @@ class WPI_TalonSRXMotor(ctre.WPI_TalonSRX):
         control_type = pid_desc["controlType"]
         self.control_type = getattr(ctre.ControlMode, control_type)
 
-        self.configSelectedFeedbackSensor(
-            ctre.FeedbackDevice(
-                pid_desc['feedbackDevice']), 0, 10)
+        feedback = ctre.FeedbackDevice(pid_desc['feedbackDevice'])
+        self.configSelectedFeedbackSensor(feedback, 0, 10)
         self.setSensorPhase(pid_desc['sensorPhase'])
         self.kPreScale = pid_desc['kPreScale']
 
@@ -103,7 +109,7 @@ class WPI_TalonSRXMotor(ctre.WPI_TalonSRX):
             if self.has_pid else self.set(speed)
 
 
-class WPI_TalonFXMotor(ctre.WPI_TalonFX):
+class CTRE_TalonFXMotor(ctre.WPI_TalonFX):
     """
     Create a TalonFX motor.
 
@@ -130,7 +136,6 @@ class WPI_TalonFXMotor(ctre.WPI_TalonFX):
                 mode=ctre.TalonFXControlMode.Follower,
                 value=desc["masterChannel"]
             )
-
         # Instantiate other pieces of the motor
         if "pid" in desc:
             self.has_pid = True
@@ -148,9 +153,8 @@ class WPI_TalonFXMotor(ctre.WPI_TalonFX):
         control_type = pid_desc["controlType"]
         self.control_type = getattr(ctre.TalonFXControlMode, control_type)
 
-        self.configSelectedFeedbackSensor(
-            ctre.FeedbackDevice(
-                pid_desc['feedbackDevice']), 0, 10)
+        feedback = ctre.FeedbackDevice(pid_desc['feedbackDevice'])
+        self.configSelectedFeedbackSensor(feedback, 0, 10)
         self.setSensorPhase(pid_desc['sensorPhase'])
         self.kPreScale = pid_desc['kPreScale']
 
@@ -382,7 +386,7 @@ class NAVX_navX(navx.AHRS):
 
 class WPI_DigitalInput(wpilib.DigitalInput):
     """
-    Creates a digital input object
+    Creates a digital input object.
     """
 
     def __init__(self, desc):
@@ -392,7 +396,7 @@ class WPI_DigitalInput(wpilib.DigitalInput):
 
 class WPI_XboxController(wpilib.XboxController):
     """
-    Creates an Xbox controller object
+    Creates an Xbox controller object.
     """
 
     def __init__(self, desc):
@@ -420,3 +424,24 @@ class WPI_XboxController(wpilib.XboxController):
 
         updater = threading.Thread(target=update)
         updater.start()
+
+
+@unique
+class HardwareConfig(Enum):
+
+    # Motors
+    CANTalonSRX = CTRE_TalonSRXMotor
+    CANTalonFX = CTRE_TalonFXMotor
+    CANSparkMax = REV_SparkMaxMotor
+
+    # Pneumatics
+    compressor = WPI_Compressor
+    solenoid = WPI_Solenoid
+    doubleSolenoid = WPI_DoubleSolenoid
+
+    # Sensors
+    navx = NAVX_navX
+    digitalInput = WPI_DigitalInput
+
+    # Inputs
+    XboxController = WPI_XboxController
