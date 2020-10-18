@@ -12,13 +12,13 @@ class ControlMode(Enum):
     kAngleTurning = auto()
     kDisabled = auto()
 
-class DriveTrain():
-    # Note - The way we will want to do this will be to give this component motor description dictionaries from robotmap and then creating the motors with motorhelper. After that, we simply call wpilib' differential drive
+class DriveTrain:
+
     motors_driveTrain: dict
     controllers: dict
+    control_mode: bool
     driveMotorsMultiplier = tunable(.5)
     sensitivityExponent = tunable(1.8)
-    #gyros_system: dict
 
     compatString = ["all"]
 
@@ -95,7 +95,7 @@ class DriveTrain():
         driveLeft = self.expScale(self.drive.leftY, self.sensitivityExponent) * self.driveMotorsMultiplier
         driveRight = self.expScale(self.drive.rightY, self.sensitivityExponent) * self.driveMotorsMultiplier
 
-        self.setTank(driveLeft, driveRight)
+        self.setTank(driveLeft, driveRight) if self.control_mode == "tank" else self.setArcade(driveLeft, driveRight)
 
         if self.controlMode == ControlMode.kTankDrive:
             self.driveTrain.tankDrive(self.tankLeftSpeed, self.tankRightSpeed, False)

@@ -17,6 +17,7 @@ from components.feederMap import FeederMap
 
 # Other imports
 from importlib import import_module
+from utils.filemanager import FileManager as file
 
 
 class MyRobot(MagicRobot):
@@ -52,7 +53,13 @@ class MyRobot(MagicRobot):
             obj_type = desc.pop("type")
             h_objs = import_module("utils.base_hardware_objects")
             h_config = getattr(h_objs, "HardwareConfig")
-            constructor = getattr(h_config, obj_type)
+            constructor = getattr(h_config, obj_type, None)
+            if constructor is None:
+                msg = (
+                    f"Object type {obj_type} is unsupported. To add it, "
+                    ""
+                )
+                raise AttributeError(msg)
             return constructor() if not bool(desc) else constructor(desc)
 
         for general_type, all_objects in file.load(config_file):

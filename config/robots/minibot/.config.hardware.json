@@ -1,0 +1,24 @@
+{
+    "inputs": {
+        "XboxControllers": {
+            "drive": {
+                "type": "XboxController",
+                "channel": 0
+            }
+        }
+    },
+    "motors": {
+        "driveTrain": {
+            "rightMotor": {
+                "channel": 30,
+                "type": "CANTalonSRX",
+                "inverted": false
+            },
+            "leftMotor": {
+                "channel": 20,
+                "type": "CANTalonSRX",
+                "inverted": false
+            }
+        }
+    }
+}

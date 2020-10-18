@@ -1,0 +1,58 @@
+{
+    "inputs": {
+        "XboxControllers": {
+            "drive": {
+                "type": "XboxController",
+                "channel": 0
+            }
+        }
+    },
+    "motors": {
+        "driveTrain": {
+            "rightMotor": {
+                "channel": 30,
+                "type": "CANTalonFX",
+                "inverted": true,
+                "pid": {
+                    "controlType": "Velocity",
+                    "feedbackDevice": 1,
+                    "kPreScale": 4096,
+                    "kP": 0.01,
+                    "kD": 0,
+                    "kI": 0.0000001,
+                    "kF": 0,
+                    "sensorPhase": true
+                }
+            },
+            "rightFollower": {
+                "channel": 31,
+                "masterChannel": 30,
+                "type": "CANTalonFX",
+                "follower": true,
+                "inverted": true
+            },
+            "leftMotor": {
+                "channel": 20,
+                "type": "CANTalonFX",
+                "inverted": true,
+                "pid": {
+                    "controlType": "Velocity",
+                    "feedbackDevice": 1,
+                    "kPreScale": 4096,
+                    "kP": 0.01,
+                    "kD": 0,
+                    "kI": 0.0000001,
+                    "kF": 0,
+                    "sensorPhase": true
+                }
+            },
+            "leftFollower": {
+                "channel": 21,
+                "masterChannel": 20,
+                "type": "CANTalonFX",
+                "follower": true,
+                "inverted": true
+            }
+        }
+    }
+}

@@ -1,0 +1,4 @@
+Folder for JSON robot configuration files.
+
+Robots are now separated into their own folders to grant easier organization
+when configuring both hardware and software.
