@@ -87,7 +87,7 @@
                 "inverted": true,
                 "motorType": "kBrushless",
                 "pid": {
-                    "controlType": "Velocity",
+                    "controlType": "kVelocity",
                     "kP": 0.0004,
                     "kI": 0,
                     "kD": 0,

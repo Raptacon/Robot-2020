@@ -4,7 +4,7 @@ To add a new hardware object, create a class that inherits from
 a base object from an API (such as CTRE, REV, WPILib, navX, etc.)
 and manipulate it appropriately (add custom methods, instantiate
 it with `super().__init__(), etc.). To add a new object to the
-mapping, create a new enum value in the HardwareConfig class
+mapping, create a new value in the HardwareConfig class
 (the name representing the value that would be found in a config
 file, and the appropriate class to be used to create the object
 as the value of the enum).
@@ -18,9 +18,6 @@ import navx
 # Only used to create controller threads
 import time
 import threading
-
-# For hardware mapping
-from enum import Enum, unique
 
 
 # TODO assert no empty/null keys in config (simplify if-statements)
@@ -220,7 +217,7 @@ class REV_SparkMaxMotor(rev.CANSparkMax):
 
         # Setup constructor variables
         channel = desc["channel"]
-        motor_type = getattr(rev.ControlType, desc["motorType"])
+        motor_type = getattr(rev.MotorType, desc["motorType"])
 
         # Initialize parent class
         super().__init__(channel, motor_type)
@@ -426,8 +423,14 @@ class WPI_XboxController(wpilib.XboxController):
         updater.start()
 
 
-@unique
-class HardwareConfig(Enum):
+class HardwareConfig:
+    """
+    Map JSON configuration types to Python objects.
+    The name of the variable should be the name
+    found in the `type` key, and the value should
+    be the Python object that will be used to
+    construct the object.
+    """
 
     # Motors
     CANTalonSRX = CTRE_TalonSRXMotor
@@ -441,7 +444,7 @@ class HardwareConfig(Enum):
 
     # Sensors
     navx = NAVX_navX
-    digitalInput = WPI_DigitalInput
+    RIODigitalIn = WPI_DigitalInput
 
     # Inputs
     XboxController = WPI_XboxController

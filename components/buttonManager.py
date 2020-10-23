@@ -22,7 +22,7 @@ class ButtonManager(object):
     use any registered buttons directly.
     """
 
-    compatString = ["all"]
+    robot = ["all"]
 
     def setup(self):
         """

@@ -3,11 +3,12 @@ from components.breakSensors import Sensors, State
 from components.feederMap import FeederMap, Type
 from magicbot import StateMachine, state, timed_state, tunable, feedback
 import logging
+from utils.buttonmanager import button_event
 
 class LoaderLogic(StateMachine):
     """StateMachine-based loader. Has both automatic and manual modes."""
 
-    compatString = ["doof"]
+    robot = ["doof"]
 
     # Component/module related things
     shooterMotors: ShooterMotorCreation

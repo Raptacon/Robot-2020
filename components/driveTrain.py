@@ -7,6 +7,7 @@ class ControlMode(Enum):
     """
     Drive Train Control Modes
     """
+
     kArcadeDrive = auto()
     kTankDrive = auto()
     kAngleTurning = auto()
@@ -14,13 +15,18 @@ class ControlMode(Enum):
 
 class DriveTrain:
 
+    robot = ["all"]
+
+    # Injectables
     motors_driveTrain: dict
-    controllers: dict
-    control_mode: bool
+    inputs_XboxControllers: dict
+
+    # Tunables
     driveMotorsMultiplier = tunable(.5)
     sensitivityExponent = tunable(1.8)
 
-    compatString = ["all"]
+    # Configurable
+    # control_mode: str
 
     def setup(self):
         self.tankLeftSpeed = 0
@@ -31,7 +37,7 @@ class DriveTrain:
         self.controlMode = ControlMode.kDisabled
         self.leftMotor = self.motors_driveTrain["leftMotor"]
         self.rightMotor = self.motors_driveTrain["rightMotor"]
-        self.drive = self.controllers['drive']
+        self.drive = self.inputs_XboxControllers['drive']
         self.driveTrain = wpilib.drive.DifferentialDrive(self.leftMotor, self.rightMotor)
         self.logger.info("DriveTrain setup completed")
 
@@ -95,7 +101,8 @@ class DriveTrain:
         driveLeft = self.expScale(self.drive.leftY, self.sensitivityExponent) * self.driveMotorsMultiplier
         driveRight = self.expScale(self.drive.rightY, self.sensitivityExponent) * self.driveMotorsMultiplier
 
-        self.setTank(driveLeft, driveRight) if self.control_mode == "tank" else self.setArcade(driveLeft, driveRight)
+        # self.setTank(driveLeft, driveRight) if self.control_mode == "tank" else self.setArcade(driveLeft, driveRight)
+        self.setTank(driveLeft, driveRight)
 
         if self.controlMode == ControlMode.kTankDrive:
             self.driveTrain.tankDrive(self.tankLeftSpeed, self.tankRightSpeed, False)

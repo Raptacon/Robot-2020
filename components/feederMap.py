@@ -12,20 +12,20 @@ class Type(Enum):
 class FeederMap:
     """Simple map that holds the logic for running elements of the feeder."""
 
-    compatString = ["doof"]
+    robot = ["doof"]
 
     shooterMotors: ShooterMotorCreation
     #xboxMap: XboxMap
     logger: logging
 
-    controllers: dict
+    inputs_XboxControllers: dict
 
     loaderMotorSpeed = tunable(.4)
     intakeMotorSpeed = tunable(.7)
 
     def on_enable(self):
 
-        self.mech = self.controllers['mech']
+        self.mech = self.inputs_XboxControllers['mech']
 
         self.logger.setLevel(logging.DEBUG)
 

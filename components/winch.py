@@ -1,11 +1,11 @@
 
 class Winch:
 
-    compatString = ["doof"]
+    robot = ["doof"]
 
     motors_winch: dict
 
-    controllers: dict
+    inputs_XboxControllers: dict
 
     def on_enable(self):
         """
@@ -13,7 +13,7 @@ class Winch:
         """
         self.upSpeed = 0
         self.winchMotor = self.motors_winch["winchMotor"]
-        self.mech = self.controllers['mech']
+        self.mech = self.inputs_XboxControllers['mech']
 
         self.logger.info("Lifter Component Created")
     

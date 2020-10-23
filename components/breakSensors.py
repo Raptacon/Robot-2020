@@ -10,14 +10,14 @@ class State:
 
 class Sensors:
 
-    compatString = ["doof"]
+    robot = ["doof"]
 
-    digitalInput_breaksensors: dict
+    sensors_breaksensors: dict
 
     def on_enable(self):
         self.SensorArray = []
         for x in range(1, 6):
-            self.SensorArray.append(self.digitalInput_breaksensors["sensor" + str(x)])
+            self.SensorArray.append(self.sensors_breaksensors["sensor" + str(x)])
         self.logger.info("Break sensor component created")
 
     def loadingSensor(self, state):

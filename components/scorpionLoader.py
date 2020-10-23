@@ -2,7 +2,7 @@ from magicbot import tunable
 
 class ScorpionLoader:
 
-    compatString = ["scorpion"]
+    robot = ["scorpion"]
 
     controllers: dict
 

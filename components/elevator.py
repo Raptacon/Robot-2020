@@ -2,7 +2,7 @@ from magicbot import tunable
 
 class Elevator:
 
-    compatString = ["doof"]
+    robot = ["doof"]
 
     motors_loader: dict
     downSpeed = tunable(-.4)

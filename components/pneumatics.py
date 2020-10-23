@@ -4,10 +4,10 @@ import logging
 
 class Pneumatics:
 
-    compatString = ["doof"]
+    robot = ["doof"]
     
-    compressors_pneumatics: dict
-    solenoids_pneumatics: dict
+    pneumatics_compressors: dict
+    pneumatics_solenoids: dict
     logger: logging
     
 
@@ -16,11 +16,11 @@ class Pneumatics:
         Setup to enable everything after variable injection from robot.py. This is where the bulk of setup for this class should be.
         on_enable() may need to be used for when something needs to happen everytime the state is changed, like from autonomous to teleop.
         """
-        self.loaderSolenoid = self.solenoids_pneumatics["loader"]
+        self.loaderSolenoid = self.pneumatics_solenoids["intakeSolenoid"]
         self.newLoaderValue = None
         #turn on all compressors
-        self.logger.info("Starting compressor %s", self.compressors_pneumatics["compressor"])
-        self.compressors_pneumatics["compressor"].start()
+        self.logger.info("Starting compressor %s", self.pneumatics_compressors["compressor"])
+        self.pneumatics_compressors["compressor"].start()
 
     def getLoaderDeployed(self):
         """
@@ -53,7 +53,7 @@ class Pneumatics:
         """
         Returns how much current the compressor is currently drawing. Useful to not brown out
         """
-        return self.compressors_pneumatics["compressor"].getCompressorCurrent()
+        return self.pneumatics_compressors["compressor"].getCompressorCurrent()
 
     def execute(self):
         """

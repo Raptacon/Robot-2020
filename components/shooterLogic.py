@@ -7,7 +7,7 @@ import logging
 class ShooterLogic(StateMachine):
     """StateMachine-based shooter. Has both manual and automatic modes."""
 
-    compatString = ["doof"]
+    robot = ["doof"]
 
     # Component/module related things
     shooterMotors: ShooterMotorCreation
@@ -16,7 +16,7 @@ class ShooterLogic(StateMachine):
     sensors: Sensors
     speedTolerance = tunable(50)
 
-    controllers: dict
+    inputs_XboxControllers: dict
 
     # Tunables
     shootingLoaderSpeed = tunable(.4)
@@ -33,7 +33,7 @@ class ShooterLogic(StateMachine):
         self.isAutonomous = False
         self.isSetup = True
 
-        self.mech = self.controllers['mech'].controller
+        self.mech = self.inputs_XboxControllers['mech'].controller
 
     def autonomousEnabled(self):
         """Indicates if the robot is in autonomous mode."""
