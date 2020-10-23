@@ -3,16 +3,26 @@ import wpilib
 from magicbot import MagicRobot
 
 # Component imports:
-from components.driveTrain import DriveTrain
-from components.pneumatics import Pneumatics
-from components.breakSensors import Sensors
-from components.winch import Winch
-from components.shooterMotors import ShooterMotorCreation
-from components.shooterLogic import ShooterLogic
-from components.loaderLogic import LoaderLogic
-from components.elevator import Elevator
-# from components.scorpionLoader import ScorpionLoader
-from components.feederMap import FeederMap
+
+# Doof
+# from components.doof.driveTrain import DriveTrain
+# from components.doof.pneumatics import Pneumatics
+# from components.doof.breakSensors import Sensors
+# from components.doof.winch import Winch
+# from components.doof.shooterMotors import ShooterMotorCreation
+# from components.doof.shooterLogic import ShooterLogic
+# from components.doof.loaderLogic import LoaderLogic
+# from components.doof.elevator import Elevator
+# from components.doof.feederMap import FeederMap
+
+# # Scorpion
+# from components.scorpion.scorpionLoader import ScorpionLoader
+# from components.scorpion.driveTrain import DriveTrain
+
+# # Minibot
+# from components.minibot.driveTrain import DriveTrain
+
+from components import *
 
 # Other imports
 from utils.configmanager import InitializeRobot
@@ -25,26 +35,25 @@ class MyRobot(MagicRobot):
     Base robot class of Magic Bot Type
     """
 
-    shooter: ShooterLogic
-    loader: LoaderLogic
-    feeder: FeederMap
-    sensors: Sensors
-    shooterMotors: ShooterMotorCreation
-    driveTrain: DriveTrain
-    winch: Winch
-    pneumatics: Pneumatics
-    elevator: Elevator
+    # Components
 
-    inputs_XboxControllers: dict
-    motors_driveTrain:      dict
-    motors_loader:          dict
-    motors_shooter:         dict
-    motors_elevator:        dict
-    motors_winch:           dict
-    sensors_breaksensors:   dict
-    pneumatics_compressors: dict
-    pneumatics_solenoids:   dict
+    # Doof
+    # shooter: doof.ShooterLogic
+    # loader: doof.LoaderLogic
+    # feeder: FeederMap
+    # sensors: Sensors
+    # shooterMotors: ShooterMotorCreation
+    # driveTrain: DriveTrain
+    # winch: Winch
+    # pneumatics: Pneumatics
+    # elevator: Elevator
 
+    # # Scorpion
+    # scorpionLoader: ScorpionLoader
+    # scorpionDriveTrain: DriveTrain
+
+    # # Minibot
+    # minibotDriveTrain: DriveTrain
 
     # HACK classmethod necessary to access
     #  __dict__ from class rather than instance
@@ -93,16 +102,6 @@ class MyRobot(MagicRobot):
 
         for bad_comp in bad_components:
             del annotations[bad_comp]
-
-    def __check_controllers(self, needed_inputs):
-        """
-        Checks the number of controllers needed to register
-        input events with a robot against the actual number
-        of controllers found.
-        """
-
-        if len(self.inputs_XboxControllers) != needed_inputs:
-            raise ValueError("")
 
     def createObjects(self):
         """
