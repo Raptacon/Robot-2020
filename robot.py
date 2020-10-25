@@ -3,31 +3,21 @@ import wpilib
 from magicbot import MagicRobot
 
 # Component imports:
-
-# Doof
-# from components.doof.driveTrain import DriveTrain
-# from components.doof.pneumatics import Pneumatics
-# from components.doof.breakSensors import Sensors
-# from components.doof.winch import Winch
-# from components.doof.shooterMotors import ShooterMotorCreation
-# from components.doof.shooterLogic import ShooterLogic
-# from components.doof.loaderLogic import LoaderLogic
-# from components.doof.elevator import Elevator
-# from components.doof.feederMap import FeederMap
-
-# # Scorpion
-# from components.scorpion.scorpionLoader import ScorpionLoader
-# from components.scorpion.driveTrain import DriveTrain
-
-# # Minibot
-# from components.minibot.driveTrain import DriveTrain
-
-from components import *
+from components.driveTrain import DriveTrain
+from components.pneumatics import Pneumatics
+from components.breakSensors import Sensors
+from components.winch import Winch
+from components.shooterMotors import ShooterMotorCreation
+from components.shooterLogic import ShooterLogic
+from components.loaderLogic import LoaderLogic
+from components.elevator import Elevator
+from components.feederMap import FeederMap
 
 # Other imports
 from utils.configmanager import InitializeRobot
 from utils.buttonmanager import ButtonManager, Button, ButtonEvent
 from warnings import warn
+from typing import List, Tuple
 
 
 class MyRobot(MagicRobot):
@@ -36,24 +26,21 @@ class MyRobot(MagicRobot):
     """
 
     # Components
+    shooter: ShooterLogic
+    loader: LoaderLogic
+    feeder: FeederMap
+    sensors: Sensors
+    shooterMotors: ShooterMotorCreation
+    driveTrain: DriveTrain
+    winch: Winch
+    pneumatics: Pneumatics
+    elevator: Elevator
 
-    # Doof
-    # shooter: doof.ShooterLogic
-    # loader: doof.LoaderLogic
-    # feeder: FeederMap
-    # sensors: Sensors
-    # shooterMotors: ShooterMotorCreation
-    # driveTrain: DriveTrain
-    # winch: Winch
-    # pneumatics: Pneumatics
-    # elevator: Elevator
+    # Controllers
+    inputs_XboxControllers: dict
 
-    # # Scorpion
-    # scorpionLoader: ScorpionLoader
-    # scorpionDriveTrain: DriveTrain
-
-    # # Minibot
-    # minibotDriveTrain: DriveTrain
+    # TODO: remove `__component_cleanup` if we
+    #       don't use multiple robots.
 
     # HACK classmethod necessary to access
     #  __dict__ from class rather than instance
@@ -66,7 +53,9 @@ class MyRobot(MagicRobot):
         #
         # NOTE: `_builtin_types` assures that injectable types
         #       aren't removed or checked for a `robot` attribute,
-        #       but injectables SHOULD NOT be used in MyRobot.
+        #       but injectables SHOULD NOT be used in MyRobot
+        #       (with the exception of inputs_XboxControllers,
+        #       they are used for buttons).
         #
 
         _builtin_types = ('str', 'int', 'float', 'complex', 'list',
@@ -103,13 +92,25 @@ class MyRobot(MagicRobot):
         for bad_comp in bad_components:
             del annotations[bad_comp]
 
+    def __register_buttons(self, controller, events: List[Tuple[Button, ButtonEvent, callable]]=None):
+
+        with ButtonManager(controller) as register:
+            for event in events:
+                _button       = event[0]
+                _button_event = event[1]
+                _callable     = event[2]
+                register(_button, _button_event, _callable)
+
     def createObjects(self):
         """
         Robot-wide initialization code should go here. Replaces robotInit
         """
 
-        self.initializer = InitializeRobot(self)
-        self.__component_cleanup(self.initializer.config)
+        i = InitializeRobot(self)
+        # Attr set to avoid making `i` and instance
+        # variable just to access the `config` attribute
+        setattr(self, "robot_name", i.config)
+        self.__component_cleanup(self.robot_name)
 
     def autonomousInit(self):
         """Run when autonomous is enabled."""
@@ -123,6 +124,14 @@ class MyRobot(MagicRobot):
         #
         # TODO: figure out how to support button events for other robots.
         #       Right now this is exclusive to doof.
+        #
+        #       NOTE: This will likely need to be "brute-forced"
+        #             (chain of if-elif statements) because buttons
+        #             can't live in a config file and they have
+        #             to be explicitly listed here.
+        #
+        #             If we decide NOT to use multiple robots,
+        #             this won't be necessary.
         #
         # XXX: Should we handle buttons within individual components?
         #      We could register buttons in the `on_enable` portion of
@@ -142,32 +151,35 @@ class MyRobot(MagicRobot):
 
         # Setup button events
 
-        if self.initializer.config != "doof":
-            warn(
-                f"Robot '{self.initializer.config}' doesn't support buttons.",
-                Warning
-            )
-            return
+        if self.robot_name == "doof":
 
-        drive_controller = self.inputs_XboxControllers["drive"].controller
-        mech_controller = self.inputs_XboxControllers["mech"].controller
+            drive_controller = self.inputs_XboxControllers["drive"].controller
+            mech_controller = self.inputs_XboxControllers["mech"].controller
 
-        with ButtonManager(drive_controller) as drive_events:
-            drive_events(Button.kBumperLeft, ButtonEvent.kOnPress, self.driveTrain.enableCreeperMode)
-            drive_events(Button.kBumperLeft, ButtonEvent.kOnRelease, self.driveTrain.disableCreeperMode)
+            self.__register_buttons(drive_controller, events=[
+                (Button.kBumperLeft,    ButtonEvent.kOnPress,   self.driveTrain.enableCreeperMode   ),
+                (Button.kBumperLeft,    ButtonEvent.kOnRelease, self.driveTrain.disableCreeperMode  )
+            ])
 
-        with ButtonManager(mech_controller) as mech_events:
-            mech_events(Button.kX, ButtonEvent.kOnPress, self.pneumatics.toggleLoader)
-            mech_events(Button.kY, ButtonEvent.kOnPress, self.loader.setAutoLoading)
-            mech_events(Button.kB, ButtonEvent.kOnPress, self.loader.setManualLoading)
-            mech_events(Button.kA, ButtonEvent.kOnPress, self.shooter.shootBalls)
-            mech_events(Button.kA, ButtonEvent.kOnPress, self.loader.stopLoading)
-            mech_events(Button.kA, ButtonEvent.kOnRelease, self.shooter.doneShooting)
-            mech_events(Button.kA, ButtonEvent.kOnRelease, self.loader.determineNextAction)
-            mech_events(Button.kBumperRight, ButtonEvent.kOnPress, self.elevator.setRaise)
-            mech_events(Button.kBumperRight, ButtonEvent.kOnRelease, self.elevator.stop)
-            mech_events(Button.kBumperLeft, ButtonEvent.kOnPress, self.elevator.setLower)
-            mech_events(Button.kBumperLeft, ButtonEvent.kOnRelease, self.elevator.stop)
+            self.__register_buttons(mech_controller, events=[
+                (Button.kX,             ButtonEvent.kOnPress,   self.pneumatics.toggleLoader        ),
+                (Button.kY,             ButtonEvent.kOnPress,   self.loader.setAutoLoading          ),
+                (Button.kB,             ButtonEvent.kOnPress,   self.loader.setManualLoading        ),
+                (Button.kA,             ButtonEvent.kOnPress,   self.shooter.shootBalls             ),
+                (Button.kA,             ButtonEvent.kOnPress,   self.loader.stopLoading             ),
+                (Button.kA,             ButtonEvent.kOnRelease, self.shooter.doneShooting           ),
+                (Button.kA,             ButtonEvent.kOnRelease, self.loader.determineNextAction     ),
+                (Button.kBumperRight,   ButtonEvent.kOnPress,   self.elevator.setRaise              ),
+                (Button.kBumperRight,   ButtonEvent.kOnRelease, self.elevator.stop                  ),
+                (Button.kBumperLeft,    ButtonEvent.kOnPress,   self.elevator.setLower              ),
+                (Button.kBumperLeft,    ButtonEvent.kOnRelease, self.elevator.stop                  )
+            ])
+
+        elif self.robot_name == "scorpion":
+            warn(f"Robot '{self.robot_name} has no button events.", Warning)
+
+        elif self.robot_name == "minibot":
+            warn(f"Robot '{self.robot_name} has no button events.", Warning)
 
     def teleopPeriodic(self):
         """
@@ -176,6 +188,4 @@ class MyRobot(MagicRobot):
         pass
 
 if __name__ == '__main__':
-    import sys
-
     wpilib.run(MyRobot)
