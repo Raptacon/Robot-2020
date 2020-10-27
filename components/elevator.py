@@ -4,13 +4,13 @@ class Elevator:
 
     robot = ["doof"]
 
-    motors_loader: dict
+    motors_elevator: dict
     downSpeed = tunable(-.4)
     upSpeed = tunable(.4)
 
     def on_enable(self):
         self.speed = 0
-        self.elevatorMotor = self.motors_loader['elevatorMotor']
+        self.elevatorMotor = self.motors_elevator['elevatorMotor']
         print("Elevator Enabled")
 
     def setRaise(self):

@@ -1,29 +1,10 @@
 from enum import Enum, auto
 from wpilib import XboxController
 
-from abc import ABC, abstractmethod
-
-
-class _InputManager(ABC):
-    """
-    Abstract base class holding necessary methods for
-    input managers.
-    """
-
-    @abstractmethod
-    def __register(self, input_type, condition, action):
-        pass
-
 
 class Button(XboxController.Button):
     """
     Xbox controller buttons.
-    """
-
-
-class Axis(XboxController.Axis):
-    """
-    Xbox controller axis.
     """
 
 
@@ -38,63 +19,91 @@ class ButtonEvent(Enum):
     kWhileReleased = auto()
 
 
-# HACK emulate enum values in methods
-#      to take arguments.
-class AxisEvent:
+class ButtonManager:
 
-    @staticmethod
-    def kLessThan(value):
-        return value
-
-    @staticmethod
-    def kGreaterThan(value):
-        return value
-
-    @staticmethod
-    def kAtValue(value):
-        return value
-
-
-class AxisManager(_InputManager):
+    _entries_container = []
+    entries = {}
 
     def __init__(self, controller):
-        pass
-
-    def __register(self, axis, condition, action):
-        pass
+        self.controller = controller
 
     def __enter__(self):
-        return self.__register
+        return self._entries_container.append
 
     def __exit__(self, *err_args):
-        pass
+        self.entries.update({self.controller: self._entries_container})
+
+    @staticmethod
+    def _run(controller, button, condition, action):
+
+        action_map = {
+            ButtonEvent.kOnPress: controller.getRawButtonPressed(button),
+            ButtonEvent.kOnRelease: controller.getRawButtonReleased(button),
+            ButtonEvent.kWhilePressed: controller.getRawButton(button),
+            ButtonEvent.kWhileReleased: not controller.getRawButton(button)
+        }
+
+        if action_map[condition]:
+            action()
+
+    @classmethod
+    def update_buttons(cls):
+        all_entries = cls.__dict__.get("entries")
+        for controller, entries in all_entries.items():
+            for entry in entries:
+                button, condition, action = entry
+                cls._run(controller, button, condition, action)
 
 
-class ButtonManager(_InputManager):
+# # TESTING =================================================
 
-    def __init__(self, controller):
-        pass
+# # HACK emulate enum values in methods
+# #      to take arguments.
+# class AxisEvent:
 
-    def __register(self, button, condition, action):
-        pass
+#     @staticmethod
+#     def kLessThan(value):
+#         return value
 
-    def __enter__(self):
-        return self.__register
+#     @staticmethod
+#     def kGreaterThan(value):
+#         return value
 
-    def __exit__(self, *err_args):
-        pass
+#     @staticmethod
+#     def kAtValue(value):
+#         return value
 
+# class Axis(XboxController.Axis):
+#     """
+#     Xbox controller axis.
+#     """
 
-class InputManager(_InputManager):
+# class InputManager(_InputManager):
 
-    def __init__(self, controller):
-        pass
+#     def __init__(self, controller):
+#         pass
 
-    def __register(self, input_type, condition, action):
-        pass
+#     def __register(self, input_type, condition, action):
+#         pass
 
-    def __enter__(self):
-        return self.__register
+#     def __enter__(self):
+#         return self.__register
 
-    def __exit__(self, *err_args):
-        pass
+#     def __exit__(self, *err_args):
+#         pass
+
+# class AxisManager(_InputManager):
+
+#     def __init__(self, controller):
+#         pass
+
+#     def __register(self, axis, condition, action):
+#         pass
+
+#     def __enter__(self):
+#         return self.__register
+
+#     def __exit__(self, *err_args):
+#         pass
+
+# # TESTING =================================================

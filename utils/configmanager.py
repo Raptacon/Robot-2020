@@ -14,7 +14,7 @@ load = FileManager.load
 
 # Set constants
 CONFIGS = cwd + sep + "config" + sep
-ROBOT_CONFIGS = CONFIGS + "robots" + sep
+ROBOT_CONFIGS = CONFIGS + sep
 HARDWARE_CONFIG = ".config.hardware.json"
 SOFTWARE_CONFIG = ".config.software.json"
 
@@ -32,7 +32,9 @@ class InitializeRobot:
             warn(
                 f"No robot specified. Using default robot: {DEFAULT}", Warning
             )
-            config_dir = "DEFAULT"
+            # FIXME make variable, don't define robot as "doof" here
+            robot = "doof"
+            config_dir = DEFAULT
         else:
             config_dir = ROBOT_CONFIGS + robot + sep
 

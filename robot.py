@@ -90,16 +90,14 @@ class MyRobot(MagicRobot):
                     bad_components.append(cname)
 
         for bad_comp in bad_components:
+            cls.logger.info(f"Removing component {bad_comp}")
             del annotations[bad_comp]
 
     def __register_buttons(self, controller, events: List[Tuple[Button, ButtonEvent, callable]]=None):
 
         with ButtonManager(controller) as register:
             for event in events:
-                _button       = event[0]
-                _button_event = event[1]
-                _callable     = event[2]
-                register(_button, _button_event, _callable)
+                register(event)
 
     def createObjects(self):
         """
@@ -165,8 +163,8 @@ class MyRobot(MagicRobot):
                 (Button.kX,             ButtonEvent.kOnPress,   self.pneumatics.toggleLoader        ),
                 (Button.kY,             ButtonEvent.kOnPress,   self.loader.setAutoLoading          ),
                 (Button.kB,             ButtonEvent.kOnPress,   self.loader.setManualLoading        ),
-                (Button.kA,             ButtonEvent.kOnPress,   self.shooter.shootBalls             ),
                 (Button.kA,             ButtonEvent.kOnPress,   self.loader.stopLoading             ),
+                (Button.kA,             ButtonEvent.kOnPress,   self.shooter.shootBalls             ),
                 (Button.kA,             ButtonEvent.kOnRelease, self.shooter.doneShooting           ),
                 (Button.kA,             ButtonEvent.kOnRelease, self.loader.determineNextAction     ),
                 (Button.kBumperRight,   ButtonEvent.kOnPress,   self.elevator.setRaise              ),
@@ -176,16 +174,16 @@ class MyRobot(MagicRobot):
             ])
 
         elif self.robot_name == "scorpion":
-            warn(f"Robot '{self.robot_name} has no button events.", Warning)
+            warn(f"Robot '{self.robot_name}' has no button events.", Warning)
 
         elif self.robot_name == "minibot":
-            warn(f"Robot '{self.robot_name} has no button events.", Warning)
+            warn(f"Robot '{self.robot_name}' has no button events.", Warning)
 
     def teleopPeriodic(self):
         """
         Must include. Called running teleop.
         """
-        pass
+        ButtonManager.update_buttons()
 
 if __name__ == '__main__':
     wpilib.run(MyRobot)

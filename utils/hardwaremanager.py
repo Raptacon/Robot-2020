@@ -101,9 +101,10 @@ class CTRE_TalonSRXMotor(ctre.WPI_TalonSRX):
         Sets the motor to a value appropriately.
         """
 
-        return super().set(self, self.control_type,
-                           speed * self.kPreScale) \
-            if self.has_pid else self.set(speed)
+        # TODO conform to PEP8 (line length)
+        if self.has_pid:
+            return super().set(self, self.control_type, speed * self.kPreScale)
+        return self.set(speed)
 
 
 class CTRE_TalonFXMotor(ctre.WPI_TalonFX):
@@ -190,9 +191,8 @@ class CTRE_TalonFXMotor(ctre.WPI_TalonFX):
         Sets the motor to a value appropriately.
         """
 
-        return super().set(self, self.controlType,
-                           speed * self.kPreScale) \
-            if self.has_pid else super().set(self, speed)
+        # TODO conform to PEP8 (line length)
+        return super().set(self, self.controlType, speed * self.kPreScale) if self.has_pid else super().set(self, speed)
 
 
 class REV_SparkMaxMotor(rev.CANSparkMax):
