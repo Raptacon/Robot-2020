@@ -20,6 +20,8 @@ import time
 import threading
 
 
+
+
 # TODO assert no empty/null keys in config (simplify if-statements)
 # XXX why do we return on `set()` methods?
 class CTRE_TalonSRXMotor(ctre.WPI_TalonSRX):
@@ -104,7 +106,7 @@ class CTRE_TalonSRXMotor(ctre.WPI_TalonSRX):
         # TODO conform to PEP8 (line length)
         if self.has_pid:
             return super().set(self, self.control_type, speed * self.kPreScale)
-        return self.set(speed)
+        return super().set(speed)
 
 
 class CTRE_TalonFXMotor(ctre.WPI_TalonFX):
@@ -192,7 +194,9 @@ class CTRE_TalonFXMotor(ctre.WPI_TalonFX):
         """
 
         # TODO conform to PEP8 (line length)
-        return super().set(self, self.controlType, speed * self.kPreScale) if self.has_pid else super().set(self, speed)
+        if self.has_pid:
+            return super().set(self, self.controlType, speed * self.kPreScale)
+        return super().set(self, speed)
 
 
 class REV_SparkMaxMotor(rev.CANSparkMax):
@@ -303,9 +307,9 @@ class REV_SparkMaxMotor(rev.CANSparkMax):
         if self.coasting:
             return
         self.coasting = True
-        self.__set_control_type("Duty Cycle")
+        self.__set_control_type("kDutyCycle")
         self.PIDController.setReference(
-            0, self.ControlType, self.feedbackDevice)
+            0, self.control_type, self.feedbackDevice)
 
     def __stop_coast(self):
         """
@@ -324,12 +328,8 @@ class REV_SparkMaxMotor(rev.CANSparkMax):
 
         if self.has_pid:
             self.__coast() if coast and speed == 0 else self.__stop_coast()
-            args = [speed * self.kPreScale,
-                    self.control_type,
-                    self.feedbackDevice]
-            return self.PIDController.setReference(*args)
+            return super().PIDController.setReference(speed * self.kPreScale, self.control_type, self.feedbackDevice)
         return super().set(speed)
-
 
 class WPI_Compressor(wpilib.Compressor):
     """

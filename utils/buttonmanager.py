@@ -21,20 +21,34 @@ class ButtonEvent(Enum):
 
 class ButtonManager:
 
-    _entries_container = []
+    _tmp_container = []
+    controllers = []
     entries = {}
 
+    # _entries_container = []
+    # entries = {}
+ 
     def __init__(self, controller):
         self.controller = controller
 
     def __enter__(self):
-        return self._entries_container.append
+        return self._tmp_container.append
+
+    def _create_final(self, button, condition, action):
+        if self.controller not in self.entries:
+            self.entries[self.controller] = {}
+        if button not in self.entries[self.controller]:
+            self.entries[self.controller][button] = []
+
+        self.entries[self.controller][button].append([condition, action])
 
     def __exit__(self, *err_args):
-        self.entries.update({self.controller: self._entries_container})
+        for entry in self._tmp_container:
+            button, condition, action = entry
+            self._create_final(button, condition, action)
 
     @staticmethod
-    def _run(controller, button, condition, action):
+    def _run(controller, button, actions):
 
         action_map = {
             ButtonEvent.kOnPress: controller.getRawButtonPressed(button),
@@ -43,16 +57,21 @@ class ButtonManager:
             ButtonEvent.kWhileReleased: not controller.getRawButton(button)
         }
 
-        if action_map[condition]:
-            action()
+        for action in actions:
+            condition, callable_ = action
+            if action_map[condition]:
+                callable_()
+                print(f"executing button: {controller} {button} {condition} {callable_}")
 
     @classmethod
     def update_buttons(cls):
-        all_entries = cls.__dict__.get("entries")
-        for controller, entries in all_entries.items():
-            for entry in entries:
-                button, condition, action = entry
-                cls._run(controller, button, condition, action)
+
+        for controller, events in cls.__dict__.get("entries").items():
+            for button, actions in events.items():
+                # for action in actions:
+                #     condition, callable_ = action
+                #     cls._run(controller, button, condition, callable_)
+                cls._run(controller, button, actions)
 
 
 # # TESTING =================================================

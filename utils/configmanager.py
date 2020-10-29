@@ -92,4 +92,5 @@ class InitializeRobot:
         Set a value to the robot to be used as an injectable.
         """
 
+        print(f"setting {name}: {value} to {self.robot_cls}")
         setattr(self.robot_cls, name, value)
