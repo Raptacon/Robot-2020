@@ -1,38 +1,131 @@
-"""Create Python objects for hardware components on the robot.
-
-To add a new hardware object, create a class that inherits from
-a base object from an API (such as CTRE, REV, WPILib, navX, etc.)
-and manipulate it appropriately (add custom methods, instantiate
-it with `super().__init__(), etc.). To add a new object to the
-mapping, create a new value in the HardwareConfig class
-(the name representing the value that would be found in a config
-file, and the appropriate class to be used to create the object
-as the value of the enum).
-"""
-
 import ctre
 import rev
-import wpilib
 import navx
+import wpilib
 
-# Only used to create controller threads
+from warnings import warn
+import logging as log  # optional
+
+# NOTE this is only used for Xbox controllers
 import time
 import threading
 
 
+class HardwareObject:
+    """Public hardware constructor class.
 
+    Returns an initilized object of a type
+    specified in the `desc` param.
 
-# TODO assert no empty/null keys in config (simplify if-statements)
-# XXX why do we return on `set()` methods?
-class CTRE_TalonSRXMotor(ctre.WPI_TalonSRX):
-    """
-    Create a TalonSRX motor.
-
-    NOTE: This object overrides the default `set()` method
-    built into CTRE objects. To call the default set, use
-    `super().set()`.
+    :param desc: Object description.
     """
 
+    # holder mapping for types and constructor objects
+    __objs__ = {}
+
+    def __new__(cls, desc: dict):
+
+        typ = desc.pop("type", None)
+        c = cls.__objs__.get(typ, None)
+        r = getattr(c, "__required_keys__", None)
+
+        # assert type key exists - otherwise,
+        # no object can be created
+        if typ is None:
+            _msg = ("missing {!r} key in description. "
+                    "desc is {}")
+            msg = _msg.format("type", desc)
+            raise AttributeError(msg)
+
+        # assert type given actually has a
+        # binded constructor object
+        if c is None:
+            _msg = ("object type {!r} is missing a construtor object")
+            msg = _msg.format(typ)
+            raise ValueError(msg)
+
+        # check required attributes
+        if r is not None:
+            if not isinstance(r, tuple):
+                _msg = ("__required_keys__ must be of "
+                        "tuple type; found {} (in "
+                        "constructor {!r} ({}))")
+                msg = _msg.format(type(r).__name__, c.__name__, c)
+                raise TypeError(msg)
+            for attr in c.__dict__.get("__required_keys__"):
+                if attr not in desc:
+                    _msg = ("required attriute {!r} missing "
+                            "in description passed into {!r} ({}). "
+                            "desc is {}")
+                    msg = _msg.format(attr, c.__name__, c, desc)
+                    raise AttributeError(msg)
+
+        return c(desc)
+
+
+class _PyHardwareObject:
+    """Base hardware class.
+
+    All hardware constructor objects should inherit from
+    this class.
+    """
+
+    # NOTE: This is a classmethod implicitly
+    def __init_subclass__(cls, errors=True):
+        """Initialize hardware constructor objects.
+
+        This exists to assert hardware constructors have
+        the appropriate attributes, and to register
+        the object and its type to the `HardwareObject`
+        class.
+
+        :param errors: If needed, turn off errors and
+        use warnings instead. Use this as a debugging
+        tool. Defaults to True.
+        """
+
+        # __type__ management
+        _type = getattr(cls, "__type__", None)
+
+        if _type is None:
+            _msg = ("constructor {!r} ({}) missing '__type__' "
+                    "attribute, unable to map any types")
+            msg = _msg.format(cls.__name__, cls)
+            if errors:
+                raise AttributeError(msg)
+            warn(msg, Warning)
+
+        elif not isinstance(_type, str):
+            _msg = ("'__type__' attribute in constructor {!r} "
+                    "({}) is of an incorrect type: expected "
+                    "str, found {}")
+            msg = _msg.format(cls.__name__, cls, type(_type).__name__)
+            if errors:
+                raise TypeError(msg)
+            warn(msg, Warning)
+
+        # update public interface with constructor objects
+        _objs = HardwareObject.__objs__
+        if _type in _objs:
+            # assert no duplicate __type__ values
+            _msg = ("'__type__' attribute of constructor {!r} ({}) "
+                    "has name '{}', which was already defined "
+                    "in constructor {!r} ({})")
+            msg = _msg.format(cls.__name__, cls, _type,
+                              _objs.get(_type).__name__,
+                              _objs.get(_type))
+            if errors:
+                raise AttributeError(msg)
+            warn(msg, Warning)
+
+        _objs.update({_type: cls})
+
+
+class CANTalonSRX(_PyHardwareObject, ctre.WPI_TalonSRX, errors=False):
+
+    __type__ = "CANTalonSRX"
+    __required_keys__ = ('channel',)
+    
     def __init__(self, desc):
 
         # Setup conditional variables
@@ -42,11 +135,18 @@ class CTRE_TalonSRXMotor(ctre.WPI_TalonSRX):
         channel = desc["channel"]
 
         # Initialize parent class
-        super().__init__(channel)
+        # NOTE: We can't use super here because we also inherit
+        #       from _PyHardwareObject, but we need to still inherit the
+        #       other base to give the below line a valid
+        #       ctre.WPI_TalonSRX object (that's the `self` param)
+        ctre.WPI_TalonSRX.__init__(self, channel)
 
         # Check motor parameters and setup motor accordingly
         if "follower" in desc:
-            super().set(
+            # TODO: test the .follow function, as well as this
+            # NOTE: `ctre.WPI_TalonSRX` needed because
+            #       we override the default `set`
+            ctre.WPI_TalonSRX.set(self,
                 mode=ctre.ControlMode.Follower,
                 value=desc["masterChannel"]
             )
@@ -60,7 +160,7 @@ class CTRE_TalonSRXMotor(ctre.WPI_TalonSRX):
 
     def __setupPID(self, pid_desc):
         """
-        Setup PID for a TalonSRX motor
+
         """
 
         control_type = pid_desc["controlType"]
@@ -87,7 +187,7 @@ class CTRE_TalonSRXMotor(ctre.WPI_TalonSRX):
 
     def __setCurrentLimits(self, cl_desc):
         """
-        Setup current limits for a TalonSRX motor.
+
         """
 
         absMax = cl_desc['absMax']
@@ -100,23 +200,19 @@ class CTRE_TalonSRXMotor(ctre.WPI_TalonSRX):
 
     def set(self, speed):
         """
-        Sets the motor to a value appropriately.
+
         """
 
-        # TODO conform to PEP8 (line length)
         if self.has_pid:
-            return super().set(self, self.control_type, speed * self.kPreScale)
-        return super().set(speed)
+            return ctre.WPI_TalonSRX.set(self, self.control_type, speed * self.kPreScale)
+        else:
+            return ctre.WPI_TalonSRX.set(self, speed)
 
 
-class CTRE_TalonFXMotor(ctre.WPI_TalonFX):
-    """
-    Create a TalonFX motor.
+class CANTalonFX(_PyHardwareObject, ctre.WPI_TalonFX):
 
-    NOTE: This object overrides the default `set()` method
-    built into CTRE objects. To call the default set, use
-    `super().set()`.
-    """
+    __type__ = "CANTalonFX"
+    __required_keys__ = ('channel',)
 
     def __init__(self, desc):
 
@@ -127,12 +223,12 @@ class CTRE_TalonFXMotor(ctre.WPI_TalonFX):
         channel = desc["channel"]
 
         # Initialize parent class
-        super().__init__(channel)
+        ctre.WPI_TalonFX.__init__(self, channel)
 
         # Check motor parameters and setup motor accordingly
         if "follower" in desc:
             self.is_follower = True
-            super().set(
+            ctre.WPI_TalonFX.set(self,
                 mode=ctre.TalonFXControlMode.Follower,
                 value=desc["masterChannel"]
             )
@@ -147,7 +243,7 @@ class CTRE_TalonFXMotor(ctre.WPI_TalonFX):
 
     def __setupPID(self, pid_desc):
         """
-        Setup PID for a TalonFX motor.
+
         """
 
         control_type = pid_desc["controlType"]
@@ -174,7 +270,7 @@ class CTRE_TalonFXMotor(ctre.WPI_TalonFX):
 
     def __setCurrentLimits(self, cl_desc):
         """
-        Setup current limits for a TalonFX motor.
+
         """
 
         currentLimit = cl_desc['currentLimit']
@@ -190,23 +286,19 @@ class CTRE_TalonFXMotor(ctre.WPI_TalonFX):
 
     def set(self, speed):
         """
-        Sets the motor to a value appropriately.
+
         """
 
-        # TODO conform to PEP8 (line length)
         if self.has_pid:
-            return super().set(self, self.controlType, speed * self.kPreScale)
-        return super().set(self, speed)
+            return ctre.WPI_TalonFX.set(self, self.control_type, speed * self.kPreScale)
+        else:
+            return ctre.WPI_TalonFX.set(self, speed)
 
 
-class REV_SparkMaxMotor(rev.CANSparkMax):
-    """
-    Create a SparkMax motor.
+class CANSparkMax(_PyHardwareObject, rev.CANSparkMax):
 
-    NOTE: This object overrides the default `set()` method
-    built into REV objects. To call the default set, use
-    `super().set()`.
-    """
+    __type__ = "CANSparkMax"
+    __required_keys__ = ('channel', 'motorType',)
 
     # Followers require objects, not channels
     # All SparkMax motors MUST be registered to be used
@@ -224,13 +316,11 @@ class REV_SparkMaxMotor(rev.CANSparkMax):
         motor_type = getattr(rev.MotorType, desc["motorType"])
 
         # Initialize parent class
-        super().__init__(channel, motor_type)
+        rev.CANSparkMax.__init__(self, channel, motor_type)
 
         # Check motor parameters and setup motor accordingly
         if "follower" in desc:
-            # For consistancy with the CTRE motors,
-            # use `super()` here
-            super().follow(
+            rev.CANSparkMax.follow(self,
                 self.motors.get(str(desc['masterChannel'])),
                 desc['inverted']
             )
@@ -246,7 +336,7 @@ class REV_SparkMaxMotor(rev.CANSparkMax):
 
     def __setupPID(self, pid_desc):
         """
-        Setup PID for a SparkMax motor.
+
         """
 
         self.control_type = None
@@ -278,7 +368,7 @@ class REV_SparkMaxMotor(rev.CANSparkMax):
 
     def __setCurrentLimits(self, cl_desc):
         """
-        Setup current limits for a SparkMax motor.
+
         """
 
         freeLimit = cl_desc['freeLimit']
@@ -323,42 +413,48 @@ class REV_SparkMaxMotor(rev.CANSparkMax):
 
     def set(self, speed, coast=True):
         """
-        Sets the motor to a value appropriately.
+
         """
 
         if self.has_pid:
             self.__coast() if coast and speed == 0 else self.__stop_coast()
-            return super().PIDController.setReference(speed * self.kPreScale, self.control_type, self.feedbackDevice)
-        return super().set(speed)
-
-class WPI_Compressor(wpilib.Compressor):
-    """
-    Creates a compressor object.
-    """
+            return self.PIDController.setReference(speed * self.kPreScale, 
+                                                   self.control_type,
+                                                   self.feedbackDevice)
+        return rev.CANSparkMax.set(speed)
 
 
-class WPI_Solenoid(wpilib.Solenoid):
-    """
-    Creates a solenoid object.
-    """
+class Compressor(_PyHardwareObject, wpilib.Compressor):
+
+    __type__ = "compressor"
+    __required_keys__ = ()
+
+    def __init__(self, desc):
+        pass
+
+
+class Solenoid(_PyHardwareObject, wpilib.Solenoid):
+
+    __type__ = "solenoid"
+    __required_keys__ = ('channel',)
 
     def __init__(self, desc):
         pcm = 0
         if "pcm" in desc:
             pcm = desc["pcm"]
-        super().__init__(pcm, desc["channel"])
+        wpilib.Solenoid.__init__(self, pcm, desc["channel"])
 
 
-class WPI_DoubleSolenoid(wpilib.DoubleSolenoid):
-    """
-    Creates a double solenoid object.
-    """
+class DoubleSolenoid(_PyHardwareObject, wpilib.DoubleSolenoid):
+
+    __type__ = "doubleSolenoid"
+    __required_keys__ = ('channel',)
 
     def __init__(self, desc):
         pcm = 0
         if "pcm" in desc:
             pcm = desc["pcm"]
-        super().__init__(pcm,
+        wpilib.DoubleSolenoid.__init__(self, pcm,
                          desc["channel"]["forward"],
                          desc["channel"]["reverse"])
         if "default" in desc:
@@ -368,83 +464,51 @@ class WPI_DoubleSolenoid(wpilib.DoubleSolenoid):
             self.set(wpilib.DoubleSolenoid.Value(default_pos))
 
 
-class NAVX_navX(navx.AHRS):
-    """
-    Creates a navX object.
-    """
+class NavX(_PyHardwareObject, navx.AHRS):
+
+    __type__ = "navx"
+    __required_keys__ = ('method',)
 
     def __init__(self, desc):
         method = desc["method"]
+        _navx = navx.AHRS
         if method == "spi":
-            super().create_spi()
+            _navx.create_spi()
         elif method == "i2c":
-            super().create_i2c()
+            _navx.create_i2c()
 
 
-class WPI_DigitalInput(wpilib.DigitalInput):
-    """
-    Creates a digital input object.
-    """
+class Breaksensors(_PyHardwareObject, wpilib.DigitalInput):
+
+    __type__ = "RIODigitalIn"
+    __required_keys__ = ('channel',)
 
     def __init__(self, desc):
         channel = desc["channel"]
-        super().__init__(channel)
+        wpilib.DigitalInput.__init__(self, channel)
 
 
-class WPI_XboxController(wpilib.XboxController):
-    """
-    Creates an Xbox controller object.
-    """
+class XboxController(_PyHardwareObject, wpilib.XboxController):
+
+    __type__ = "XboxController"
+    __required_keys__ = ('channel',)
 
     def __init__(self, desc):
 
-        super().__init__(desc["channel"])
+        wpilib.XboxController.__init__(self, desc["channel"])
         self.controller = self
 
         def update():
             delay = 0.020
             while True:
                 time.sleep(delay)
-                self.leftY = self.getRawAxis(
-                    self.Axis.kLeftY)
-                self.leftX = self.getRawAxis(
-                    self.Axis.kLeftX)
-                self.rightY = self.getRawAxis(
-                    self.Axis.kRightY)
-                self.rightX = self.getRawAxis(
-                    self.Axis.kRightX)
-                self.leftTrigger = self.getRawAxis(
-                    self.Axis.kLeftTrigger)
-                self.rightTrigger = self.getRawAxis(
-                    self.Axis.kRightTrigger)
+                self.leftY = self.getRawAxis(self.Axis.kLeftY)
+                self.leftX = self.getRawAxis(self.Axis.kLeftX)
+                self.rightY = self.getRawAxis(self.Axis.kRightY)
+                self.rightX = self.getRawAxis(self.Axis.kRightX)
+                self.leftTrigger = self.getRawAxis(self.Axis.kLeftTrigger)
+                self.rightTrigger = self.getRawAxis(self.Axis.kRightTrigger)
                 self.pov = self.getPOV()
 
         updater = threading.Thread(target=update)
         updater.start()
-
-
-class HardwareConfig:
-    """
-    Map JSON configuration types to Python objects.
-    The name of the variable should be the name
-    found in the `type` key, and the value should
-    be the Python object that will be used to
-    construct the object.
-    """
-
-    # Motors
-    CANTalonSRX = CTRE_TalonSRXMotor
-    CANTalonFX = CTRE_TalonFXMotor
-    CANSparkMax = REV_SparkMaxMotor
-
-    # Pneumatics
-    compressor = WPI_Compressor
-    solenoid = WPI_Solenoid
-    doubleSolenoid = WPI_DoubleSolenoid
-
-    # Sensors
-    navx = NAVX_navX
-    RIODigitalIn = WPI_DigitalInput
-
-    # Inputs
-    XboxController = WPI_XboxController

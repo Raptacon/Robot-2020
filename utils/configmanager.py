@@ -63,13 +63,10 @@ class InitializeRobot:
             appropriate constructor object.
             """
 
-            obj_type = desc.pop("type")
             h_objs = import_module("utils.hardwaremanager")
-            h_config = getattr(h_objs, "HardwareConfig")
-            constructor = getattr(h_config, obj_type, None)
-            if constructor is None:
-                raise AttributeError(f"Object type {obj_type} is unsupported.")
-            return constructor() if not bool(desc) else constructor(desc)
+            constructor = getattr(h_objs, "HardwareObject")
+            # This allows for empty hardware constructors
+            return constructor(desc) if bool(desc) else constructor()
 
         for general_type, all_objects in robot_hardware.items():
             for subsystem_name, subsystem_items in all_objects.items():
@@ -92,5 +89,4 @@ class InitializeRobot:
         Set a value to the robot to be used as an injectable.
         """
 
-        print(f"setting {name}: {value} to {self.robot_cls}")
         setattr(self.robot_cls, name, value)
