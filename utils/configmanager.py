@@ -1,4 +1,5 @@
 from utils.filemanager import FileManager
+from utils.hardwaremanager import HardwareObject
 from importlib import import_module
 from warnings import warn
 import os
@@ -56,23 +57,10 @@ class InitializeRobot:
         Generate injectable dictionaries for the robot.
         """
 
-        def new_hardware_object(desc):
-            """
-            Generate a new hardware object.
-            Look through the base_hardware_objects file and find the
-            appropriate constructor object.
-            """
-
-            h_objs = import_module("utils.hardwaremanager")
-            constructor = getattr(h_objs, "HardwareObject")
-            # This allows for empty hardware constructors
-            return constructor(desc) if bool(desc) else constructor()
-
         for general_type, all_objects in robot_hardware.items():
             for subsystem_name, subsystem_items in all_objects.items():
                 for item_name, item_desc in subsystem_items.items():
-                    obj = new_hardware_object(item_desc)
-                    subsystem_items[item_name] = obj
+                    subsystem_items[item_name] = HardwareObject(item_desc)
                 group_subsystem = "_".join([general_type, subsystem_name])
                 self._set_injectable(group_subsystem, subsystem_items)
 

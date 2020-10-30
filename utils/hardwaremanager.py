@@ -11,6 +11,35 @@ import time
 import threading
 
 
+# Define custom errors
+class DuplicateTypeError(AttributeError):
+    """
+    Raised when two `__type__` keys in two different constructors
+    have the same value.
+    """
+
+
+class NoConstructorError(ValueError):
+    """
+    Raised when a type is missing a binded constructor.
+    """
+
+
+class NoTypeFoundError(AttributeError):
+    """
+    Raised when no `__type__` attribute is found in a constructor.
+    """
+
+
+class MissingRequiredKeysError(AttributeError):
+    """
+    Raised when keys listed in `__required_keys__` are missing
+    in the desc passed to the constructor.
+    """
+
+
+# Begin API
+# NOTE `HardwareObject` is the only public class
 class HardwareObject:
     """Public hardware constructor class.
 
@@ -40,9 +69,9 @@ class HardwareObject:
         # assert type given actually has a
         # binded constructor object
         if c is None:
-            _msg = ("object type {!r} is missing a construtor object")
+            _msg = ("object type {!r} is missing a constructor object")
             msg = _msg.format(typ)
-            raise ValueError(msg)
+            raise NoConstructorError(msg)
 
         # check required attributes
         if r is not None:
@@ -58,9 +87,10 @@ class HardwareObject:
                             "in description passed into {!r} ({}). "
                             "desc is {}")
                     msg = _msg.format(attr, c.__name__, c, desc)
-                    raise AttributeError(msg)
+                    raise MissingRequiredKeysError(msg)
 
-        return c(desc)
+        # This allows for empty classes (such as `Compressor`)
+        return c(desc) if bool(desc) else c()
 
 
 class _PyHardwareObject:
@@ -77,7 +107,8 @@ class _PyHardwareObject:
         This exists to assert hardware constructors have
         the appropriate attributes, and to register
         the object and its type to the `HardwareObject`
-        class.
+        class. Supported custom attributes include
+        `__type__` and `__required_keys__`.
 
         :param errors: If needed, turn off errors and
         use warnings instead. Use this as a debugging
@@ -92,7 +123,7 @@ class _PyHardwareObject:
                     "attribute, unable to map any types")
             msg = _msg.format(cls.__name__, cls)
             if errors:
-                raise AttributeError(msg)
+                raise NoTypeFoundError(msg)
             warn(msg, Warning)
 
         elif not isinstance(_type, str):
@@ -109,19 +140,24 @@ class _PyHardwareObject:
         if _type in _objs:
             # assert no duplicate __type__ values
             _msg = ("'__type__' attribute of constructor {!r} ({}) "
-                    "has name '{}', which was already defined "
+                    "has name {!r}, which was already defined "
                     "in constructor {!r} ({})")
             msg = _msg.format(cls.__name__, cls, _type,
                               _objs.get(_type).__name__,
                               _objs.get(_type))
             if errors:
-                raise AttributeError(msg)
+                raise DuplicateTypeError(msg)
             warn(msg, Warning)
 
         _objs.update({_type: cls})
 
 
-class CANTalonSRX(_PyHardwareObject, ctre.WPI_TalonSRX, errors=False):
+class CANTalonSRX(_PyHardwareObject, ctre.WPI_TalonSRX):
+    """
+    Create a WPI_TalonSRX object.
+
+    :param desc: Object description
+    """
 
     __type__ = "CANTalonSRX"
     __required_keys__ = ('channel',)
@@ -160,7 +196,7 @@ class CANTalonSRX(_PyHardwareObject, ctre.WPI_TalonSRX, errors=False):
 
     def __setupPID(self, pid_desc):
         """
-
+        Setup PID for a TalonSRX motor.
         """
 
         control_type = pid_desc["controlType"]
@@ -187,7 +223,7 @@ class CANTalonSRX(_PyHardwareObject, ctre.WPI_TalonSRX, errors=False):
 
     def __setCurrentLimits(self, cl_desc):
         """
-
+        Set current limits for a TalonSRX motor.
         """
 
         absMax = cl_desc['absMax']
@@ -200,7 +236,7 @@ class CANTalonSRX(_PyHardwareObject, ctre.WPI_TalonSRX, errors=False):
 
     def set(self, speed):
         """
-
+        Set the speed for a TalonSRX motor.
         """
 
         if self.has_pid:
@@ -210,6 +246,11 @@ class CANTalonSRX(_PyHardwareObject, ctre.WPI_TalonSRX, errors=False):
 
 
 class CANTalonFX(_PyHardwareObject, ctre.WPI_TalonFX):
+    """
+    Create a WPI_TalonFX object.
+
+    :param desc: Object description
+    """
 
     __type__ = "CANTalonFX"
     __required_keys__ = ('channel',)
@@ -243,7 +284,7 @@ class CANTalonFX(_PyHardwareObject, ctre.WPI_TalonFX):
 
     def __setupPID(self, pid_desc):
         """
-
+        Setup PID for a TalonFX motor.
         """
 
         control_type = pid_desc["controlType"]
@@ -270,7 +311,7 @@ class CANTalonFX(_PyHardwareObject, ctre.WPI_TalonFX):
 
     def __setCurrentLimits(self, cl_desc):
         """
-
+        Set current limits for a TalonFX motor.
         """
 
         currentLimit = cl_desc['currentLimit']
@@ -286,7 +327,7 @@ class CANTalonFX(_PyHardwareObject, ctre.WPI_TalonFX):
 
     def set(self, speed):
         """
-
+        Set the speed for a TalonFX motor.
         """
 
         if self.has_pid:
@@ -296,6 +337,11 @@ class CANTalonFX(_PyHardwareObject, ctre.WPI_TalonFX):
 
 
 class CANSparkMax(_PyHardwareObject, rev.CANSparkMax):
+    """
+    Create a CANSparkMax object.
+
+    :param desc: Object description
+    """
 
     __type__ = "CANSparkMax"
     __required_keys__ = ('channel', 'motorType',)
@@ -336,7 +382,7 @@ class CANSparkMax(_PyHardwareObject, rev.CANSparkMax):
 
     def __setupPID(self, pid_desc):
         """
-
+        Setup PID for a SparkMax motor.
         """
 
         self.control_type = None
@@ -368,7 +414,7 @@ class CANSparkMax(_PyHardwareObject, rev.CANSparkMax):
 
     def __setCurrentLimits(self, cl_desc):
         """
-
+        Set current limits for a SparkMax motor.
         """
 
         freeLimit = cl_desc['freeLimit']
@@ -413,7 +459,7 @@ class CANSparkMax(_PyHardwareObject, rev.CANSparkMax):
 
     def set(self, speed, coast=True):
         """
-
+        Set the speed for a SparkMax motor.
         """
 
         if self.has_pid:
@@ -421,19 +467,24 @@ class CANSparkMax(_PyHardwareObject, rev.CANSparkMax):
             return self.PIDController.setReference(speed * self.kPreScale, 
                                                    self.control_type,
                                                    self.feedbackDevice)
-        return rev.CANSparkMax.set(speed)
+        return rev.CANSparkMax.set(self, speed)
 
 
 class Compressor(_PyHardwareObject, wpilib.Compressor):
+    """
+    Create a Compressor object.
+    """
 
     __type__ = "compressor"
     __required_keys__ = ()
 
-    def __init__(self, desc):
-        pass
-
 
 class Solenoid(_PyHardwareObject, wpilib.Solenoid):
+    """
+    Create a Solenoid object.
+
+    :param desc: Object description
+    """
 
     __type__ = "solenoid"
     __required_keys__ = ('channel',)
@@ -446,6 +497,11 @@ class Solenoid(_PyHardwareObject, wpilib.Solenoid):
 
 
 class DoubleSolenoid(_PyHardwareObject, wpilib.DoubleSolenoid):
+    """
+    Create a DoubleSolenoid object.
+
+    :param desc: Object description
+    """
 
     __type__ = "doubleSolenoid"
     __required_keys__ = ('channel',)
@@ -465,6 +521,11 @@ class DoubleSolenoid(_PyHardwareObject, wpilib.DoubleSolenoid):
 
 
 class NavX(_PyHardwareObject, navx.AHRS):
+    """
+    Create a navx.AHRS object.
+
+    :param desc: Object description
+    """
 
     __type__ = "navx"
     __required_keys__ = ('method',)
@@ -479,6 +540,11 @@ class NavX(_PyHardwareObject, navx.AHRS):
 
 
 class Breaksensors(_PyHardwareObject, wpilib.DigitalInput):
+    """
+    Create a DigitalInput object.
+
+    :param desc: Object description
+    """
 
     __type__ = "RIODigitalIn"
     __required_keys__ = ('channel',)
@@ -489,6 +555,11 @@ class Breaksensors(_PyHardwareObject, wpilib.DigitalInput):
 
 
 class XboxController(_PyHardwareObject, wpilib.XboxController):
+    """
+    Create an XboxController object.
+
+    :param desc: Object description
+    """
 
     __type__ = "XboxController"
     __required_keys__ = ('channel',)
