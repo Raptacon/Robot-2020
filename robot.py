@@ -109,12 +109,12 @@ class MyRobot(MagicRobot):
 
     def autonomousInit(self):
         """Run when autonomous is enabled."""
-        self.shooter.autonomousEnabled()
+        self.shooter.autonomous = True
         self.loader.stopLoading()
 
     def teleopInit(self):
 
-        self.shooter.autonomousDisabled()
+        self.shooter.autonomous = False
 
         #
         # TODO: figure out how to support button events for other robots.

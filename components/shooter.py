@@ -4,9 +4,6 @@ from components.hopper import Hopper
 from wpilib import XboxController
 
 
-# Temporary values; fix later
-SHOOTER_SPEED = .5
-
 AUTONOMOUS_SHOOTER_SPEED = 4800
 TELEOP_SHOOTER_SPEED = 5300
 SPEED_TOLERANCE = 50
@@ -24,7 +21,7 @@ class Shooter(StateMachine):
         self.mech = self.inputs_XboxControllers["mech"]
         self.shooter_motor = self.motors_shooter["shooterMotor"]
 
-    def shootBalls(self):
+    def startShooter(self):
         if self.hopper.loader_motor.get() != 0 or self.shooter_motor.get() != 0:
             return
         self.next_state("prepareShooter")
@@ -54,12 +51,21 @@ class Shooter(StateMachine):
             self.hopper.loader_motor.set(-.4)  # FIXME Get variable from hopper.py
         else:
             self.hopper.loader_motor.set(0)
-            self.shooter_motor.set(SHOOTER_SPEED)
-            if
+            if self.autonomous:
+                self.shooter_motor.set(AUTONOMOUS_SHOOTER_SPEED)
+            else:
+                self.shooter_motor.set(TELEOP_SHOOTER_SPEED)
+            if self.isShooterUpToSpeed():
+                self.next_state("shootBalls")
 
     @state
-    def s(self):
-        pass
+    def shootBalls(self):
+        if not self.autonomous:
+            # switch loader control to operators
+            # regardless of intake type selected
+            self.hopper.next_state("runLoaderManually")
+        else:
+
 
     @state(first=True)
     def idling(self):

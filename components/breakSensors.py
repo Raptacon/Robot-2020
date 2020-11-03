@@ -20,17 +20,9 @@ class BreakSensors:
             self.SensorArray.append(self.sensors_breaksensors["sensor" + str(x)])
         self.logger.info("Break sensor component created")
 
-    def loadingSensor(self, state):
-        """Gets the loading sensor state and checks if it matches the requested state."""
-        if self.SensorArray[SensorKey.kLoadingSensor].get() == state:
+    def get(self, sensor, condition):
+        if self.SensorArray[sensor].get() == condition:
             return True
-        return False
-
-    def shootingSensor(self, state):
-        """Gets the shooting sensor state and checks if it matches the requested state."""
-        if self.SensorArray[SensorKey.kShootingSensor].get() == state:
-            return True
-        return False
 
     def execute(self):
         pass

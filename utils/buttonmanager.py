@@ -13,62 +13,65 @@ class ButtonEvent(Enum):
     Supported button events.
     """
 
-    kOnPress = auto()
-    kOnRelease = auto()
-    kWhilePressed = auto()
-    kWhileReleased = auto()
+    # kOnPress = auto()
+    # kOnRelease = auto()
+    # kWhilePressed = auto()
+    # kWhileReleased = auto()
+
+    kPressed = auto()
+    kReleased = auto()
 
 
-class ButtonManager:
+# class ButtonManager:
 
-    _tmp_container = []
-    controllers = []
-    entries = {}
+#     _tmp_container = []
+#     controllers = []
+#     entries = {}
 
-    # _entries_container = []
-    # entries = {}
+#     # _entries_container = []
+#     # entries = {}
  
-    def __init__(self):
-        pass
+#     def __init__(self):
+#         pass
 
-    def __enter__(self):
-        return self._tmp_container.append
+#     def __enter__(self):
+#         return self._tmp_container.append
 
-    def _create_final(self, controller, button, condition, action):
-        if controller not in self.entries:
-            self.entries[controller] = {}
-        if button not in self.entries[controller]:
-            self.entries[controller][button] = []
+#     def _create_final(self, controller, button, condition, action):
+#         if controller not in self.entries:
+#             self.entries[controller] = {}
+#         if button not in self.entries[controller]:
+#             self.entries[controller][button] = []
 
-        self.entries[controller][button].append([condition, action])
+#         self.entries[controller][button].append([condition, action])
 
-    def __exit__(self, *err_args):
-        for entry in self._tmp_container:
-            controller, button, condition, action = entry
-            self._create_final(controller, button, condition, action)
+#     def __exit__(self, *err_args):
+#         for entry in self._tmp_container:
+#             controller, button, condition, action = entry
+#             self._create_final(controller, button, condition, action)
 
-    @staticmethod
-    def _run(controller, button, actions):
+#     @staticmethod
+#     def _run(controller, button, actions):
 
-        action_map = {
-            ButtonEvent.kOnPress: controller.getRawButtonPressed(button),
-            ButtonEvent.kOnRelease: controller.getRawButtonReleased(button),
-            ButtonEvent.kWhilePressed: controller.getRawButton(button),
-            ButtonEvent.kWhileReleased: not controller.getRawButton(button)
-        }
+#         action_map = {
+#             ButtonEvent.kOnPress: controller.getRawButtonPressed(button),
+#             ButtonEvent.kOnRelease: controller.getRawButtonReleased(button),
+#             ButtonEvent.kWhilePressed: controller.getRawButton(button),
+#             ButtonEvent.kWhileReleased: not controller.getRawButton(button)
+#         }
 
-        for action in actions:
-            condition, callable_ = action
-            if action_map[condition]:
-                callable_()
-                print(f"executing button: {controller} {button} {condition} {callable_}")
+#         for action in actions:
+#             condition, callable_ = action
+#             if action_map[condition]:
+#                 callable_()
+#                 print(f"executing button: {controller} {button} {condition} {callable_}")
 
-    @classmethod
-    def update_buttons(cls):
+#     @classmethod
+#     def update_buttons(cls):
 
-        for controller, events in cls.__dict__.get("entries").items():
-            for button, actions in events.items():
-                cls._run(controller, button, actions)
+#         for controller, events in cls.__dict__.get("entries").items():
+#             for button, actions in events.items():
+#                 cls._run(controller, button, actions)
 
 
 # # TESTING =================================================
