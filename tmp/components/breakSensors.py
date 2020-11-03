@@ -1,6 +1,6 @@
 from enum import IntEnum
 
-class Sensors(IntEnum):
+class SensorKey(IntEnum):
     kLoadingSensor = 0
     kShootingSensor = 4
 
@@ -8,7 +8,7 @@ class State:
     kTripped = False
     kNotTripped = True
 
-class BreakSensors:
+class Sensors:
 
     robot = ["doof"]
 

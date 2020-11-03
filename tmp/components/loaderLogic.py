@@ -12,6 +12,7 @@ class LoaderLogic(StateMachine):
 
     # Component/module related things
     shooterMotors: ShooterMotorCreation
+    inputs_XboxControllers: dict
     feeder: FeederMap
     logger: logging
     sensors: Sensors
@@ -24,6 +25,8 @@ class LoaderLogic(StateMachine):
     loaderStoppingDelay = .16
 
     def on_enable(self):
+        self.drive = self.inputs_XboxControllers["drive"]
+        self.mech = self.inputs_XboxControllers["mech"]
         self.isAutomatic = True
 
     def setAutoLoading(self):

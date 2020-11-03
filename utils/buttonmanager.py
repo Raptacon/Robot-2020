@@ -28,24 +28,24 @@ class ButtonManager:
     # _entries_container = []
     # entries = {}
  
-    def __init__(self, controller):
-        self.controller = controller
+    def __init__(self):
+        pass
 
     def __enter__(self):
         return self._tmp_container.append
 
-    def _create_final(self, button, condition, action):
-        if self.controller not in self.entries:
-            self.entries[self.controller] = {}
-        if button not in self.entries[self.controller]:
-            self.entries[self.controller][button] = []
+    def _create_final(self, controller, button, condition, action):
+        if controller not in self.entries:
+            self.entries[controller] = {}
+        if button not in self.entries[controller]:
+            self.entries[controller][button] = []
 
-        self.entries[self.controller][button].append([condition, action])
+        self.entries[controller][button].append([condition, action])
 
     def __exit__(self, *err_args):
         for entry in self._tmp_container:
-            button, condition, action = entry
-            self._create_final(button, condition, action)
+            controller, button, condition, action = entry
+            self._create_final(controller, button, condition, action)
 
     @staticmethod
     def _run(controller, button, actions):
@@ -68,9 +68,6 @@ class ButtonManager:
 
         for controller, events in cls.__dict__.get("entries").items():
             for button, actions in events.items():
-                # for action in actions:
-                #     condition, callable_ = action
-                #     cls._run(controller, button, condition, callable_)
                 cls._run(controller, button, actions)
 
 

@@ -58,7 +58,7 @@
                 }
             }
         },
-        "loader": {
+        "intake": {
             "intakeMotor": {
                 "channel": 50,
                 "type": "CANTalonSRX",
@@ -68,7 +68,9 @@
                     "absMaxTimeMs": 50,
                     "maxNominal": 6
                 }
-            },
+            }
+        },
+        "loader": {
             "loaderMotor": {
                 "channel": 51,
                 "type": "CANTalonSRX",

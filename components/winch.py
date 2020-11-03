@@ -1,39 +1,16 @@
-
 class Winch:
 
-    robot = ["doof"]
-
+    inputs_XboxControllers: dict
     motors_winch: dict
 
-    inputs_XboxControllers: dict
-
     def on_enable(self):
-        """
-        Sets up the winch
-        """
-        self.upSpeed = 0
-        self.winchMotor = self.motors_winch["winchMotor"]
-        self.mech = self.inputs_XboxControllers['mech']
-
-        self.logger.info("Lifter Component Created")
-    
-    def setRaise(self):
-        """
-        Sets the motor speed to .5 in order to reel in the winch
-        """
-        self.upSpeed = .5
-
-    def stop(self):
-        """
-        Sets the motor speed to 0 in order to stop the winch
-        """
-        self.upSpeed = 0
+        self.mech = self.inputs_XboxControllers["mech"]
+        self.winch_motor = self.motors_winch["winchMotor"]
 
     def execute(self):
-
-        if self.mech.pov == 0:
-            self.setRaise()
+        if self.mech.getPOV() == 0:
+            speed = 0
         else:
-            self.stop()
+            speed = .5
 
-        self.winchMotor.set(self.upSpeed)
+        self.winch_motor.set(speed)

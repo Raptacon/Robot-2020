@@ -36,16 +36,13 @@ class MyRobot(MagicRobot):
     pneumatics: Pneumatics
     elevator: Elevator
 
-    # Controllers
-    inputs_XboxControllers: dict
-
-    # TODO: remove `__component_cleanup` if we
+    # TODO: remove `_component_cleanup` if we
     #       don't use multiple robots.
 
     # HACK classmethod necessary to access
     #  __dict__ from class rather than instance
     @classmethod
-    def __component_cleanup(cls, config):
+    def _component_cleanup(cls, config):
         """
         Remove incompatable components from the robot class.
         """
@@ -93,9 +90,9 @@ class MyRobot(MagicRobot):
             cls.logger.info(f"Removing component {bad_comp}")
             del annotations[bad_comp]
 
-    def __register_buttons(self, controller, events: List[Tuple[Button, ButtonEvent, callable]]=None):
+    def _register_buttons(self, events: List[Tuple[wpilib.XboxController, Button, ButtonEvent, callable]]=None):
 
-        with ButtonManager(controller) as register:
+        with ButtonManager() as register:
             for event in events:
                 register(event)
 
@@ -105,10 +102,10 @@ class MyRobot(MagicRobot):
         """
 
         i = InitializeRobot(self)
-        # Attr set to avoid making `i` and instance
-        # variable just to access the `config` attribute
-        setattr(self, "robot_name", i.config)
-        self.__component_cleanup(self.robot_name)
+        # Attribute set to avoid making `i` and instance
+        # variable just to access the `robot_name` attribute
+        setattr(self, "robot_name", i.robot_name)
+        self._component_cleanup(self.robot_name)
 
     def autonomousInit(self):
         """Run when autonomous is enabled."""
@@ -148,29 +145,25 @@ class MyRobot(MagicRobot):
         #
 
         # Setup button events
-
         if self.robot_name == "doof":
 
-            drive_controller = self.inputs_XboxControllers["drive"].controller
-            mech_controller = self.inputs_XboxControllers["mech"].controller
+            self.drive_controller = self.inputs_XboxControllers["drive"].controller
+            self.mech_controller = self.inputs_XboxControllers["mech"].controller
 
-            self.__register_buttons(drive_controller, events=[
-                (Button.kBumperLeft,    ButtonEvent.kOnPress,   self.driveTrain.enableCreeperMode   ),
-                (Button.kBumperLeft,    ButtonEvent.kOnRelease, self.driveTrain.disableCreeperMode  )
-            ])
-
-            self.__register_buttons(mech_controller, events=[
-                (Button.kX,             ButtonEvent.kOnPress,   self.pneumatics.toggleLoader        ),
-                (Button.kY,             ButtonEvent.kOnPress,   self.loader.setAutoLoading          ),
-                (Button.kB,             ButtonEvent.kOnPress,   self.loader.setManualLoading        ),
-                (Button.kA,             ButtonEvent.kOnPress,   self.loader.stopLoading             ),
-                (Button.kA,             ButtonEvent.kOnPress,   self.shooter.shootBalls             ),
-                (Button.kA,             ButtonEvent.kOnRelease, self.shooter.doneShooting           ),
-                (Button.kA,             ButtonEvent.kOnRelease, self.loader.determineNextAction     ),
-                (Button.kBumperRight,   ButtonEvent.kOnPress,   self.elevator.setRaise              ),
-                (Button.kBumperRight,   ButtonEvent.kOnRelease, self.elevator.stop                  ),
-                (Button.kBumperLeft,    ButtonEvent.kOnPress,   self.elevator.setLower              ),
-                (Button.kBumperLeft,    ButtonEvent.kOnRelease, self.elevator.stop                  )
+            self._register_buttons(events=[
+                (self.drive_controller, Button.kBumperLeft,    ButtonEvent.kOnPress,   self.driveTrain.enableCreeperMode    ),
+                (self.drive_controller, Button.kBumperLeft,    ButtonEvent.kOnRelease, self.driveTrain.disableCreeperMode   ),
+                (self.mech_controller,  Button.kX,             ButtonEvent.kOnPress,   self.pneumatics.toggleLoader         ),
+                (self.mech_controller,  Button.kY,             ButtonEvent.kOnPress,   self.loader.setAutoLoading           ),
+                (self.mech_controller,  Button.kB,             ButtonEvent.kOnPress,   self.loader.setManualLoading         ),
+                (self.mech_controller,  Button.kA,             ButtonEvent.kOnPress,   self.loader.stopLoading              ),
+                (self.mech_controller,  Button.kA,             ButtonEvent.kOnPress,   self.shooter.shootBalls              ),
+                (self.mech_controller,  Button.kA,             ButtonEvent.kOnRelease, self.shooter.doneShooting            ),
+                (self.mech_controller,  Button.kA,             ButtonEvent.kOnRelease, self.loader.determineNextAction      ),
+                (self.mech_controller,  Button.kBumperRight,   ButtonEvent.kOnPress,   self.elevator.setRaise               ),
+                (self.mech_controller,  Button.kBumperRight,   ButtonEvent.kOnRelease, self.elevator.stop                   ),
+                (self.mech_controller,  Button.kBumperLeft,    ButtonEvent.kOnPress,   self.elevator.setLower               ),
+                (self.mech_controller,  Button.kBumperLeft,    ButtonEvent.kOnRelease, self.elevator.stop                   )
             ])
 
         elif self.robot_name == "scorpion":
@@ -183,7 +176,11 @@ class MyRobot(MagicRobot):
         """
         Must include. Called running teleop.
         """
+
         ButtonManager.update_buttons()
+        # self.drive_controller.update()
+        # self.mech_controller.update()
+
 
 if __name__ == '__main__':
     wpilib.run(MyRobot)

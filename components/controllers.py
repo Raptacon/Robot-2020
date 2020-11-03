@@ -1,9 +1,25 @@
-from utils.buttonmanager import ButtonManager, ButtonEvent, Button
+from wpilib import XboxController
+from enum import Enum, auto
 
-class Controllers:
 
-    def on_enable(self):
-        pass
+class Button(XboxController.Button):
+    """
+    Xbox controller buttons.
+    """
 
-    def execute(self):
-        pass
+
+class Axis(XboxController.Axis):
+    """
+    Xbox controller axis.
+    """
+
+
+class ButtonEvent(Enum):
+    """
+    Supported button events.
+    """
+
+    kOnPress = auto()
+    kOnRelease = auto()
+    kWhilePressed = auto()
+    kWhileReleased = auto()

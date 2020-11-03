@@ -3,12 +3,13 @@ import rev
 import navx
 import wpilib
 
-from warnings import warn
-import logging as log  # optional
-
 # NOTE this is only used for Xbox controllers
 import time
 import threading
+# from utils.buttonmanager import Button, ButtonEvent
+
+
+__all__ = ["HardwareObject"]
 
 
 # Define custom errors
@@ -40,7 +41,8 @@ class MissingRequiredKeysError(AttributeError):
 
 # Begin API
 # NOTE `HardwareObject` is the only public class
-class HardwareObject:
+# TODO switch print statements to log or something else
+class HardwareObject:  # maybe rename to `CreateHardwareObject`
     """Public hardware constructor class.
 
     Returns an initilized object of a type
@@ -61,15 +63,16 @@ class HardwareObject:
         # assert type key exists - otherwise,
         # no object can be created
         if typ is None:
-            _msg = ("missing {!r} key in description. "
+            _msg = ("missing 'type' key in description. "
                     "desc is {}")
-            msg = _msg.format("type", desc)
+            msg = _msg.format(desc)
             raise AttributeError(msg)
 
         # assert type given actually has a
         # binded constructor object
         if c is None:
-            _msg = ("object type {!r} is missing a constructor object")
+            _msg = ("object type {!r} is missing "
+                    "a constructor object")
             msg = _msg.format(typ)
             raise NoConstructorError(msg)
 
@@ -77,15 +80,15 @@ class HardwareObject:
         if r is not None:
             if not isinstance(r, tuple):
                 _msg = ("__required_keys__ must be of "
-                        "tuple type; found {} (in "
-                        "constructor {!r} ({}))")
+                        "tuple type; found {} (in constructor "
+                        "{!r} ({}))")
                 msg = _msg.format(type(r).__name__, c.__name__, c)
                 raise TypeError(msg)
             for attr in c.__dict__.get("__required_keys__"):
                 if attr not in desc:
                     _msg = ("required attriute {!r} missing "
-                            "in description passed into {!r} ({}). "
-                            "desc is {}")
+                            "in description passed into "
+                            "constructor {!r} ({}). desc is {}")
                     msg = _msg.format(attr, c.__name__, c, desc)
                     raise MissingRequiredKeysError(msg)
 
@@ -100,8 +103,7 @@ class _PyHardwareObject:
     this class.
     """
 
-    # NOTE: This is a classmethod implicitly
-    def __init_subclass__(cls, errors=True):
+    def __init_subclass__(cls):
         """Initialize hardware constructor objects.
 
         This exists to assert hardware constructors have
@@ -109,46 +111,39 @@ class _PyHardwareObject:
         the object and its type to the `HardwareObject`
         class. Supported custom attributes include
         `__type__` and `__required_keys__`.
-
-        :param errors: If needed, turn off errors and
-        use warnings instead. Use this as a debugging
-        tool. Defaults to True.
         """
 
         # __type__ management
         _type = getattr(cls, "__type__", None)
 
+        # assert __type__ exists
         if _type is None:
             _msg = ("constructor {!r} ({}) missing '__type__' "
                     "attribute, unable to map any types")
             msg = _msg.format(cls.__name__, cls)
-            if errors:
-                raise NoTypeFoundError(msg)
-            warn(msg, Warning)
+            raise NoTypeFoundError(msg)
 
+        # assert __type__ is str
         elif not isinstance(_type, str):
             _msg = ("'__type__' attribute in constructor {!r} "
                     "({}) is of an incorrect type: expected "
                     "str, found {}")
             msg = _msg.format(cls.__name__, cls, type(_type).__name__)
-            if errors:
-                raise TypeError(msg)
-            warn(msg, Warning)
+            raise TypeError(msg)
 
         # update public interface with constructor objects
-        _objs = HardwareObject.__objs__
+        _objs = HardwareObject.__dict__.get("__objs__")
+        # assert no duplicate __type__ values
         if _type in _objs:
-            # assert no duplicate __type__ values
             _msg = ("'__type__' attribute of constructor {!r} ({}) "
                     "has name {!r}, which was already defined "
                     "in constructor {!r} ({})")
             msg = _msg.format(cls.__name__, cls, _type,
                               _objs.get(_type).__name__,
                               _objs.get(_type))
-            if errors:
-                raise DuplicateTypeError(msg)
-            warn(msg, Warning)
+            raise DuplicateTypeError(msg)
 
+        print(f"adding type {_type!r} with object {cls.__name__!r} ({cls})")
         _objs.update({_type: cls})
 
 
@@ -170,18 +165,23 @@ class CANTalonSRX(_PyHardwareObject, ctre.WPI_TalonSRX):
         # Define constructor variables
         channel = desc["channel"]
 
+        #
         # Initialize parent class
-        # NOTE: We can't use super here because we also inherit
+        #
+        # NOTE: We can't use `super()` here because we also inherit
         #       from _PyHardwareObject, but we need to still inherit the
         #       other base to give the below line a valid
         #       ctre.WPI_TalonSRX object (that's the `self` param)
+        #
         ctre.WPI_TalonSRX.__init__(self, channel)
 
         # Check motor parameters and setup motor accordingly
         if "follower" in desc:
+            #
             # TODO: test the .follow function, as well as this
             # NOTE: `ctre.WPI_TalonSRX` needed because
             #       we override the default `set`
+            #
             ctre.WPI_TalonSRX.set(self,
                 mode=ctre.ControlMode.Follower,
                 value=desc["masterChannel"]
@@ -565,21 +565,5 @@ class XboxController(_PyHardwareObject, wpilib.XboxController):
     __required_keys__ = ('channel',)
 
     def __init__(self, desc):
-
-        wpilib.XboxController.__init__(self, desc["channel"])
-        self.controller = self
-
-        def update():
-            delay = 0.020
-            while True:
-                time.sleep(delay)
-                self.leftY = self.getRawAxis(self.Axis.kLeftY)
-                self.leftX = self.getRawAxis(self.Axis.kLeftX)
-                self.rightY = self.getRawAxis(self.Axis.kRightY)
-                self.rightX = self.getRawAxis(self.Axis.kRightX)
-                self.leftTrigger = self.getRawAxis(self.Axis.kLeftTrigger)
-                self.rightTrigger = self.getRawAxis(self.Axis.kRightTrigger)
-                self.pov = self.getPOV()
-
-        updater = threading.Thread(target=update)
-        updater.start()
+        channel = desc["channel"]
+        wpilib.XboxController.__init__(self, channel)
