@@ -1,4 +1,4 @@
-from magicbot import StateMachine, state, timed_state, feedback
+from magicbot import StateMachine, state, timed_state, feedback, tunable
 from components.breakSensors import BreakSensors, Sensors, State
 from components.hopper import Hopper
 from wpilib import XboxController
@@ -15,7 +15,11 @@ class Shooter(StateMachine):
 
     inputs_XboxControllers: dict
     motors_shooter: dict
-    
+
+    autonomous_shooter_speed = tunable(4800)
+    teleop_shooter_speed = tunable(5300)
+    speed_tolerace = tunable(50)
+
     def on_enable(self):
         self.autonomous = False  # NOTE this is changed in robot.py
         self.mech = self.inputs_XboxControllers["mech"]
@@ -26,13 +30,16 @@ class Shooter(StateMachine):
             return
         self.next_state("prepareShooter")
 
+    def stopShooter(self):
+        self.next_state("")
+
     @feedback
     def isShooterUpToSpeed(self):
         """Determines if the shooter is up to speed, then rumbles controller and publishes to NetworkTables."""
         if self.autonomous:
-            shootSpeed = AUTONOMOUS_SHOOTER_SPEED - SPEED_TOLERANCE
+            shootSpeed = self.autonomous_shooter_speed - self.speed_tolerace
         elif not self.autonomous:
-            shootSpeed = TELEOP_SHOOTER_SPEED - SPEED_TOLERANCE
+            shootSpeed = self.teleop_shooter_speed - self.speed_tolerace
         atSpeed = bool(self.shooter_motor.getEncoder().getVelocity() >= shootSpeed)
         rumble  = 0
         if atSpeed and not self.isAutonomous:
@@ -61,11 +68,11 @@ class Shooter(StateMachine):
     @state
     def shootBalls(self):
         if not self.autonomous:
-            # switch loader control to operators
-            # regardless of intake type selected
-            self.hopper.next_state("runLoaderManually")
+            # switch loader control to operators,
+            # regardless of hopper type selected
+            self.hopper.next_state("controlHopperManually")
         else:
-
+            pass
 
     @state(first=True)
     def idling(self):
@@ -84,5 +91,9 @@ class Shooter(StateMachine):
         if self.mech.getRawButtonPressed(XboxController.Button.kA):
             pass
 
+        if self.mech.getRawButtonReleased(XboxController.Button.kA):
+            pass
+
+        # HACK to constantly run state machine
         self.engage()
         super().execute()

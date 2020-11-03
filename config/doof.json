@@ -70,8 +70,8 @@
                 }
             }
         },
-        "loader": {
-            "loaderMotor": {
+        "hopper": {
+            "hopperMotor": {
                 "channel": 51,
                 "type": "CANTalonSRX",
                 "inverted": true,
