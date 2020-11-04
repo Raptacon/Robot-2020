@@ -1,12 +1,8 @@
+import wpilib
 import ctre
 import rev
 import navx
-import wpilib
-
-# NOTE this is only used for Xbox controllers
-import time
-import threading
-# from utils.buttonmanager import Button, ButtonEvent
+import inspect
 
 
 __all__ = ["HardwareObject"]
@@ -93,6 +89,8 @@ class HardwareObject:  # maybe rename to `CreateHardwareObject`
                     raise MissingRequiredKeysError(msg)
 
         # This allows for empty classes (such as `Compressor`)
+        # NOTE `__init__` in constructor objects MUST ONLY HAVE
+        #      ONE PARAMETER
         return c(desc) if bool(desc) else c()
 
 
@@ -113,8 +111,8 @@ class _PyHardwareObject:
         `__type__` and `__required_keys__`.
         """
 
-        # __type__ management
         _type = getattr(cls, "__type__", None)
+        _init = getattr(cls, "__init__", None)
 
         # assert __type__ exists
         if _type is None:
@@ -130,6 +128,33 @@ class _PyHardwareObject:
                     "str, found {}")
             msg = _msg.format(cls.__name__, cls, type(_type).__name__)
             raise TypeError(msg)
+
+        # assert only 2 args in __init__ of constructor
+        # (should only have self and desc for `HardwareObject`
+        #  to work properly)
+        if _init is not None:
+            argspec = inspect.getfullargspec(_init)
+            args = argspec.args
+            defaults = argspec.defaults
+            # best way to check for kwwargs, as inspect.getfullargspec
+            # doesn't explicitly return this information
+            if defaults:
+                _msg = ("keyword params found in '__init__' of "
+                       "constructor {!r} ({}), do not use in keyword"
+                       "params _PyHardwareObject constructors")
+                msg = _msg.format(cls.__name__, cls)
+                raise ValueError(msg)
+            arg_count = len(args)
+            if arg_count != 2:
+                if arg_count > 2:
+                    _issue = "too many args"
+                if arg_count < 2:
+                    _issue = "too few args"
+                _msg = ("{} in '__init__' of constructor "
+                        "{!r} ({}): expected {}, found {}")
+                msg = _msg.format(_issue, cls.__name__,
+                                  cls, 2, arg_count)
+                raise ValueError(msg)
 
         # update public interface with constructor objects
         _objs = HardwareObject.__dict__.get("__objs__")
@@ -238,7 +263,7 @@ class CANTalonSRX(_PyHardwareObject, ctre.WPI_TalonSRX):
         """
         Set the speed for a TalonSRX motor.
         """
-
+        # XXX why do we return on set? Caiden?
         if self.has_pid:
             return ctre.WPI_TalonSRX.set(self, self.control_type, speed * self.kPreScale)
         else:
