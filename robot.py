@@ -1,12 +1,12 @@
-# General imports:
+# General imports
 import wpilib
 from magicbot import MagicRobot
 
-# Component imports:
+# Component imports
 # No components yet, we need to rebuild them
 
 # Other imports
-from utils.configmanager import InitializeRobot
+from utils.configutil import InitializeRobot, parse_robot_args
 
 
 class MyRobot(MagicRobot):
@@ -23,7 +23,7 @@ class MyRobot(MagicRobot):
         Robot-wide initialization code should go here. Replaces robotInit
         """
 
-        InitializeRobot(self, cfg_file="doof.json", generate_objects=False)
+        InitializeRobot(self, default_config="doof.json")
 
     def teleopPeriodic(self):
         """
@@ -33,4 +33,5 @@ class MyRobot(MagicRobot):
 
 
 if __name__ == '__main__':
+    parse_robot_args()
     wpilib.run(MyRobot)

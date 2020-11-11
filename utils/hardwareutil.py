@@ -2,10 +2,9 @@ import wpilib
 import ctre
 import rev
 import navx
-import inspect
 
 
-__all__ = ["HardwareObject"]
+__all__ = ["generate_hardware_objects"]
 
 
 # Define custom errors
@@ -35,84 +34,156 @@ class MissingRequiredKeysError(AttributeError):
     """
 
 
-# Begin API
-# NOTE `HardwareObject` is the only public class
-# TODO switch print statements to log or something else
-class HardwareObject:  # maybe rename to `CreateHardwareObject`
-    """Public hardware constructor class.
+#
+# Mapping to hold Python objects that
+# construct usable hardware objects
+# NOTE this is implicitly filled in
+#      by the `_PyHardwareObject`
+#      class
+#
+_OBJECT_MAPPING = {}
 
-    Returns an initilized object of a type
-    specified in the `desc` param.
 
-    :param desc: Object description.
+def generate_hardware_objects(robot_cls: wpilib.RobotBase, hardware_cfg: dict):
+    """Generate hardware objects for a robot.
+
+    This sets injectable dictionaries with hardware attributes to the robot
+    in the form of `groupName_subsystemName` (i.e., `motors_driveTrain`)
+    to be used in components. Example hardware configuration below:
+
+        "motors": {
+            "driveTrain": {
+                "rightMotor": {
+                    "channel": 30,
+                    "type": "CANTalonFX",
+                    "inverted": true,
+                    "currentLimits": {
+                        "triggerThresholdCurrent": 60,
+                        "triggerThresholdTime": 50,
+                        "currentLimit": 40
+                    }
+                },
+                "rightFollower": {
+                    ...
+
+    ...and example usage:
+
+        class DriveTrain:
+
+            motors_driveTrain: dict
+
+            def on_enable(self):
+                self.rightMotor = self.motors_driveTrain["rightMotor"]
+
+    :param robot_cls: Base robot class to set injectable dictionaries to.
+
+    :param hardware_cfg: A dictionary hardware configuration to use to
+    generate objects.
     """
 
-    # holder mapping for types and constructor objects
-    __objs__ = {}
+    log = robot_cls.logger
 
-    def __new__(cls, desc: dict):
+    def new_hardware_object(desc):
+        """Generate a new hardware object.
+
+        Search through registered classes that inherit from `_PyHardwareObject`
+        to find a which object matches the type specified in the `desc` provided.
+
+        :param desc: Object description
+        """
+
+        #
+        # XXX: Most of this stuff is just error checking to give
+        #      a meaningful error if the user sets up an object
+        #      incorrectly. Same idea applies for `_PyHardwareObject`
+        #
 
         typ = desc.pop("type", None)
-        c = cls.__objs__.get(typ, None)
+        c = _OBJECT_MAPPING.get(typ, None)
         r = getattr(c, "__required_keys__", None)
 
         # assert type key exists - otherwise,
         # no object can be created
         if typ is None:
-            _msg = ("missing 'type' key in description. "
-                    "desc is {}")
+            _msg = "missing 'type' key in description. desc is {}"
             msg = _msg.format(desc)
             raise AttributeError(msg)
 
         # assert type given actually has a
         # binded constructor object
         if c is None:
-            _msg = ("object type {!r} is missing "
-                    "a constructor object")
+            _msg = "object type {!r} is missing a constructor object"
             msg = _msg.format(typ)
             raise NoConstructorError(msg)
 
         # check required attributes
         if r is not None:
-            if not isinstance(r, tuple):
-                _msg = ("__required_keys__ must be of "
-                        "tuple type; found {} (in constructor "
-                        "{!r} ({}))")
+            is_iterable = hasattr(r, "__iter__")
+            is_string = type(r).__name__ == "str"
+            if not (is_iterable or is_string):
+                _msg = ("__required_keys__ must be an iterable or a "
+                        "string; found {} in constructor {!r} ({})")
                 msg = _msg.format(type(r).__name__, c.__name__, c)
                 raise TypeError(msg)
-            for attr in c.__dict__.get("__required_keys__"):
-                if attr not in desc:
-                    _msg = ("required attriute {!r} missing "
-                            "in description passed into "
-                            "constructor {!r} ({}). desc is {}")
-                    msg = _msg.format(attr, c.__name__, c, desc)
+            # define this here to avoid repeating it
+            _msg = ("required attriute {!r} missing in description "
+                    "passed into constructor {!r} ({}). desc is {}")
+            if is_iterable:
+                for attr in r:
+                    if attr not in desc:
+                        msg = _msg.format(attr, c.__name__, c, desc)
+                        raise MissingRequiredKeysError(msg)
+            if is_string:
+                if r not in desc:
+                    msg = _msg.format(r, c.__name__, c, desc)
                     raise MissingRequiredKeysError(msg)
 
+        log.info(f"creating {c} object with desc {desc}")
         # This allows for empty classes (such as `Compressor`)
-        # NOTE `__init__` in constructor objects MUST ONLY HAVE
-        #      ONE PARAMETER
+        # NOTE requiring only ONE param in __init__ methods of
+        #      constructor objects isn't enforced
         return c(desc) if bool(desc) else c()
+
+    total_items = 0
+    for general_type, all_objects in hardware_cfg.items():
+        for subsystem_name, subsystem_items in all_objects.items():
+            for item_name, item_desc in subsystem_items.items():
+                subsystem_items[item_name] = new_hardware_object(item_desc)
+                total_items += 1
+            group_subsystem = "_".join([general_type, subsystem_name])
+            setattr(robot_cls, group_subsystem, subsystem_items)
+            log.info(
+                f"created {len(subsystem_items)} item(s) into {group_subsystem}"
+            )
+    log.info(f"created {total_items} total items")
 
 
 class _PyHardwareObject:
     """Base hardware class.
 
     All hardware constructor objects should inherit from
-    this class.
+    this class. This class should not be instantiated by
+    itself.
     """
+
+    # this only exists to prevent direct instantiation
+    def __init__(self, *args, **kwargs):
+        if self is _PyHardwareObject:
+            raise TypeError(
+                "do not instantiate '_PyHardwareObject' directly"
+            )
 
     def __init_subclass__(cls):
         """Initialize hardware constructor objects.
 
         This exists to assert hardware constructors have
-        the appropriate attributes, and to register
-        the object and its type to the `HardwareObject`
-        class. Supported custom attributes include
-        `__type__` and `__required_keys__`.
+        the appropriate attributes and to register
+        the object and its type to `_OBJECT_MAPPING`
+        Supported custom attributes include `__type__`
+        and `__required_keys__`.
         """
 
         _type = getattr(cls, "__type__", None)
-        _init = getattr(cls, "__init__", None)
 
         # assert __type__ exists
         if _type is None:
@@ -129,47 +200,20 @@ class _PyHardwareObject:
             msg = _msg.format(cls.__name__, cls, type(_type).__name__)
             raise TypeError(msg)
 
-        # assert only 2 args in __init__ of constructor
-        # (should only have self and desc for `HardwareObject`
-        #  to work properly)
-        if _init is not None:
-            argspec = inspect.getfullargspec(_init)
-            args = argspec.args
-            defaults = argspec.defaults
-            # best way to check for kwwargs, as inspect.getfullargspec
-            # doesn't explicitly return this information
-            if defaults:
-                _msg = ("keyword params found in '__init__' of "
-                       "constructor {!r} ({}), do not use in keyword"
-                       "params _PyHardwareObject constructors")
-                msg = _msg.format(cls.__name__, cls)
-                raise ValueError(msg)
-            arg_count = len(args)
-            if arg_count != 2:
-                if arg_count > 2:
-                    _issue = "too many args"
-                if arg_count < 2:
-                    _issue = "too few args"
-                _msg = ("{} in '__init__' of constructor "
-                        "{!r} ({}): expected {}, found {}")
-                msg = _msg.format(_issue, cls.__name__,
-                                  cls, 2, arg_count)
-                raise ValueError(msg)
-
-        # update public interface with constructor objects
-        _objs = HardwareObject.__dict__.get("__objs__")
         # assert no duplicate __type__ values
-        if _type in _objs:
+        if _type in _OBJECT_MAPPING:
             _msg = ("'__type__' attribute of constructor {!r} ({}) "
                     "has name {!r}, which was already defined "
                     "in constructor {!r} ({})")
             msg = _msg.format(cls.__name__, cls, _type,
-                              _objs.get(_type).__name__,
-                              _objs.get(_type))
+                              _OBJECT_MAPPING.get(_type).__name__,
+                              _OBJECT_MAPPING.get(_type))
             raise DuplicateTypeError(msg)
 
-        print(f"adding type {_type!r} with object {cls.__name__!r} ({cls})")
-        _objs.update({_type: cls})
+        info_msg = f"adding type {_type!r} with constructor {cls}"
+        print(info_msg)
+        # update public interface with constructor objects
+        _OBJECT_MAPPING.update({_type: cls})
 
 
 class CANTalonSRX(_PyHardwareObject, ctre.WPI_TalonSRX):
@@ -185,7 +229,7 @@ class CANTalonSRX(_PyHardwareObject, ctre.WPI_TalonSRX):
     def __init__(self, desc):
 
         # Setup conditional variables
-        self.has_pid = False
+        self._has_pid = False
 
         # Define constructor variables
         channel = desc["channel"]
@@ -212,7 +256,7 @@ class CANTalonSRX(_PyHardwareObject, ctre.WPI_TalonSRX):
                 value=desc["masterChannel"]
             )
         if "pid" in desc:
-            self.has_pid = True
+            self._has_pid = True
             self.__setupPID(desc["pid"])
         if "currentLimits" in desc:
             self.__setCurrentLimits(desc["currentLimits"])
@@ -264,7 +308,7 @@ class CANTalonSRX(_PyHardwareObject, ctre.WPI_TalonSRX):
         Set the speed for a TalonSRX motor.
         """
         # XXX why do we return on set? Caiden?
-        if self.has_pid:
+        if self._has_pid:
             return ctre.WPI_TalonSRX.set(self, self.control_type, speed * self.kPreScale)
         else:
             return ctre.WPI_TalonSRX.set(self, speed)
@@ -283,7 +327,7 @@ class CANTalonFX(_PyHardwareObject, ctre.WPI_TalonFX):
     def __init__(self, desc):
 
         # Setup conditional variables
-        self.has_pid = False
+        self._has_pid = False
 
         # Define constructor variables
         channel = desc["channel"]
@@ -293,14 +337,13 @@ class CANTalonFX(_PyHardwareObject, ctre.WPI_TalonFX):
 
         # Check motor parameters and setup motor accordingly
         if "follower" in desc:
-            self.is_follower = True
             ctre.WPI_TalonFX.set(self,
                 mode=ctre.TalonFXControlMode.Follower,
                 value=desc["masterChannel"]
             )
         # Instantiate other pieces of the motor
         if "pid" in desc:
-            self.has_pid = True
+            self._has_pid = True
             self.__setupPID(desc["pid"])
         if "currentLimits" in desc:
             self.__setCurrentLimits(desc["currentLimits"])
@@ -355,7 +398,7 @@ class CANTalonFX(_PyHardwareObject, ctre.WPI_TalonFX):
         Set the speed for a TalonFX motor.
         """
 
-        if self.has_pid:
+        if self._has_pid:
             return ctre.WPI_TalonFX.set(self, self.control_type, speed * self.kPreScale)
         else:
             return ctre.WPI_TalonFX.set(self, speed)
@@ -379,8 +422,8 @@ class CANSparkMax(_PyHardwareObject, rev.CANSparkMax):
     def __init__(self, desc):
 
         # Setup conditional variables
-        self.coasting = False
-        self.has_pid = False
+        self._coasting = False
+        self._has_pid = False
 
         # Setup constructor variables
         channel = desc["channel"]
@@ -396,7 +439,7 @@ class CANSparkMax(_PyHardwareObject, rev.CANSparkMax):
                 desc['inverted']
             )
         if "pid" in desc:
-            self.has_pid = True
+            self._has_pid = True
             self.__setupPID(desc["pid"])
         if "currentLimits" in desc:
             self.__setCurrentLimits(desc["currentLimits"])
@@ -414,7 +457,7 @@ class CANSparkMax(_PyHardwareObject, rev.CANSparkMax):
         self.init_control_type = pid_desc["controlType"]
         self.__set_control_type(self.init_control_type)
 
-        # XXX Why are we defining this? It's never used.
+        # XXX Why are we defining encoder? It's never used.
         self.encoder = self.getEncoder()
         self.kPreScale = pid_desc['kPreScale']  # Multiplier for speed
         self.feedbackDevice = pid_desc["feedbackDevice"]
@@ -465,9 +508,9 @@ class CANSparkMax(_PyHardwareObject, rev.CANSparkMax):
         sets the speed to 0.
         """
 
-        if self.coasting:
+        if self._coasting:
             return
-        self.coasting = True
+        self._coasting = True
         self.__set_control_type("kDutyCycle")
         self.PIDController.setReference(
             0, self.control_type, self.feedbackDevice)
@@ -478,16 +521,16 @@ class CANSparkMax(_PyHardwareObject, rev.CANSparkMax):
         stops the motor from coasting.
         """
 
-        if self.coasting:
+        if self._coasting:
             self.control_type = self.init_control_type
-        self.coasting = False
+        self._coasting = False
 
     def set(self, speed, coast=True):
         """
         Set the speed for a SparkMax motor.
         """
 
-        if self.has_pid:
+        if self._has_pid:
             self.__coast() if coast and speed == 0 else self.__stop_coast()
             return self.PIDController.setReference(speed * self.kPreScale, 
                                                    self.control_type,
