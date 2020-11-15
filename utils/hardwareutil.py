@@ -2,6 +2,7 @@ import wpilib
 import ctre
 import rev
 import navx
+import inspect
 
 
 __all__ = ["generate_hardware_objects"]
@@ -38,8 +39,7 @@ class MissingRequiredKeysError(AttributeError):
 # Mapping to hold Python objects that
 # construct usable hardware objects
 # NOTE this is implicitly filled in
-#      by the `_PyHardwareObject`
-#      class
+#      by the `_PyHardwareObject` class
 #
 _OBJECT_MAPPING = {}
 
@@ -139,9 +139,7 @@ def generate_hardware_objects(robot_cls: wpilib.RobotBase, hardware_cfg: dict):
                     raise MissingRequiredKeysError(msg)
 
         log.info(f"creating {c} object with desc {desc}")
-        # This allows for empty classes (such as `Compressor`)
-        # NOTE requiring only ONE param in __init__ methods of
-        #      constructor objects isn't enforced
+        # this allows for empty classes (such as `Compressor`)
         return c(desc) if bool(desc) else c()
 
     total_items = 0
@@ -158,7 +156,27 @@ def generate_hardware_objects(robot_cls: wpilib.RobotBase, hardware_cfg: dict):
     log.info(f"created {total_items} total items")
 
 
-class _PyHardwareObject:
+class _Identifier:
+    """
+    Indicate that the child class acts only as an identifier
+    and provides no actual implimentation when subclassed, only
+    internal modifiers and checks.
+    """
+
+    # assert all attributes are private/dunder/sunder,
+    # as to not be used in any child classes
+    def __init_subclass__(cls):
+        for member in inspect.getmembers(cls):
+            name = member[0]
+            obj = member[1]
+            if not name.startswith("_"):
+                _msg = ("_Identifier object {!r} has "
+                        "a public attribute {!r} ({})")
+                msg = _msg.format(cls, name, obj)
+                raise AttributeError(msg)
+
+
+class _PyHardwareObject(_Identifier):
     """Base hardware class.
 
     All hardware constructor objects should inherit from
@@ -200,6 +218,19 @@ class _PyHardwareObject:
             msg = _msg.format(cls.__name__, cls, type(_type).__name__)
             raise TypeError(msg)
 
+        # assert only `desc` arg in constructor `__init__`,
+        # this will cause problems later if this isn't checked
+        _constructor_args = inspect.getfullargspec(cls).args
+        if len(_constructor_args) > 2:
+            _msg = ("too many positional arguments in constructor "
+                    "{!r} ({}), unable to create hardware objects "
+                    "correctly (expected 2 positional arguments, "
+                    "found {}. args: {})")
+            msg = _msg.format(cls.__name__, cls,
+                              len(_constructor_args),
+                              _constructor_args)
+            raise ValueError(msg)
+
         # assert no duplicate __type__ values
         if _type in _OBJECT_MAPPING:
             _msg = ("'__type__' attribute of constructor {!r} ({}) "
@@ -212,7 +243,7 @@ class _PyHardwareObject:
 
         info_msg = f"adding type {_type!r} with constructor {cls}"
         print(info_msg)
-        # update public interface with constructor objects
+        # update mapping with constructor object
         _OBJECT_MAPPING.update({_type: cls})
 
 

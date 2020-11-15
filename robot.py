@@ -6,7 +6,7 @@ from magicbot import MagicRobot
 # No components yet, we need to rebuild them
 
 # Other imports
-from utils.configutil import InitializeRobot, parse_robot_args
+from utils.configutil import InitializeRobot
 
 
 class MyRobot(MagicRobot):
@@ -18,12 +18,23 @@ class MyRobot(MagicRobot):
     # Again, none yet. We need to rebuild
     # the components for this years robot(s).
 
+    # def init(self):
+    #     print("it worked")
+
+    # # create a more syntactically sound name for `createObjects`
+    # # by altering namespace:
+    # createObjects = init
+
     def createObjects(self):
         """
         Robot-wide initialization code should go here. Replaces robotInit
+
+        XXX The name `createObjects` is a bit deceptive, because this
+        does more than just "create objects" for the robot. It initializes
+        the robot in many different ways (functions as the `__init__`).
         """
 
-        InitializeRobot(self, default_config="doof.json")
+        InitializeRobot(self, default_cfg="doof.json")
 
     def teleopPeriodic(self):
         """
@@ -33,5 +44,4 @@ class MyRobot(MagicRobot):
 
 
 if __name__ == '__main__':
-    parse_robot_args()
     wpilib.run(MyRobot)

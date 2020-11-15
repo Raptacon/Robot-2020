@@ -1,98 +1,98 @@
-from utils.hardwareutil import generate_hardware_objects
 import os
 import sys
 import json
 import wpilib
-from chardet import detect
-from pathlib import Path
+from typing import Union, get_type_hints
 from warnings import warn
-from typing import Optional, Union, get_type_hints
+
+# eh, kind of iffy on this import
+from utils.hardwareutil import generate_hardware_objects
 
 
-__all__ = ["parse_robot_args", "InitializeRobot"]
+__all__ = ["InitializeRobot"]
 
 
-def parse_robot_args():
-    """Parse robot arguments.
+class _ArgumentHelper:
 
-    As of now, this only checks for a `--config`
-    flag and determines a configuration file to
-    use. To set a configuration via commandline,
-    use this command:
+    def __init_subclass__(cls):
+        """Parse commandline args at compile time.
 
-        py robot.py {sim | deploy} --config {cfg_name.json}
-    """
-
-    args = sys.argv
-    if "--config" in args:
-        cfg_flag = args[args.index("--config")]
-        cfg_name = args[args.index("--config") + 1]
-        InitializeRobot.__configuration__ = cfg_name
-        # must remove additional args, or wpilib.run will complain
-        args.remove(cfg_flag)
-        args.remove(cfg_name)
-
-
-class InitializeRobot:
-    """Create robot objects.
-
-    Sets hardware (and eventually software) attributes
-    to a robot, used as injectables for components to use.
-    Also disables incompatable components for the loaded
-    robot.
-
-    :param base_cls: Robot class object to set attributes
-    to.
-
-    :param default_config: Configuration to default to if
-    none is specified.
-    """
-
-    # used if config specified as arg in cmdline
-    __configuration__ = None
-
-    def __init__(self, base_cls: wpilib.RobotBase,
-                 default_config: str=None):
-
-        self.robot_cls = base_cls
-
-        if self.__configuration__:
-            config = self.__configuration__
-            self.robot_cls.logger.info(f"Using config {config!r}")
-        else:
-            msg = ("no config specified in commandline, "
-                   f"using default: {default_config!r}")
-            self.robot_cls.logger.warning(msg)
-            config = default_config
-
-        generate_hardware_objects(self.robot_cls, self._load(config))
-        self._cleanup_components()
-
-        self.robot_name = config.split('.')[0]
-
-    def _load(self, cfg_name) -> Union[dict, list]:
-        """
-        Load a JSON file.
-
-        :param cfg_name: Name of JSON config file to load.
-
-        NOTE: This automatically fills in the directory
-        with the config directory, this DOES NOT accept
-        full directories as an argument.
+        Ultimately this only exists to parse arguments
+        BEFORE `wpilib.run` is called.
         """
 
-        cfg_dir = os.getcwd() + os.path.sep + "config" + os.path.sep + cfg_name
-        with open(cfg_dir) as file:
+        flag_pairs = []
+        cmdargs = sys.argv
+        for arg in cmdargs:
+            if arg.startswith('-'):
+                # kind of brute-forcing this...
+                # TODO find a better way to get flags/args
+                flag = cmdargs[cmdargs.index(arg)]
+                param = cmdargs[cmdargs.index(arg) + 1]
+                flag_pairs.append((flag, param))
+                cmdargs.remove(flag)
+                cmdargs.remove(param)
+
+        for flag_pair in flag_pairs:
+            flag = flag_pair[0]
+            arg = flag_pair[1]
+            # again, somewhat brute-forcing this
+            if flag == "--config":
+                cls.__config__ = arg
+
+
+class InitializeRobot(_ArgumentHelper):
+    """
+    Initialize a robot class.
+    """
+
+    __config__ = None
+
+    def __init__(self, robot_cls: wpilib.RobotBase, default_cfg: str=None):
+
+        if self.__config__ is None:
+            robot_cls.logger.warning("No config specified")
+            self.__config__ = default_cfg
+
+        robot_cls.logger.info(f"Using config: {self.__config__!r}")
+
+        config_name = self.__config__.strip(".json")
+        config_data = self._load(self.__config__)
+
+        generate_hardware_objects(robot_cls, config_data)
+        self._cleanup_components(robot_cls, config_name)
+
+    def _load(self, cfg_name):
+        """
+        Load a JSON config.
+        """
+
+        filedir = os.getcwd() + os.path.sep + "config" + os.path.sep + cfg_name
+        with open(filedir) as file:
             return json.load(file)
 
-    def _cleanup_components(self):
-        """
-        Remove incompatable components from the robot class.
+    def _cleanup_components(self, robot_cls, key: str):
+        """Remove incompatable components.
+
+        If multiple robots are being used and the components
+        for these robots are defined in one robot class, this
+        fucntion eill remove any incompatable components from
+        the robot class. All components MUST have a `robot`
+        attribute to determine what robot they belong to.
+
+        :param robot_cls: Robot class to check components
+        for (i.e. `MyRobot`).
+
+        :param key: Key used to determine what components to use.
+        If a component doesn't have this key in it's `robot`
+        attribute, it is removed and not used in the robot.
+        This is typically (and should be) the name of the config
+        file selected.
         """
 
         # this allows us to access __annotations__ from
         # the instance rather than the class itself
-        cls = type(self.robot_cls)
+        cls = type(robot_cls)
 
         #
         # HACK: to allow `get_type_hints` to work
@@ -125,11 +125,11 @@ class InitializeRobot:
                     f"Component {cname} ({c}) is missing a 'robot'"
                     " attribute; component cannot be created."
                 )
-            if self.robot_name in compat_robots or "all" in compat_robots:
+            if key in compat_robots or "all" in compat_robots:
                 continue
             else:
                 bad_components.append(cname)
 
         for bad_comp in bad_components:
-            cls.logger.info(f"Removing component {bad_comp!r}")
+            robot_cls.logger.info(f"Removing component {bad_comp!r}")
             del annotations[bad_comp]
