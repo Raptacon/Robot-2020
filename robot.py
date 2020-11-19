@@ -6,8 +6,12 @@ from magicbot import MagicRobot
 # No components yet, we need to rebuild them
 
 # Other imports
-from utils.configutil import InitializeRobot
+from utils.configutil import ConfigManager
+from utils.hardwareutil import generate_hardware_objects
+from utils.robotutil import cleanup_components
 
+def dummyregsiter(objects: list=None):
+    pass
 
 class MyRobot(MagicRobot):
     """
@@ -18,28 +22,24 @@ class MyRobot(MagicRobot):
     # Again, none yet. We need to rebuild
     # the components for this years robot(s).
 
-    # def init(self):
-    #     print("it worked")
-
-    # # create a more syntactically sound name for `createObjects`
-    # # by altering namespace:
-    # createObjects = init
-
     def createObjects(self):
         """
-        Robot-wide initialization code should go here. Replaces robotInit
+        Robot-wide initialization.
 
         XXX The name `createObjects` is a bit deceptive, because this
         does more than just "create objects" for the robot. It initializes
         the robot in many different ways (functions as the `__init__`).
         """
 
-        InitializeRobot(self, default_cfg="doof.json")
+        config = ConfigManager(self, default="doof.json")
+        generate_hardware_objects(self, hardware_cfg=config.data)
+        cleanup_components(self, key=config.name)
 
     def teleopPeriodic(self):
         """
         Must include. Called running teleop.
         """
+
         ...
 
 

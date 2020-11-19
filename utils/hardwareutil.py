@@ -4,6 +4,8 @@ import rev
 import navx
 import inspect
 
+import py
+
 
 __all__ = ["generate_hardware_objects"]
 
@@ -44,7 +46,7 @@ class MissingRequiredKeysError(AttributeError):
 _OBJECT_MAPPING = {}
 
 
-def generate_hardware_objects(robot_cls: wpilib.RobotBase, hardware_cfg: dict):
+def generate_hardware_objects(robot_cls: wpilib.RobotBase, *, hardware_cfg: dict):
     """Generate hardware objects for a robot.
 
     This sets injectable dictionaries with hardware attributes to the robot

@@ -1,23 +1,21 @@
 import os
 import sys
 import json
-import wpilib
-from typing import Union, get_type_hints
-from warnings import warn
-
-# eh, kind of iffy on this import
-from utils.hardwareutil import generate_hardware_objects
+import wpilib  # only for annotations
 
 
-__all__ = ["InitializeRobot"]
+__all__ = ["ConfigManager"]
 
 
 class _ArgumentHelper:
+    """
+    Help handle commandline arguments.
+    """
 
     def __init_subclass__(cls):
         """Parse commandline args at compile time.
 
-        Ultimately this only exists to parse arguments
+        Ultimately, this only exists to parse arguments
         BEFORE `wpilib.run` is called.
         """
 
@@ -41,95 +39,71 @@ class _ArgumentHelper:
                 cls.__config__ = arg
 
 
-class InitializeRobot(_ArgumentHelper):
-    """
-    Initialize a robot class.
+class ConfigManager(_ArgumentHelper):
+    """Robot configuration object.
+
+    Store configuration information in an object. This
+    includes name of the config file (without extentions)
+    and the loaded data within the config file.
+
+    :param robot_cls: Base robot class, used for logging
+    purposes.
+
+    :param default: Default config to be used if
+    none is specified via commandline.
     """
 
     __config__ = None
 
-    def __init__(self, robot_cls: wpilib.RobotBase, default_cfg: str=None):
+    def __init__(self, robot_cls: wpilib.RobotBase, *, default: str):
+
+        log = robot_cls.logger
 
         if self.__config__ is None:
-            robot_cls.logger.warning("No config specified")
-            self.__config__ = default_cfg
+            log.warning("No config specified, using default")
+            self.__config__ = default
 
-        robot_cls.logger.info(f"Using config: {self.__config__!r}")
+        if not self._format_check(self.__config__):
+            raise SyntaxError(
+                f"config {self.__config__!r} must be "
+                 "a valid JSON file (include '.json')"
+            )
 
-        config_name = self.__config__.strip(".json")
-        config_data = self._load(self.__config__)
+        log.info(f"Using config {self.__config__!r}")
+        self._data = self._load(self.__config__)
 
-        generate_hardware_objects(robot_cls, config_data)
-        self._cleanup_components(robot_cls, config_name)
-
-    def _load(self, cfg_name):
+    def _format_check(self, string):
         """
-        Load a JSON config.
+        Assert config name has a valid JSON extention.
         """
 
-        filedir = os.getcwd() + os.path.sep + "config" + os.path.sep + cfg_name
+        return string[-5:] == ".json"
+
+    def _load(self, string):
+        """
+        Load config data.
+        """
+
+        cfgsdir = os.getcwd() + os.path.sep + "config" + os.path.sep
+        filedir = cfgsdir + self.__config__
+
         with open(filedir) as file:
             return json.load(file)
 
-    def _cleanup_components(self, robot_cls, key: str):
-        """Remove incompatable components.
+    @property
+    def name(self):
+        """Get the name of the config file.
 
-        If multiple robots are being used and the components
-        for these robots are defined in one robot class, this
-        fucntion eill remove any incompatable components from
-        the robot class. All components MUST have a `robot`
-        attribute to determine what robot they belong to.
-
-        :param robot_cls: Robot class to check components
-        for (i.e. `MyRobot`).
-
-        :param key: Key used to determine what components to use.
-        If a component doesn't have this key in it's `robot`
-        attribute, it is removed and not used in the robot.
-        This is typically (and should be) the name of the config
-        file selected.
+        This is usually the robot name, and is used for
+        checking and disabling components.
         """
 
-        # this allows us to access __annotations__ from
-        # the instance rather than the class itself
-        cls = type(robot_cls)
+        return self.__config__.strip(".json")
 
-        #
-        # HACK: to allow `get_type_hints` to work
-        #       with pybind11_bultins.
-        #
-        class FakeModule:
-            pass
+    @property
+    def data(self):
+        """
+        Get the data of the config file.
+        """
 
-        sys.modules["pybind11_builtins"] = FakeModule()
-
-        annotations = get_type_hints(cls)
-        bad_components = []
-
-        for cname, c in annotations.items():
-            compat_robots = getattr(c, "robot", None)
-            if not compat_robots:
-
-                #
-                # XXX: Should this be a warning and enable the
-                #      component by default?
-                #
-                #      Or, we could seperate robot components into their
-                #      own directories (i.e. components\doof\component.py)
-                #      and use inspect.getsourcefile(c) to check if the
-                #      component belongs to a specific robot (then no need
-                #      for a `self.robot_name` attribute at all).
-                #
-
-                raise AttributeError(
-                    f"Component {cname} ({c}) is missing a 'robot'"
-                    " attribute; component cannot be created."
-                )
-            if key in compat_robots or "all" in compat_robots:
-                continue
-            else:
-                bad_components.append(cname)
-
-        for bad_comp in bad_components:
-            robot_cls.logger.info(f"Removing component {bad_comp!r}")
-            del annotations[bad_comp]
+        return self._data
