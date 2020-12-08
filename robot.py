@@ -10,8 +10,12 @@ from utils.configutil import ConfigManager
 from utils.hardwareutil import generate_hardware_objects
 from utils.robotutil import cleanup_components
 
-def dummyregsiter(objects: list=None):
+from utils.motors.sparkmax import SparkMax
+
+
+class RobotBase(MagicRobot):
     pass
+
 
 class MyRobot(MagicRobot):
     """
@@ -21,6 +25,9 @@ class MyRobot(MagicRobot):
     # Components
     # Again, none yet. We need to rebuild
     # the components for this years robot(s).
+
+    # def __init__(self):
+    #     wpilib.run((type(self)))
 
     def createObjects(self):
         """
@@ -45,3 +52,4 @@ class MyRobot(MagicRobot):
 
 if __name__ == '__main__':
     wpilib.run(MyRobot)
+    # MyRobot()
