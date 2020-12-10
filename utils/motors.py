@@ -1,4 +1,3 @@
-import wpilib
 import ctre
 import rev
 import navx

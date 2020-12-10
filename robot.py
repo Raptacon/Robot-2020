@@ -10,8 +10,6 @@ from utils.configutil import ConfigManager
 from utils.hardwareutil import generate_hardware_objects
 from utils.robotutil import cleanup_components
 
-from utils.motors.sparkmax import SparkMax
-
 
 class RobotBase(MagicRobot):
     pass
