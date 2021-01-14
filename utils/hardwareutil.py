@@ -40,9 +40,12 @@ class MissingRequiredKeysError(AttributeError):
 # NOTE this is implicitly filled in
 #      by the `_PyHardwareObject` class
 #
+# HACK: There should be better way to to this...
+#
 _OBJECT_MAPPING = {}
 
 
+# TODO: Assert constructor class has only one param in `__init__`
 def generate_hardware_objects(robot_cls: wpilib.RobotBase, *, hardware_cfg: dict):
     """Generate hardware objects for a robot.
 
