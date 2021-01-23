@@ -12,5 +12,6 @@ pyfrc
 robotpy-ctre
 robotpy-navx
 robotpy-rev
+robotpy-halsim-gui
 pynetworktables
 pyyaml
